@@ -69,13 +69,76 @@
       return svg.join("");
     }
 
+    /* ---------- Potential tab: what is left of your footprint ----------
+     * The full width of the track is ALWAYS the footprint you have today, so the bar
+     * can only ever get shorter. Every ticked change subtracts from its own area, the
+     * coloured part shrinks left-aligned, and the hatched remainder on the right is
+     * exactly the tonnes removed. Widths are plain percentages of the baseline total
+     * and the segments touch with no gaps, so the picture is the arithmetic — the same
+     * rule the Sankey follows. A change that moves emissions rather than removing them
+     * (a night train instead of a flight) makes one area grow while another shrinks;
+     * that shows up honestly, because the bar is redrawn from a real recalculation and
+     * never from the sum of the individual savings.
+     */
+    function horizontal(opts) {
+      var domains = opts.domains, now = opts.now || {}, after = opts.after || {};
+      var base = opts.baseTotal, left = opts.total;
+      if (!(base > 0)) return "";
+      var pct = function (t) { return (t / base) * 100; };
+
+      // Widths are never rounded and the hatched remainder is whatever the colours leave
+      // over, so the track is exactly full and the hatch is exactly the tonnes removed.
+      // A bar that rounds its way to a tidy picture would be telling a small lie.
+      var TINY = 1e-6; // below this a width is invisible anyway; keep it out of the markup
+      var segs = [], keys = [], filled = 0;
+      domains.forEach(function (d) {
+        var a = after[d.id] || 0, n = now[d.id] || 0, diff = n - a, w = pct(a);
+        if (a > 0) filled += w;
+        if (w >= TINY) {
+          segs.push('<div class="pb-seg" style="width:' + w + '%;background:' + d.color + '" title="' +
+            esc(d.label + ": " + a.toFixed(2) + " t" + (Math.abs(diff) > 0.005 ? " (was " + n.toFixed(2) + " t)" : "")) + '"></div>');
+        }
+        keys.push('<span class="pb-key' + (a <= 0.005 ? " pb-gone" : "") + '"><i style="background:' + d.color + '"></i>' +
+          esc(d.label) + " <b>" + a.toFixed(1) + " t</b>" +
+          (diff > 0.005 ? '<em class="pb-down">\u2212' + diff.toFixed(1) + "</em>"
+            : (diff < -0.005 ? '<em class="pb-up">+' + (-diff).toFixed(1) + "</em>" : "")) + "</span>");
+      });
+
+      // whatever the coloured part does not use is, by construction, what the changes removed
+      var gone = Math.max(0, 100 - filled), saved = Math.max(0, base - left);
+      if (gone >= TINY) {
+        segs.push('<div class="pb-shadow" style="width:' + gone + '%" title="' +
+          esc("Removed by your changes: " + saved.toFixed(2) + " t of " + base.toFixed(2) + " t") + '">' +
+          (gone >= 11 ? "\u2212" + saved.toFixed(1) + " t" : "") + "</div>");
+      }
+
+      var goalMark = "";
+      if (opts.goal && opts.goal.value > 0 && opts.goal.value < base) {
+        var g = Number(pct(opts.goal.value).toFixed(3)); // a marker, not a quantity
+        var shift = g > 86 ? "translateX(-100%)" : (g < 9 ? "translateX(0)" : "translateX(-50%)");
+        goalMark = '<div class="pb-goal" style="left:' + g + "%;transform:" + shift + '">' +
+          esc(opts.goal.label || "goal") + "</div>";
+        segs.push('<div class="pb-goal-line" style="left:' + g + '%"></div>');
+      }
+
+      return '<div class="pb-wrap">' + goalMark +
+        '<div class="pb-track" role="img" aria-label="' +
+          esc("Of " + base.toFixed(1) + " t today, " + left.toFixed(1) + " t remain after the changes you ticked") + '">' +
+          segs.join("") + "</div>" +
+        '<div class="pb-legend">' + keys.join("") + "</div>" +
+        '<p class="pb-caption small muted">The full width is your <strong>' + base.toFixed(1) +
+          " t</strong> today and never changes. Ticking a change subtracts it from its own area, so the coloured part shrinks; the hatched part is what you removed" +
+          (saved > 0.005 ? " \u2014 <strong>" + saved.toFixed(1) + " t</strong> so far." : " \u2014 nothing yet.") + "</p>" +
+        "</div>";
+    }
+
     function legend(domains) {
       return domains.map(function (d) {
         return '<span class="legend-item"><i style="background:' + d.color + '"></i>' + esc(d.label) + "</span>";
       }).join("");
     }
 
-    return { render: render, legend: legend };
+    return { render: render, horizontal: horizontal, legend: legend };
   }
 
   var G = (root.GreenApp = root.GreenApp || { sources: {} });

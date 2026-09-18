@@ -13,11 +13,13 @@
  *   6. the Monte Carlo range brackets the central value and is stable
  *   7. nothing is negative, NaN or infinite
  *   8. the same factor is drawn ONCE per sample (correlated, not averaged away)
+ *   9. the Potential bar's widths are the tonnes (that picture is the arithmetic too)
  */
 require("../data/factors.js");
 require("../data/benchmarks.js");
 require("../js/engine.js");
 require("../js/questions.js");
+require("../js/chart.js");
 const { engine, factors: F } = globalThis.GreenApp;
 
 let failed = 0, passed = 0, checks = 0;
@@ -335,6 +337,71 @@ console.log("Correlated factors");
   console.log("    80% band = " + (spread * 100).toFixed(1) + "% of the central value");
 }
 report("one physical quantity is drawn once per sample");
+
+/* ---------- 9. the bar on "Pick your changes" is the arithmetic ----------
+ * The bar claims three things: the full width is the footprint you have today and never
+ * moves, the coloured part is what is left area by area, and the hatched part on the
+ * right is exactly the tonnes the ticked changes removed. Parse the widths back out of
+ * the HTML it generates and check every one against the engine — the same rule the
+ * Sankey is held to. A bar that rounds its way to a comfortable picture is a lie.
+ */
+console.log("The bar on Pick your changes");
+{
+  const chart = globalThis.GreenApp.chart;
+  const domains = globalThis.GreenApp.benchmarks.domains;
+  const widths = (html, cls) => {
+    const re = new RegExp('class="' + cls + '" style="width:([0-9.]+)%', "g");
+    const out = []; let m;
+    while ((m = re.exec(html))) out.push(parseFloat(m[1]));
+    return out;
+  };
+  const sum = (xs) => xs.reduce((a, b) => a + b, 0);
+  const near = (a, b, eps) => Math.abs(a - b) <= eps;
+
+  profiles.slice(0, 300).forEach((p, i) => {
+    const all = engine.levers(p);
+    if (!all.length) return;
+    // a different handful of changes for every profile, including none and all of them
+    const take = i % 4 === 0 ? [] : (i % 4 === 1 ? all : all.filter((_, k) => (k + i) % 3 === 0));
+    const after = clone(p);
+    take.forEach((l) => l.change(after));
+    const base = engine.calculate(p), left = engine.calculate(after);
+    if (!(base.total > 0)) return;
+
+    const html = chart.horizontal({
+      domains: domains, now: base.byDomain, after: left.byDomain,
+      baseTotal: base.total, total: left.total, goal: { value: 3.0, label: "goal" }
+    });
+    const segs = widths(html, "pb-seg"), shadow = widths(html, "pb-shadow");
+    const t = (w) => w / 100 * base.total;   // a width, read back as tonnes
+
+    ok("the track is always exactly full", near(sum(segs) + sum(shadow), 100, 1e-9),
+       "drew " + (sum(segs) + sum(shadow)).toFixed(9) + "%");
+    const expected = domains.map((d) => left.byDomain[d.id] || 0).filter((v) => v > 1e-9);
+    ok("every area's width is its own tonnes",
+       segs.length === expected.length && segs.every((w, k) => near(t(w), expected[k], 1e-6)),
+       segs.map(t).map((x) => x.toFixed(4)) + " vs " + expected.map((x) => x.toFixed(4)));
+    ok("the hatched part is exactly what the changes removed",
+       near(t(sum(shadow)), base.total - left.total, 1e-6),
+       t(sum(shadow)).toFixed(6) + " t drawn vs " + (base.total - left.total).toFixed(6) + " t removed");
+    ok("the coloured part is exactly what is left", near(t(sum(segs)), left.total, 1e-6));
+    ok("nothing is drawn wider than the track", sum(segs) + sum(shadow) <= 100 + 1e-9 && segs.every((w) => w >= 0));
+  });
+
+  // The scale is the baseline and nothing else: ticking changes must not rescale the bar.
+  const p0 = profiles[1], lv = engine.levers(p0), b0 = engine.calculate(p0);
+  const one = clone(p0); lv.slice(0, 3).forEach((l) => l.change(one));
+  const l0 = engine.calculate(one);
+  const h1 = chart.horizontal({ domains: domains, now: b0.byDomain, after: b0.byDomain, baseTotal: b0.total, total: b0.total });
+  const h2 = chart.horizontal({ domains: domains, now: b0.byDomain, after: l0.byDomain, baseTotal: b0.total, total: l0.total });
+  ok("the full width is the same before and after ticking",
+     near(sum(widths(h1, "pb-seg")) + sum(widths(h1, "pb-shadow")),
+          sum(widths(h2, "pb-seg")) + sum(widths(h2, "pb-shadow")), 1e-9));
+  ok("with nothing ticked there is no hatched part", widths(h1, "pb-shadow").length === 0);
+  ok("with changes ticked the coloured part is shorter",
+     sum(widths(h2, "pb-seg")) < sum(widths(h1, "pb-seg")));
+}
+report("the bar's widths are the tonnes");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

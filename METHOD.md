@@ -269,11 +269,13 @@ A sixth tag, "a big change, but yours", marks the levers that change how you liv
 
 Two of those deserve explaining, because their size comes from your own answers rather than from a fixed percentage. "Buy no more than an average Austrian" and "Go out and travel no more than an average Austrian" only appear if you are above the Austrian average in that area, and they bring you down to it — so the lever is meaningful for a big spender and simply absent for everyone else. They stack with the ordinary ones: average first, then half of that, then mostly second-hand.
 
+Above the list sits a bar whose full width is the footprint you have today. It never changes width. Ticking a change subtracts it from its own area, so the coloured part shrinks and stays left-aligned, and the hatched part that opens up on the right is exactly the tonnes you removed — one picture for how far you have come and how far there is left to go, with the 3.0 t mark drawn on it. Every width is a plain percentage of today's total, taken from a real recalculation and never rounded, so the coloured segments add up to what is left and the hatch adds up to what went: the same rule the Sankey follows. Where a change moves emissions rather than removing them — a night train instead of a flight — one area grows while another shrinks, and the legend says so in red.
+
 "Reach the 1.5 °C goal" takes the levers one at a time, ordinary before drastic and biggest first, until you are under 3.0 t. The audit checks that this works for every one of 3,000 random profiles and for a deliberately absurd one (a 220 m² oil-heated house lived in alone, 24 business-class flights, meat twice a day and €44,000 a year on things and going out: 82 t down to 2.0 t). An earlier version of the lever list could not do this — see "What the audit found".
 
 **In the code:** `engine.js → levers(), combined(), pathToTarget()`
 
-**Check it:** tests/audit.js recalculates every lever from scratch on 400 random profiles and checks the claimed saving; it checks that ticking changes in a different order never changes the total, which was a real bug found in the audit; and it checks that every single one of the 3,000 random profiles has a route to 3.0 t.
+**Check it:** tests/audit.js recalculates every lever from scratch on 400 random profiles and checks the claimed saving; it checks that ticking changes in a different order never changes the total, which was a real bug found in the audit; and it checks that every single one of the 3,000 random profiles has a route to 3.0 t. It also reads the widths back out of the bar's own markup on 300 profiles and checks that each area's width is its tonnes, that the hatched part is exactly the saving, and that the track is full to within a billionth of a percent.
 
 ## Compensation
 

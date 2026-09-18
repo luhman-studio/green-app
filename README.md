@@ -11,7 +11,7 @@ Double-click `index.html`. That's it: no install, no server, no internet needed.
 | `data/docs.js` | The method in prose, with every source. Shown in the app and used to generate `METHOD.md` |
 | `js/engine.js` | The maths: central result, Monte Carlo uncertainty range, biggest-uncertainty finder |
 | `js/questions.js` | The guided chat script (questions → profile) |
-| `js/chart.js` | The comparison chart (plain SVG) |
+| `js/chart.js` | The comparison chart (plain SVG) and the what's-left bar on the Potential tab |
 | `js/sankey.js` | The four-column Sankey on the Potential tab (plain SVG) |
 | `js/app.js` | UI only: chat, answer list, results, code viewer |
 | `tests/engine.test.js` | Hand-calculated test cases (59) |

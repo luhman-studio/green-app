@@ -218,6 +218,8 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
   .notes { grid-template-columns: 1fr; }
   .results-grid, .result-hero { grid-template-columns: 1fr; }
   .levers.two-col { grid-template-columns: 1fr; }
+  .pb-track { height: 26px; }
+  .pb-legend { gap: 5px 14px; font-size: 13px; }
   .lever { grid-template-columns: auto 1fr; }
   .lever .lever-save { grid-column: 1 / -1; }
   .lever-save { text-align: left; }
@@ -315,6 +317,28 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .sankey .foot-note { font-size: 10.5px; fill: var(--muted); }
 .sankey.active .ghost, .sankey.active .ghost-band { opacity: .25; }
 
+
+/* ---------- Potential: what is left of your footprint ----------
+ * The track is a fixed width = the footprint today. Only the fill changes.
+ */
+.potbar { margin: 4px 0 18px; }
+.pb-wrap { position: relative; padding-top: 19px; }
+.pb-track { position: relative; display: flex; height: 30px; border: 2.5px solid var(--ink); border-radius: 10px; overflow: hidden; background: #fff; }
+.pb-seg { height: 100%; min-width: 0; }
+.pb-shadow { height: 100%; min-width: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  font-size: 12.5px; font-weight: 700; color: #4a4740; white-space: nowrap;
+  border-left: 2.5px solid var(--ink);
+  background: repeating-linear-gradient(135deg, var(--soft) 0 6px, #fff 6px 12px); }
+.pb-goal-line { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2.5px dashed var(--ink); pointer-events: none; }
+.pb-goal { position: absolute; top: 0; font-size: 12px; font-weight: 700; white-space: nowrap; color: #3b3320; }
+.pb-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 11px; font-size: 13.5px; }
+.pb-key { display: inline-flex; align-items: center; gap: 6px; }
+.pb-key i { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--ink); display: inline-block; flex: none; }
+.pb-key b { font-variant-numeric: tabular-nums; }
+.pb-key.pb-gone { opacity: .45; }
+.pb-down { font-style: normal; font-weight: 700; color: var(--good); }
+.pb-up { font-style: normal; font-weight: 700; color: var(--bad); }
+.pb-caption { margin: 9px 0 0; max-width: 78ch; }
 
 /* ---------- insights panel under the Sankey ---------- */
 .insight { margin-top: 18px; border-top: 3px solid var(--ink); padding-top: 16px; }

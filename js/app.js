@@ -537,6 +537,18 @@
             : "")
         : "";
 
+      // The bar on "Pick your changes": full width = today's footprint, always.
+      // Both numbers come from a real recalculation, so it can never disagree with the
+      // Sankey above it or with the hero figure.
+      $("potBar").innerHTML = G.chart.horizontal({
+        domains: B.domains,
+        now: now.byDomain,
+        after: after.byDomain,
+        baseTotal: now.total,
+        total: after.total,
+        goal: { value: target.value, label: "1.5 \u00b0C goal " + target.value.toFixed(1) + " t" }
+      });
+
       var scenario = applyPicked(all);
       // reserve a row for anything a lever could add (e.g. train instead of flights),
       // so the diagram keeps exactly the same height whatever is ticked

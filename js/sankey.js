@@ -1,0 +1,428 @@
+/*
+ * Sankey diagram, four columns, reading left → right:
+ *
+ *     what causes it  →  what you do  →  area  →  your whole footprint
+ *
+ * Nothing between the bands: every column is one continuous stack, so the picture
+ * is the arithmetic. Plain SVG, no library.
+ *
+ * With a baseline (your footprint as you live today) the layout is frozen on that
+ * baseline: the scenario is drawn inside the same slots and what you save is left
+ * as a dashed "ghost", so before and after can be compared without anything moving.
+ */
+(function (root) {
+  function defineSankey() {
+    // The model of the last diagram drawn (see the end of render()). One diagram is on screen
+    // at a time, so a single slot is enough, and it saves the app re-deriving the merge.
+    var lastModel = null;
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function shorten(t, n) { return t.length > n ? t.slice(0, n - 1) + "…" : t; }
+    // the bracket on the far left: short enough to read sideways
+    var SHORT_GROUP = { direct: "Fuel you burn", electricity: "Power stations", upstream: "Farms & factories" };
+
+    // one flow band from (x0, y0 … y0+h0) to (x1, y1 … y1+h1)
+    function band(x0, y0, h0, x1, y1, h1) {
+      var mx = (x0 + x1) / 2;
+      return "M" + x0 + "," + y0 +
+        "C" + mx + "," + y0 + " " + mx + "," + y1 + " " + x1 + "," + y1 +
+        "L" + x1 + "," + (y1 + h1) +
+        "C" + mx + "," + (y1 + h1) + " " + mx + "," + (y0 + h0) + " " + x0 + "," + (y0 + h0) + "Z";
+    }
+
+    // small items of the same area and cause become one row, named after what is in it
+    function mergeSmall(list, limit) {
+      var keep = [], small = {};
+      list.forEach(function (s) {
+        if (s.t >= limit) { keep.push(s); return; }
+        var k = s.domain + "|" + s.cause;
+        small[k] = small[k] || { domain: s.domain, id: "other-" + s.cause, t: 0, parts: [], cause: s.cause,
+          causeLabel: s.causeLabel, causeGroup: s.causeGroup, causeGroupLabel: s.causeGroupLabel };
+        small[k].t += s.t;
+        small[k].parts.push(s);
+      });
+      Object.keys(small).forEach(function (k) {
+        var g = small[k];
+        if (g.t < 0.004) return;
+        g.parts.sort(function (a, b) { return b.t - a.t; });
+        var names = g.parts.map(function (x) { return x.label.toLowerCase(); });
+        g.label = g.parts.length === 1 ? g.parts[0].label
+          : g.parts.length === 2 ? g.parts[0].label + " & " + names[1]
+          : g.parts[0].label + ", " + names[1] + " & " + (g.parts.length - 2) + " more";
+        g.detail = g.parts.map(function (x) { return x.label + " " + x.t.toFixed(2) + " t"; }).join(", ");
+        keep.push(g);
+      });
+      return keep;
+    }
+
+    /*
+     * opts: domains [{id,label,color}], sources [...], total,
+     *       baseline [...] & baselineTotal (optional — freezes the layout and draws the ghost),
+     *       goal {value,label}
+     */
+    function render(opts) {
+      var domains = opts.domains, total = opts.total, goal = opts.goal;
+      var W = 1130, padTop = 46, padBottom = 30;
+      var groupX = 20, causeLabelR = 252, causeX = 260, nodeW = 15, actX = 470, areaX = 690, trunkX = 910, trunkW = 26;
+      var hasBase = !!opts.baseline;
+      var baseTotal = hasBase ? opts.baselineTotal : total;
+
+      // the layout follows the baseline, so nothing jumps when a change is ticked
+      var limit = baseTotal * 0.012;
+      var layoutList = mergeSmall(hasBase ? opts.baseline : opts.sources, limit);
+      var nowList = mergeSmall(opts.sources, limit);
+      var nowBy = {};
+      nowList.forEach(function (s) { nowBy[s.domain + "-" + s.id] = s.t; });
+      // The diagram's HEIGHT is a property of today's footprint, so it is counted here —
+      // before the scenario gets to add anything. The app reserves a row for everything each
+      // lever can add, but a COMBINATION of levers can still produce a merged row no single
+      // lever does, and counting those would make the card resize when you tick things.
+      var baseRowCount = layoutList.length;
+      var known = {};
+      layoutList.forEach(function (s) { known[s.domain + "-" + s.id] = true; });
+      // anything the scenario adds (e.g. train instead of flights) joins the layout with a 0 baseline
+      nowList.forEach(function (s) {
+        if (!known[s.domain + "-" + s.id]) {
+          var copy = JSON.parse(JSON.stringify(s));
+          copy.t = 0;
+          layoutList.push(copy);
+        }
+      });
+
+      var byDomain = {};
+      domains.forEach(function (d) { byDomain[d.id] = []; });
+      layoutList.forEach(function (s) { if (byDomain[s.domain]) byDomain[s.domain].push(s); });
+      var used = domains.filter(function (d) { return byDomain[d.id].length; });
+      var sizeOf = function (s) { return Math.max(s.t, nowBy[s.domain + "-" + s.id] || 0); };
+      used.forEach(function (d) { byDomain[d.id].sort(function (a, b) { return sizeOf(b) - sizeOf(a); }); });
+
+      var rows = [];
+      used.forEach(function (d) {
+        byDomain[d.id].forEach(function (s) {
+          var key = d.id + "-" + s.id;
+          rows.push({ dom: d, src: s, key: key, base: s.t, now: nowBy[key] || 0 });
+        });
+      });
+      if (!rows.length) { lastModel = null; return '<svg viewBox="0 0 10 10" class="sankey"></svg>'; }
+      rows.forEach(function (r, i) { r.i = i; });
+
+      // Every drawn thing carries the row numbers it is part of, so hovering or selecting
+      // anything can light up the WHOLE path it belongs to — cause → activity → area →
+      // footprint — and not just the two shapes that happen to touch it.
+      var keysAttr = function (list) { return ' data-keys="' + list.map(function (r) { return r.i; }).join(" ") + '"'; };
+      var pickAttr = function (kind, id) { return ' data-pick="' + kind + ":" + esc(id) + '"'; };
+
+      // EVERY height is exactly its tonnes times one scale. Nothing has a minimum height:
+      // a minimum makes a small thing look bigger than it is, and the whole point of this
+      // diagram is that the picture IS the arithmetic. What gets dropped instead is the
+      // LABEL — a band too thin to hold a line of text is drawn at its true size without one,
+      // and hovering or clicking it says what it is.
+      var plot = Math.max(360, Math.min(900, baseRowCount * 30));
+      var H = plot + padTop + padBottom;   // fixed by the baseline: ticking a change never resizes it
+
+      // Slots are frozen on the baseline, so nothing moves when a change is ticked. A row that
+      // shrinks keeps its slot and leaves the difference as a dashed ghost; a row a change makes
+      // BIGGER (train instead of flights) gets a slot large enough for its scenario value.
+      var slotT = rows.reduce(function (a, r) { return a + Math.max(r.base, r.now); }, 0);
+      var scale = plot / Math.max(slotT, 0.001);
+
+      var y = padTop;
+      rows.forEach(function (r) {
+        r.slot = Math.max(r.base, r.now) * scale;   // tonnes → pixels, one rate for everything
+        r.y = y;
+        r.h = r.now * scale;                        // and the drawn band is exactly its value
+        y += r.slot;
+      });
+      used.forEach(function (d) {
+        var mine = rows.filter(function (r) { return r.dom.id === d.id; });
+        d._y = mine[0].y;
+        d._slot = mine.reduce(function (a, r) { return a + r.slot; }, 0);
+        d._h = mine.reduce(function (a, r) { return a + r.h; }, 0);
+        d._now = mine.reduce(function (a, r) { return a + r.now; }, 0);
+        d._base = mine.reduce(function (a, r) { return a + r.base; }, 0);
+      });
+      var trunkY = padTop;
+      var trunkH = rows.reduce(function (a, r) { return a + r.h; }, 0);
+      var trunkSlot = rows.reduce(function (a, r) { return a + r.slot; }, 0);
+
+      // cause column: one block per cause, grouped by where the emission happens
+      var causes = {}, groupsSeen = [];
+      rows.forEach(function (r) {
+        var c = causes[r.src.cause] = causes[r.src.cause] || { id: r.src.cause, label: r.src.causeLabel, group: r.src.causeGroup,
+          groupLabel: r.src.causeGroupLabel, now: 0, base: 0, slot: 0, h: 0, pos: 0, rows: [] };
+        c.now += r.now; c.base += r.base; c.slot += r.slot; c.h += r.h; c.pos += r.y * r.slot; c.rows.push(r);
+      });
+      var order = { direct: 0, electricity: 1, upstream: 2 };
+      var causeList = Object.keys(causes).map(function (k) { return causes[k]; });
+      causeList.forEach(function (c) { c.pos /= Math.max(c.slot, 1); });
+      causeList.sort(function (a, b) { return ((order[a.group] || 0) - (order[b.group] || 0)) || (a.pos - b.pos); });
+      var cy = padTop;
+      causeList.forEach(function (c) {
+        c.y = cy; cy += c.slot;
+        var g = groupsSeen[groupsSeen.length - 1];
+        if (!g || g.id !== c.group) groupsSeen.push({ id: c.group, label: c.groupLabel || "", y: c.y, h: c.slot });
+        else g.h += c.slot;
+      });
+
+      // Drawn flipped: the stacks grow upwards from the bottom, so the budget line and
+      // the ghost of what you remove sit on top. fy() mirrors a block, ty() a text baseline.
+      var fy = function (yTop, h) { return H - padBottom - (yTop - padTop) - h; };
+      var ty = function (yy) { return H - padBottom - (yy - padTop); };
+
+      var svg = ['<svg viewBox="0 0 ' + W + " " + H + '" class="sankey' + (hasBase ? " has-ghost" : "") + '" role="img" aria-label="Where your emissions come from">'];
+      svg.push('<text class="col-head" x="' + causeLabelR + '" y="18" text-anchor="end">What causes it</text>');
+      svg.push('<text class="col-head" x="' + (actX + nodeW + 8) + '" y="18">What you do</text>');
+      svg.push('<text class="col-head" x="' + (areaX + nodeW + 8) + '" y="18">Area</text>');
+      svg.push('<text class="col-head" x="' + (trunkX + trunkW) + '" y="18" text-anchor="end">Your footprint</text>');
+
+      // where it happens: a bracket per group, left of the cause labels
+      groupsSeen.forEach(function (g) {
+        if (g.h < 70) return;
+        var gy0 = fy(g.y, g.h);
+        svg.push('<path class="group-bracket" d="M' + (groupX + 10) + "," + (gy0 + 2) + "H" + groupX + "V" + (gy0 + g.h - 2) + "H" + (groupX + 10) + '"/>');
+        svg.push('<text class="group-label" transform="translate(' + (groupX - 3) + "," + (gy0 + g.h / 2) + ') rotate(-90)" text-anchor="middle">' + esc(SHORT_GROUP[g.id] || shorten(g.label.split(" — ")[0], 20)) + "</text>");
+      });
+
+      // A line of text needs about this much room. Below it the band is still drawn at its
+      // true height — only the label is left off, because a label that overlaps its neighbours
+      // is worse than no label, and the tooltip and the insights panel cover it.
+      var LABEL_MIN = 13;
+      // A 0.75 px outline around a 0.3 px band would double its apparent size, which is exactly
+      // the distortion this diagram is trying not to commit. Below 2 px, no outline.
+      var thin = function (h) { return h < 2 ? " thin" : ""; };
+      var pct = function (t) { return Math.round(t / Math.max(total, 0.001) * 100) + "%"; };
+      var tipFor = function (name, base, now) {
+        return name + ": " + now.toFixed(2) + " t" + (hasBase && base - now > 0.005 ? " — was " + base.toFixed(2) + " t, saves " + (base - now).toFixed(2) + " t" : "");
+      };
+
+      // ghosts first: the part of today's footprint the changes remove
+      if (hasBase) {
+        rows.forEach(function (r) {
+          if (r.slot - r.h <= 1.5) return;
+          svg.push('<rect class="ghost" x="' + actX + '" y="' + fy(r.y + r.h, r.slot - r.h) + '" width="' + nodeW + '" height="' + (r.slot - r.h) + '" rx="2"/>');
+          svg.push('<path class="ghost-band" d="' + band(actX + nodeW, fy(r.y + r.h, r.slot - r.h), r.slot - r.h, areaX, fy(r.y + r.h, r.slot - r.h), r.slot - r.h) + '"/>');
+        });
+        causeList.forEach(function (c) {
+          if (c.slot - c.h <= 1.5) return;
+          svg.push('<rect class="ghost" x="' + causeX + '" y="' + fy(c.y + c.h, c.slot - c.h) + '" width="' + nodeW + '" height="' + (c.slot - c.h) + '" rx="2"/>');
+        });
+        used.forEach(function (d) {
+          if (d._slot - d._h <= 1.5) return;
+          svg.push('<rect class="ghost" x="' + areaX + '" y="' + fy(d._y + d._h, d._slot - d._h) + '" width="' + nodeW + '" height="' + (d._slot - d._h) + '" rx="2"/>');
+        });
+        if (trunkSlot - trunkH > 1.5) {
+          svg.push('<rect class="ghost ghost-total" x="' + trunkX + '" y="' + fy(trunkY + trunkH, trunkSlot - trunkH) + '" width="' + trunkW + '" height="' + (trunkSlot - trunkH) + '" rx="4" data-tip="' +
+            esc("Removed by your changes: " + (baseTotal - total).toFixed(2) + " t of " + baseTotal.toFixed(1) + " t") + '"/>');
+        }
+      }
+
+      // cause → activity (the one crossing layer: one cause feeds several areas)
+      causeList.forEach(function (c) {
+        var cursor = c.y;
+        var tip = esc(tipFor(c.label, c.base, c.now) + " · " + pct(c.now));
+        var cKeys = keysAttr(c.rows), cPick = pickAttr("cause", c.id);
+        svg.push('<rect class="nd' + thin(c.h) + " cause-" + c.id + '" x="' + causeX + '" y="' + fy(c.y, Math.max(c.h, 1)) + '" width="' + nodeW + '" height="' + Math.max(c.h, 1) + '" rx="3" fill="#4A463C"' + cKeys + cPick + ' data-tip="' + tip + '"/>');
+        if (c.slot >= LABEL_MIN) svg.push('<text class="cause-label cause-' + c.id + (c.now <= 0 ? " gone" : "") + '" x="' + causeLabelR + '" y="' + (ty(c.y + c.slot / 2) + 4) + '" text-anchor="end"' + cKeys + cPick + ' data-tip="' + tip + '">' +
+          esc(shorten(c.label, 30)) + ' <tspan class="val">' + c.now.toFixed(2) + " t</tspan></text>");
+        c.rows.slice().sort(function (a, b) { return a.y - b.y; }).forEach(function (r) {
+          if (r.h <= 0) return;
+          svg.push('<path class="rb' + thin(r.h) + " cause-" + c.id + " src-" + r.key + '" d="' + band(causeX + nodeW, fy(cursor, r.h), r.h, actX, fy(r.y, r.h), r.h) + '" fill="' + r.dom.color +
+            '"' + keysAttr([r]) + pickAttr("src", r.key) + ' data-tip="' + esc(r.src.label + " ← " + c.label + ": " + r.now.toFixed(2) + " t") + '"/>');
+          cursor += r.h;
+        });
+      });
+
+      // activity → area (rows stack inside their area block)
+      var areaCursor = {};
+      rows.forEach(function (r) {
+        if (areaCursor[r.dom.id] === undefined) areaCursor[r.dom.id] = r.dom._y;
+        var cls = "dom-" + r.dom.id + " src-" + r.key + " cause-" + r.src.cause;
+        var tip = esc(tipFor(r.src.label, r.base, r.now) + " · " + pct(r.now) + " · " + r.src.causeLabel +
+          (r.src.detail ? " · " + r.src.detail : ""));
+        var rKeys = keysAttr([r]), rPick = pickAttr("src", r.key);
+        if (r.h > 0) {
+          svg.push('<rect class="nd' + thin(r.h) + " " + cls + '" x="' + actX + '" y="' + fy(r.y, r.h) + '" width="' + nodeW + '" height="' + r.h + '" rx="3" fill="' + r.dom.color +
+            '"' + rKeys + rPick + ' data-tip="' + tip + '"/>');
+          svg.push('<path class="rb' + thin(r.h) + " " + cls + '" d="' + band(actX + nodeW, fy(r.y, r.h), r.h, areaX, fy(areaCursor[r.dom.id], r.h), r.h) + '" fill="' + r.dom.color +
+            '"' + rKeys + rPick + ' data-tip="' + tip + '"/>');
+          areaCursor[r.dom.id] += r.h;
+        }
+        if (r.slot >= LABEL_MIN) svg.push('<text class="src-label ' + cls + (r.h <= 0 ? " gone" : "") + '" x="' + (actX + nodeW + 8) + '" y="' + (ty(r.y + r.slot / 2) + 4) + '"' + rKeys + rPick + ' data-tip="' + tip + '">' +
+          esc(shorten(r.src.label, 32)) + ' <tspan class="val">' + (r.h <= 0 ? "gone" : r.now.toFixed(2) + " t") + "</tspan></text>");
+      });
+
+      // area → footprint (the trunk stays one solid bar: areas stack inside it)
+      var trunkCursor = trunkY;
+      used.forEach(function (d) {
+        var tip = esc(tipFor(d.label, d._base, d._now) + " · " + pct(d._now));
+        var mine = rows.filter(function (r) { return r.dom.id === d.id; });
+        var dKeys = keysAttr(mine), dPick = pickAttr("dom", d.id);
+        if (d._h > 0) {
+          svg.push('<rect class="nd' + thin(d._h) + " dom-" + d.id + '" x="' + areaX + '" y="' + fy(d._y, d._h) + '" width="' + nodeW + '" height="' + d._h + '" rx="3" fill="' + d.color +
+            '"' + dKeys + dPick + ' data-tip="' + tip + '"/>');
+          svg.push('<path class="rb' + thin(d._h) + " dom-" + d.id + '" d="' + band(areaX + nodeW, fy(d._y, d._h), d._h, trunkX, fy(trunkCursor, d._h), d._h) + '" fill="' + d.color +
+            '"' + dKeys + dPick + ' data-tip="' + tip + '"/>');
+          trunkCursor += d._h;
+        }
+        if (d._slot >= LABEL_MIN) svg.push('<text class="dom-label dom-' + d.id + (d._h <= 0 ? " gone" : "") + '" x="' + (areaX + nodeW + 8) + '" y="' + (ty(d._y + d._slot / 2) + 4) + '"' + dKeys + dPick + ' data-tip="' + tip + '">' +
+          esc(d.label) + ' <tspan class="val">' + d._now.toFixed(1) + " t</tspan></text>");
+      });
+
+      // A band drawn at its true height can be a fraction of a pixel, which is honest but
+      // impossible to point at. So each row also gets an invisible strip in the activity column,
+      // at least a finger's worth tall, carrying the same tooltip and the same selection. It
+      // changes nothing about what you see — only what you can reach.
+      rows.forEach(function (r) {
+        if (r.slot <= 0 || r.slot >= 10) return;
+        var hit = Math.max(r.slot, 10), mid = r.y + r.slot / 2;
+        svg.push('<rect class="hit" x="' + (actX - 4) + '" y="' + fy(mid - hit / 2, hit) + '" width="' + (nodeW + 8) + '" height="' + hit + '" fill="transparent"' +
+          keysAttr([r]) + pickAttr("src", r.key) + ' data-tip="' + esc(tipFor(r.src.label, r.base, r.now) + " · " + pct(r.now) + " · " + r.src.causeLabel + (r.src.detail ? " · " + r.src.detail : "")) + '"/>');
+      });
+
+      // the footprint itself: one solid bar
+      // The trunk belongs to every row, so it lights up as the end of whichever path you follow.
+      // Hovering the trunk ITSELF is the one exception (see light() in attach): lighting up the
+      // whole picture says nothing, so it highlights only itself and opens the overview.
+      svg.push('<rect class="nd trunk" x="' + trunkX + '" y="' + fy(trunkY, Math.max(trunkH, 1)) + '" width="' + trunkW + '" height="' + Math.max(trunkH, 1) + '" rx="4"' + keysAttr(rows) + pickAttr("total", "all") + ' data-tip="' +
+        esc("Your footprint: " + total.toFixed(1) + " t CO₂e per year" + (hasBase && baseTotal - total > 0.05 ? " — down from " + baseTotal.toFixed(1) + " t" : "")) + '"/>');
+      svg.push('<text class="trunk-label" x="' + (trunkX + trunkW) + '" y="' + (H - padBottom + 18) + '" text-anchor="end">' + total.toFixed(1) + " t in total" +
+        (hasBase && baseTotal - total > 0.05 ? " · was " + baseTotal.toFixed(1) + " t" : "") + "</text>");
+
+      // the 1.5 °C budget, marked on the total bar, caption in the right gutter
+      if (goal) {
+        var gy = ty(trunkY + Math.min(goal.value * scale, trunkSlot)); // the same tonnes-to-pixels rate as everything else
+        svg.push('<line class="goal-line" x1="' + (trunkX - 16) + '" x2="' + (trunkX + trunkW + 10) + '" y1="' + gy + '" y2="' + gy + '"/>');
+        svg.push('<text class="goal-label" x="' + (trunkX + trunkW + 14) + '" y="' + (gy - 4) + '">' + esc(goal.label + " " + goal.value.toFixed(1) + " t") + "</text>");
+        svg.push('<text class="goal-sub" x="' + (trunkX + trunkW + 14) + '" y="' + (gy + 12) + '">' +
+          (total > goal.value ? "above the line: over budget" : "you fit inside the budget") + "</text>");
+      }
+
+      // What was drawn, in data form, so the app can build the insights panel for whatever the
+      // person clicks without re-deriving the merge and the stacking. Read it right after render().
+      lastModel = {
+        total: total, baseTotal: baseTotal, hasBase: hasBase,
+        rows: rows.map(function (r) {
+          return { key: r.key, domain: r.dom.id, domainLabel: r.dom.label, color: r.dom.color,
+            label: r.src.label, now: r.now, base: r.base, cause: r.src.cause, causeLabel: r.src.causeLabel,
+            causeGroup: r.src.causeGroup, causeGroupLabel: r.src.causeGroupLabel, detail: r.src.detail || null,
+            srcIds: r.src.parts ? r.src.parts.map(function (x) { return x.id; }) : [r.src.id] };
+        }),
+        causes: causeList.map(function (c) {
+          return { id: c.id, label: c.label, group: c.group, groupLabel: c.groupLabel, now: c.now, base: c.base,
+            rowKeys: c.rows.map(function (r) { return r.key; }) };
+        }),
+        areas: used.map(function (d) {
+          return { id: d.id, label: d.label, color: d.color, now: d._now, base: d._base,
+            rowKeys: rows.filter(function (r) { return r.dom.id === d.id; }).map(function (r) { return r.key; }) };
+        })
+      };
+
+      var notes = ["stacks grow upwards · every band's height is exactly its tonnes — thin ones carry no label, hover or click them"];
+      if (hasBase && baseTotal - total > 0.05) notes.unshift("dashed = what your ticked changes remove");
+      svg.push('<text class="foot-note" x="' + groupX + '" y="' + (H - 8) + '">' + esc(notes.join(" · ")) + "</text>");
+
+      svg.push("</svg>");
+      return svg.join("");
+    }
+
+    /*
+     * Hover and click.
+     *
+     * Highlighting follows the WHOLE path, not the shapes that happen to touch. Every element
+     * carries the row numbers it belongs to (data-keys), so hovering an activity lights up the
+     * cause that produced it, the band into it, the band out of it, its area and the trunk —
+     * the complete left-to-right route — and everything else dims.
+     *
+     * Clicking pins that path and tells the app what was picked, so it can open the insights
+     * panel below. Clicking the same thing again, or the empty space, lets go.
+     *
+     * opts: { selected: "<kind>:<id>" | null, onSelect: function (pick | null) }
+     */
+    function attach(container, tooltip, opts) {
+      opts = opts || {};
+      var svg = container.querySelector(".sankey");
+      if (!svg) return;
+      var nodes = Array.prototype.slice.call(svg.querySelectorAll("[data-keys]"));
+      var keysOf = nodes.map(function (n) {
+        var v = n.getAttribute("data-keys"), set = {};
+        if (v) v.split(" ").forEach(function (k) { set[k] = true; });
+        return set;
+      });
+      var indexOf = function (el) { return nodes.indexOf(el); };
+
+      var selected = opts.selected || null;
+      var tell = typeof opts.onSelect === "function" ? opts.onSelect : function () {};
+
+      var strip = function () {
+        svg.classList.remove("active");
+        Array.prototype.forEach.call(svg.querySelectorAll(".hi, .sel"), function (n) { n.classList.remove("hi", "sel"); });
+      };
+      // light up everything that shares a row with this element (and the element itself)
+      var light = function (el, pinned) {
+        strip();
+        svg.classList.add("active");
+        var i = indexOf(el);
+        // the trunk is part of every path, so following ITS path would light up everything
+        var whole = (el.getAttribute("data-pick") || "").indexOf("total:") === 0;
+        var mine = (i >= 0 && !whole) ? keysOf[i] : {};
+        var any = false;
+        Object.keys(mine).forEach(function () { any = true; });
+        nodes.forEach(function (n, j) {
+          var hit = n === el;
+          if (!hit && any) {
+            for (var k in keysOf[j]) { if (mine[k]) { hit = true; break; } }
+          }
+          if (hit) n.classList.add("hi");
+        });
+        if (pinned) {
+          var pick = el.getAttribute("data-pick");
+          Array.prototype.forEach.call(svg.querySelectorAll('[data-pick="' + pick + '"]'), function (n) { n.classList.add("sel"); });
+        }
+      };
+      var pinnedEl = function () {
+        return selected ? svg.querySelector('[data-pick="' + selected + '"]') : null;
+      };
+      // back to whatever is pinned, or to nothing
+      var restore = function () {
+        var el = pinnedEl();
+        if (el) light(el, true); else strip();
+        tooltip.hidden = true;
+      };
+
+      svg.addEventListener("mousemove", function (ev) {
+        var el = ev.target.closest("[data-tip]");
+        if (!el) { restore(); return; }
+        light(el, el.getAttribute("data-pick") === selected);
+        tooltip.textContent = el.getAttribute("data-tip");
+        tooltip.hidden = false;
+        var box = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(Math.max(8, ev.clientX - box.left + 12), Math.max(8, box.width - 260)) + "px";
+        tooltip.style.top = (ev.clientY - box.top + 12) + "px";
+      });
+      svg.addEventListener("mouseleave", restore);
+
+      svg.addEventListener("click", function (ev) {
+        var el = ev.target.closest("[data-pick]");
+        var pick = el ? el.getAttribute("data-pick") : null;
+        selected = (!pick || pick === selected) ? null : pick;   // click again to let go
+        restore();
+        tell(selected);
+      });
+
+      // keyboard: the diagram is reachable, and Escape lets go of the selection
+      svg.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape" && selected) { selected = null; restore(); tell(null); }
+      });
+
+      restore();
+    }
+
+    // what the app needs to describe whatever was clicked (see the end of render())
+    function model() { return lastModel; }
+
+    return { render: render, attach: attach, model: model, mergeSmall: mergeSmall };
+  }
+
+  var G = (root.GreenApp = root.GreenApp || { sources: {} });
+  G.sankey = defineSankey();
+  G.sources["js/sankey.js"] = defineSankey.toString();
+})(typeof window !== "undefined" ? window : globalThis);

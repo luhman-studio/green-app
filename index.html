@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Green App – Carbon Footprint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <div>
+        <div class="eyebrow">Green App · Austria</div>
+        <h1 id="headline">What’s your carbon footprint?</h1>
+      </div>
+      <div class="top-actions">
+        <button class="btn-ghost" id="savedBtn" type="button">Save &amp; load</button>
+        <input type="file" id="openFileInput" accept=".json,application/json" hidden>
+        <button class="btn-ghost" id="restartBtn" type="button">Start over</button>
+        <button class="btn-ghost" id="codeBtn" type="button">&lt;/&gt; View the code</button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" id="tabMeasure" role="tab" type="button" aria-selected="true" aria-controls="panelMeasure">1 · Measure</button>
+      <button class="tab" id="tabResults" role="tab" type="button" aria-selected="false" aria-controls="panelResults" disabled>2 · Results</button>
+      <button class="tab" id="tabPotential" role="tab" type="button" aria-selected="false" aria-controls="panelPotential" disabled>3 · Potential</button>
+    </nav>
+    <svg class="wave" viewBox="0 0 1440 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,0 L1440,0 L1440,18 C1080,44 720,6 360,26 C220,34 100,30 0,22 Z"/></svg>
+  </header>
+
+  <main class="page">
+    <!-- TAB 1: MEASURE -->
+    <section id="panelMeasure" role="tabpanel" aria-labelledby="tabMeasure">
+      <div class="layout">
+        <section class="card chat-card" aria-label="Guided chat">
+          <div class="card-title">Chat</div>
+          <div id="messages" class="messages" aria-live="polite"></div>
+          <div id="controls" class="controls"></div>
+        </section>
+
+        <aside class="card profile-card" aria-label="Your answers">
+          <div class="card-title">Your answers</div>
+          <p class="muted small" id="progressText">Answers appear here, newest on top. Tap one to change it.</p>
+          <div class="progress"><div id="progressBar"></div></div>
+          <div id="profileList"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TAB 2: RESULTS -->
+    <section id="panelResults" role="tabpanel" aria-labelledby="tabResults" hidden>
+      <div class="card result-hero">
+        <div>
+          <div class="eyebrow">Your footprint <span class="print-only" id="printDate"></span></div>
+          <div class="big" id="resTotal">–</div>
+          <p class="lead" id="resCompare"></p>
+        </div>
+        <div>
+          <p class="range-line" id="resRange"></p>
+          <div id="resTip"></div>
+          <button class="btn-ghost no-print" type="button" id="saveThis">Save, download or print this result</button>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <div class="card">
+          <div class="card-title">How that compares</div>
+          <div id="chart" class="chart"></div>
+          <div id="legend" class="legend"></div>
+          <p class="muted small">Tonnes CO₂e per person per year, consumption-based, stacked by area. Austria and world are averages; the dashed line is the 1.5 °C-aligned lifestyle footprint for 2030 (Paris Agreement). The bracket next to “You” shows the 80% likely range.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">By area</div>
+          <table class="breakdown" id="breakdown"></table>
+          <p class="muted small" id="breakdownNote"></p>
+          <p class="muted small" id="resDigital"></p>
+        </div>
+      </div>
+
+      <div class="card lever-teaser no-print">
+        <div>
+          <div class="card-title">What you could change</div>
+          <p class="small-lead" id="leverTeaser"></p>
+        </div>
+        <button class="btn-primary" type="button" id="toPotential">Try it out →</button>
+      </div>
+
+      <div class="card notes">
+        <div>
+          <div class="card-title">Compensation</div>
+          <div id="resOffsets"></div>
+        </div>
+        <div>
+          <div class="card-title">Your money</div>
+          <p id="resMoney"></p>
+        </div>
+        <div>
+          <div class="card-title">Not included: public share</div>
+          <p id="resPublic"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: POTENTIAL -->
+    <section id="panelPotential" role="tabpanel" aria-labelledby="tabPotential" hidden>
+      <div class="card result-hero">
+        <div>
+          <div class="eyebrow">If you did the selected changes</div>
+          <div class="big" id="potTotal">–</div>
+          <p class="lead" id="potCompare"></p>
+        </div>
+        <div>
+          <p class="range-line" id="potGap"></p>
+          <p class="small" id="potSum"></p>
+          <p class="muted small" id="potHint">Tick the changes below and watch the bar move. Nothing is saved to your answers — it’s a what-if.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Where it comes from <span id="potChartState" class="muted small"></span></div>
+        <div id="potChartWrap" class="sankey-wrap">
+          <div id="potChart"></div>
+          <div id="potTip" class="sankey-tip" hidden></div>
+        </div>
+        <p class="muted small">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030. Ticking a change below redraws everything. <strong>Hover to follow a path from left to right, click to hold it and see more.</strong></p>
+        <div id="potInsight" class="insight" hidden></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Pick your changes</div>
+        <div class="pot-actions">
+          <div class="filter" role="group" aria-label="Filter levers">
+            <button type="button" class="seg-btn on" data-filter="all">All</button>
+            <button type="button" class="seg-btn" data-filter="yours">In my hands</button>
+          </div>
+          <div>
+            <button type="button" class="seg-btn" id="reachGoal">Reach the 1.5 °C goal</button>
+            <button type="button" class="seg-btn" id="selectMine">Tick all in my hands</button>
+            <button type="button" class="seg-btn" id="clearLevers">Clear</button>
+          </div>
+        </div>
+        <ul id="levers" class="levers two-col"></ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- SAVE & LOAD -->
+  <dialog id="saveDialog" class="code-dialog save-dialog">
+    <div class="code-head">
+      <strong>Save &amp; load results</strong>
+      <button class="btn-ghost" id="saveClose" type="button">Close</button>
+    </div>
+    <div class="save-body">
+      <p class="small muted code-intro">Everything here stays on this computer. Saved results live in this browser so you can compare next year; a downloaded file is yours to keep and opens on any computer.</p>
+
+      <section class="save-block">
+        <div class="card-title">Save this result</div>
+        <form id="saveForm" class="save-form">
+          <input type="text" id="saveName" placeholder="Name it, e.g. “Before the heat pump”" aria-label="Name for this result" maxlength="60">
+          <button class="btn-primary" type="submit" id="saveBtn">Save in this browser</button>
+          <button class="btn-ghost" type="button" id="downloadBtn">Download as a file</button>
+          <button class="btn-ghost" type="button" id="printBtn">Print / PDF</button>
+        </form>
+        <p class="muted small" id="saveUnavailable" hidden>You’ll be able to save once you’ve answered the questions — there’s no result yet.</p>
+      </section>
+
+      <section class="save-block">
+        <div class="card-title">Open a result</div>
+        <p class="muted small">A file you downloaded earlier, from this or any other computer. Your answers are recalculated with today’s emission factors, and the app tells you if the number moved.</p>
+        <button class="btn-ghost" id="openFileBtn" type="button">Open saved file…</button>
+      </section>
+
+      <p class="small save-status" id="saveStatus" role="status"></p>
+
+      <section class="save-block">
+        <div class="card-title">Saved in this browser</div>
+        <p class="muted small" id="savedEmpty">Nothing saved yet.</p>
+        <div id="savedList"></div>
+      </section>
+    </div>
+  </dialog>
+
+  <!-- CODE VIEWER -->
+  <dialog id="codeDialog" class="code-dialog">
+    <div class="code-head">
+      <strong>How the math works</strong>
+      <button class="btn-ghost" id="codeClose" type="button">Close</button>
+    </div>
+    <p class="small muted code-intro">Everything runs in your browser — no server, no AI. Start with <strong>Method &amp; sources</strong>: it explains every part of the calculation and where each number comes from. The rest is the actual JavaScript that runs, which you can also open in the <code>js/</code> and <code>data/</code> folders. Check it yourself with <code>node tests/engine.test.js</code> (hand-calculated examples) and <code>node tests/audit.js</code> (3,000 random profiles).</p>
+    <div id="codeTabs" class="code-tabs"></div>
+    <input type="search" id="codeSearch" class="code-search" placeholder="Search the method — e.g. “flights”, “uncertainty”, “double counting”" aria-label="Search the method" hidden>
+    <pre id="codeView" class="code-view"></pre>
+  </dialog>
+
+  <!-- Order matters: data first, then engine, then UI -->
+  <script src="data/factors.js"></script>
+  <script src="data/benchmarks.js"></script>
+  <script src="data/docs.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/questions.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/sankey.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

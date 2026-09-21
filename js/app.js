@@ -491,17 +491,49 @@
      * result, not to the diagram — and because the Results tab still fills it for printing.
      */
     function renderNotes(p, r) {
+      /* Compensation: the ladder, not a scoreboard.
+       * The bar is the MIX of what was bought, drawn on the Oxford axis from "prevents
+       * emissions elsewhere" to "locked away for 1,000+ years". It is never scaled against
+       * the footprint, because that would imply the tonnes cancel — they do not, and this
+       * app has never subtracted them. Every rung, colour and share comes from
+       * data/factors.js and engine.compensation(); nothing is typed in here.
+       */
       var o = E.compensation(p), oh = [];
+      var rungs = o.byType.map(function (x) {
+        return { rank: x.info.rank, short: x.info.short, label: x.info.label, color: x.info.color,
+                 examples: x.info.examples, storage: x.info.storage, risk: x.info.risk, t: x.tonnes };
+      });
       if (!o.tonnes && !o.contributionEur) {
-        oh.push("<p>You don’t buy compensation. That’s fine: reducing emissions counts first. If you do, it’s shown here — not subtracted from your footprint.</p>");
+        oh.push("<p>You don’t buy compensation. That’s fine — reducing emissions counts first, and nothing bought here would be subtracted from your footprint anyway. Worth knowing the ladder before you ever spend on it:</p>");
+      } else if (!o.tonnes) {
+        oh.push("<p>You fund climate action without claiming any tonnes against your own footprint — under the Oxford Offsetting Principles that is the most honest form of the claim. The ladder below is what buying credits would mean:</p>");
       } else {
-        oh.push("<p>Shown separately, never subtracted. Credits vary hugely in quality: research finds many avoidance credits deliver far less than they claim (Probst et al. 2024). The Oxford Offsetting Principles recommend moving towards removals with durable storage.</p>");
-        oh.push('<table class="offsets"><tr><th>Type</th><th>t/yr</th><th>Storage</th><th>Risk</th></tr>');
-        o.byType.forEach(function (x) {
-          oh.push("<tr><td>" + esc(x.info.label) + "</td><td>" + x.tonnes + "</td><td>" + esc(x.info.storage) + "</td><td>" + esc(x.info.risk) + "</td></tr>");
-        });
-        if (o.contributionEur) oh.push("<tr><td>Climate contribution</td><td>–</td><td colspan=2>€" + Math.round(o.contributionEur).toLocaleString("en-US") + "/yr funding climate action without claiming to cancel your emissions — the most honest kind of claim.</td></tr>");
-        oh.push("</table>");
+        oh.push("<p><strong>Shown separately, never subtracted.</strong> The bar is the mix you buy, not a dent in your " +
+          E.calculate(p).total.toFixed(1) + " t — a tonne of avoidance credit and a tonne of direct air capture are not the same tonne, which is the whole reason the ladder exists. Many avoidance credits deliver far less than they claim (Probst et al. 2024).</p>");
+      }
+      // With nothing bought, the same ladder is drawn faint and evenly spaced: an explainer.
+      var emptyLadder = !o.tonnes;
+      var allRungs = Object.keys(F.offsetTypes).filter(function (k) { return k !== "source"; })
+        .map(function (k) { var i = F.offsetTypes[k];
+          return { rank: i.rank, short: i.short, label: i.label, color: i.color, examples: i.examples,
+                   storage: i.storage, risk: i.risk, t: 0 }; })
+        .sort(function (a, b) { return a.rank - b.rank; });
+      oh.push(G.chart.ladder({
+        rungs: emptyLadder ? allRungs : rungs,
+        total: o.tonnes,
+        removalShare: o.removalShare, centuryShare: o.centuryShare,
+        ariaLabel: emptyLadder
+          ? "The five kinds of carbon credit, weakest to strongest"
+          : "Your compensation by kind: " + rungs.map(function (r) { return r.label + " " + r.t.toFixed(2) + " tonnes"; }).join(", ")
+      }));
+      if (o.tonnes) {
+        oh.push('<p class="muted small">Total bought: <strong>' + o.tonnes.toFixed(2) + " t</strong> a year" +
+          (o.certification ? ", certified " + esc(o.certification) : "") +
+          ". It is not taken off anything above — the Oxford Offsetting Principles put cutting emissions first, then removals, then durable storage.</p>");
+      }
+      if (o.contributionEur) {
+        oh.push('<p class="muted small"><strong>€' + Math.round(o.contributionEur).toLocaleString("en-US") +
+          "/yr</strong> as a climate contribution: funding climate action without claiming it cancels your emissions. No tonnes are claimed, so none are drawn.</p>");
       }
       $("resOffsets").innerHTML = oh.join("");
 

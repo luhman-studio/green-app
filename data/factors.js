@@ -214,13 +214,26 @@
         source: "Attributed, not consumed. Method: PCAF, Global GHG Accounting and Reporting Standard for the Financial Industry, Part A — Financed Emissions."
       },
 
-      // ---------- COMPENSATION TYPES (shown separately, never subtracted) ----------
+      /* ---------- COMPENSATION TYPES (shown separately, never subtracted) ----------
+       * Ordered by `rank`: the Oxford Offsetting Principles describe two shifts — from
+       * preventing emissions elsewhere to removing carbon, and from short-lived storage to
+       * long-lived storage. `removal` and `centuryStorage` are those two shifts read straight
+       * off the `storage` line below, not a quality score invented here.
+       *
+       * The colours are a sequential ramp whose LIGHTNESS falls monotonically from rank 1 to
+       * rank 5, so the order survives greyscale and colour-blindness: the ramp is the axis.
+       */
       offsetTypes: {
-        avoidance:     { label: "Avoidance credits", examples: "renewable energy, efficient cookstoves, landfill methane capture", storage: "none — prevents emissions elsewhere", risk: "high: often over-credited, may have happened anyway" },
-        forest:        { label: "Forest protection (REDD+)", examples: "paying to stop planned deforestation", storage: "keeps existing carbon in place", risk: "high: baselines often inflated, leakage, fires" },
-        natureRemoval: { label: "Nature-based removal", examples: "tree planting, soil carbon, mangroves & peatland restoration", storage: "short-lived: decades, can be reversed by fire, drought, land-use change", risk: "medium" },
-        biochar:       { label: "Biochar & long-lived biomass", examples: "biochar in soils, wood in buildings", storage: "medium: roughly 100+ years", risk: "low–medium" },
-        durable:       { label: "Durable removal", examples: "direct air capture + storage (DACCS), BECCS, enhanced rock weathering, mineralisation", storage: "long-lived: 1,000+ years", risk: "low reversal risk; expensive (often €300–1,000/t)" },
+        avoidance:     { rank: 1, short: "Avoidance", color: "#E3A287", removal: false, centuryStorage: false,
+                         label: "Avoidance credits", examples: "renewable energy, efficient cookstoves, landfill methane capture", storage: "none — prevents emissions elsewhere", risk: "high: often over-credited, may have happened anyway" },
+        forest:        { rank: 2, short: "Forest protection", color: "#D2923E", removal: false, centuryStorage: false,
+                         label: "Forest protection (REDD+)", examples: "paying to stop planned deforestation", storage: "keeps existing carbon in place", risk: "high: baselines often inflated, leakage, fires" },
+        natureRemoval: { rank: 3, short: "Nature-based", color: "#A28821", removal: true, centuryStorage: false,
+                         label: "Nature-based removal", examples: "tree planting, soil carbon, mangroves & peatland restoration", storage: "short-lived: decades, can be reversed by fire, drought, land-use change", risk: "medium: the removal is real, but the storage can be undone by fire, drought, pests or the next owner of the land" },
+        biochar:       { rank: 4, short: "Biochar", color: "#55802F", removal: true, centuryStorage: true,
+                         label: "Biochar & long-lived biomass", examples: "biochar in soils, wood in buildings", storage: "medium: roughly 100+ years", risk: "low–medium: the carbon itself is stable, but how much is produced and measured varies between suppliers" },
+        durable:       { rank: 5, short: "Durable removal", color: "#17633D", removal: true, centuryStorage: true,
+                         label: "Durable removal", examples: "direct air capture + storage (DACCS), BECCS, enhanced rock weathering, mineralisation", storage: "long-lived: 1,000+ years", risk: "low reversal risk; expensive (often €300–1,000/t)" },
         source: "Categories follow the Oxford Offsetting Principles (2024 revision): cut emissions first, shift to removals, shift to durable storage. Credit integrity: Probst et al. (2024), Nature Communications."
       },
 

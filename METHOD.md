@@ -296,6 +296,28 @@ Carbon credits are recorded by type and never subtracted from the footprint. Thi
 
 The types follow the Oxford Offsetting Principles: avoidance credits, forest protection, nature-based removal, biochar and long-lived biomass, and durable removal. Each is shown with how long the carbon actually stays out of the atmosphere and how reliable the credit type has proven to be.
 
+They are drawn as a ladder, and the choice of picture is the argument. A bar of tonnes bought, set against your footprint, would say the two cancel — the exact claim this app refuses to make. So the bar is scaled to the MIX you bought, never to the footprint, and it runs left to right from “prevents emissions elsewhere” to “locked away for 1,000+ years”. It answers what kind, not how much of my footprint is gone, because the answer to the second question is none of it.
+
+Two figures are read off that mix, and both are the Oxford Principles’ own shifts rather than a quality score invented here: how much of what you bought REMOVES carbon rather than preventing emissions somewhere else, and how much is stored for a century or more. The first separates the bottom two rungs from the top three; the second separates biochar and durable removal from the rest. Both come straight from the storage line recorded against each type.
+
+The colours are a sequential ramp whose lightness falls with every rung, so the order survives greyscale and colour-blindness — the ramp is the axis, not decoration. The audit checks that monotonicity, because a ramp that stops being ordered stops being an argument.
+
+Buying nothing is the common case, and the card draws the same ladder faint and evenly spaced instead of an empty chart: the rungs are worth knowing before spending, not after. A climate contribution — money given without claiming any tonnes — is named but never drawn, because no tonnes were claimed.
+
+The audit runs the whole footprint before and after loading a profile with credits of every type and checks the number does not move. It is a one-line test for the position the whole section rests on.
+
+They are drawn as a ladder, and the choice of picture is the argument. A bar of tonnes bought, set against your footprint, would say the two cancel — the exact claim this app refuses to make. So the bar is scaled to the MIX you bought, never to the footprint, and it runs left to right from “prevents emissions elsewhere” to “locked away for 1,000+ years”. It answers what kind, not how much of my footprint is gone, because the answer to the second question is none of it.
+
+Two figures are read off that mix, and both are the Oxford Principles’ own shifts rather than a quality score invented here: how much of what you bought REMOVES carbon rather than preventing emissions somewhere else, and how much is stored for a century or more. The first separates the bottom two rungs from the top three; the second separates biochar and durable removal from the rest. Both come straight from the storage line recorded against each type.
+
+The colours are a sequential ramp whose lightness falls with every rung, so the order survives greyscale and colour-blindness — the ramp is the axis, not decoration. The audit checks that monotonicity, because a ramp that stops being ordered stops being an argument.
+
+Buying nothing is the common case, and the card draws the same ladder faint and evenly spaced instead of an empty chart: the rungs are worth knowing before spending, not after. A climate contribution — money given without claiming any tonnes — is named but never drawn, because no tonnes were claimed.
+
+The audit runs the whole footprint before and after loading a profile with credits of every type and checks the number does not move. It is a one-line test for the position the whole section rests on.
+
+**Check it:** tests/audit.js buys credits of all five types on 200 profiles and checks the footprint does not move; that each rung's width is its share of the mix and never of the footprint; that the two shares are the rungs they claim; and that the colour ramp gets darker with every rung.
+
 **Sources**
 
 - Oxford Offsetting Principles (2024 revision): cut emissions first, shift to removals, shift to durable storage.

@@ -153,7 +153,9 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 .breakdown tr.total td { font-weight: 700; border-top: 2.5px solid var(--ink); }
 .breakdown tr.goal-row td { font-weight: 500; border-top: 1px solid var(--soft); font-size: 13px; }
 .breakdown tr.goal-row td:first-child { font-weight: 700; }
-.notes { grid-column: 1 / -1; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 24px; }
+/* Two children since the excluded-share block became its own card. A third column here
+   left a hole beside "Your money". */
+.notes { grid-column: 1 / -1; display: grid; grid-template-columns: 1.35fr 1fr; gap: 28px; align-items: start; }
 .notes p { margin: 0 0 8px; }
 .offsets { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
 .offsets th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px; }
@@ -229,6 +231,8 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
   .layout { grid-template-columns: 1fr; }
   .profile-card { position: static; }
   .notes { grid-template-columns: 1fr; }
+  .lad-stats { grid-template-columns: 1fr; }
+  .lad-seg span { display: none; }
   .results-grid, .result-hero { grid-template-columns: 1fr; }
   .levers.two-col { grid-template-columns: 1fr; }
   /* On a phone the segments are too narrow for their own names — a clipped
@@ -474,6 +478,27 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .flow-key-head { display: block; font-size: 14.5px; }
 .flow-key-head b { font-variant-numeric: tabular-nums; }
 .flow-key-detail { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+/* ---------- the compensation ladder ---------- */
+.lad-wrap { margin: 14px 0 10px; }
+.lad-axis { display: flex; justify-content: space-between; gap: 12px; font-size: 11.5px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.lad-axis span:last-child { text-align: right; }
+.lad-track { display: flex; height: 32px; border: 2.5px solid var(--ink); border-radius: 10px; overflow: hidden; background: #fff; }
+.lad-seg { min-width: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.lad-seg + .lad-seg { border-left: 2.5px solid var(--ink); }
+.lad-seg span { font-size: 12px; font-weight: 700; white-space: nowrap; padding: 0 7px; }
+.lad-ghost { filter: saturate(.5) brightness(1.06); }
+.lad-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.lad-stat { border: 2px solid var(--ink); border-radius: 12px; padding: 9px 11px; background: #fff; }
+.lad-stat b { display: block; font-size: 22px; line-height: 1.1; }
+.lad-stat span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.lad-keys { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 11px; }
+.lad-key { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; align-items: start; }
+.lad-key i { width: 13px; height: 13px; border-radius: 4px; border: 2px solid var(--ink); display: block; margin-top: 3px; }
+.lad-key-head { display: block; font-size: 14px; font-weight: 700; }
+.lad-key-head b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lad-key-detail { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
 
 /* ---------- insights panel under the Sankey ---------- */
 .ins-try { margin-top: 12px; width: 100%; }

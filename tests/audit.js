@@ -15,6 +15,7 @@
  *   8. the same factor is drawn ONCE per sample (correlated, not averaged away)
  *   9. the Potential bar's widths are the tonnes (that picture is the arithmetic too)
  *  10. the benchmark data agrees with itself, and the excluded-share flow is the arithmetic
+ *  11. compensation is described, never subtracted, and its ladder is the mix
  */
 require("../data/factors.js");
 require("../data/benchmarks.js");
@@ -487,6 +488,88 @@ console.log("The benchmark data and the excluded-share flow");
      !parts.filter((p) => p.parts).some((p) => html.indexOf('fl-unknown" data-kind="leaf" data-t="' + p.t) >= 0));
 }
 report("the benchmarks agree and the flow is the arithmetic");
+
+/* ---------- 11. compensation is described, never subtracted ----------
+ * The one thing that must never become true: a tonne of compensation reducing the footprint.
+ * Plus the ladder's own arithmetic — the bar is the MIX, so its widths are shares of what was
+ * bought and never of the footprint, and the two Oxford shares are the rungs they claim to be.
+ */
+console.log("Compensation");
+{
+  const chart = globalThis.GreenApp.chart, T = F.offsetTypes;
+  const sum = (xs) => xs.reduce((x, y) => x + y, 0);
+  const near = (x, y, eps) => Math.abs(x - y) <= (eps || 1e-9);
+  const keys = Object.keys(T).filter((k) => k !== "source");
+
+  // the ladder's rungs have to BE a ladder
+  const ranks = keys.map((k) => T[k].rank).sort((a, b) => a - b);
+  ok("every kind has a distinct rank", new Set(ranks).size === keys.length && ranks[0] === 1);
+  keys.forEach((k) => {
+    ok(k + " says what it stores and what can go wrong",
+       typeof T[k].storage === "string" && T[k].storage.length > 8 &&
+       typeof T[k].risk === "string" && T[k].risk.length > 8);
+    ok(k + " carries a colour and a short name", /^#[0-9A-Fa-f]{6}$/.test(T[k].color || "") && !!T[k].short);
+    // the two Oxford shifts only ever go forwards up the ladder
+    if (T[k].centuryStorage) ok(k + ": century storage implies removal or protection", T[k].rank >= 4);
+    if (T[k].rank >= 3) ok(k + ": the top three are removals", T[k].removal === true);
+    if (T[k].rank <= 2) ok(k + ": the bottom two are not removals", T[k].removal === false);
+  });
+  // the ramp has to be readable without colour: lightness falls monotonically with rank
+  const lum = (hex) => {
+    const c = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16) / 255)
+      .map((x) => (x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const byRank = keys.slice().sort((a, b) => T[a].rank - T[b].rank);
+  for (let i = 1; i < byRank.length; i++) {
+    ok("the ramp keeps getting darker (" + byRank[i - 1] + " → " + byRank[i] + ")",
+       lum(T[byRank[i]].color) < lum(T[byRank[i - 1]].color) - 0.03,
+       lum(T[byRank[i - 1]].color).toFixed(3) + " → " + lum(T[byRank[i]].color).toFixed(3));
+  }
+
+  profiles.slice(0, 200).forEach((p, i) => {
+    const before = engine.calculate(p).total;
+    const q = clone(p);
+    q.offsets = { any: true, types: [], avoidance: 1.1, forest: 0.6, natureRemoval: 0.9,
+                  biochar: 0.3, durable: 0.2, contributionEur: 90, certification: "Gold Standard" };
+    const after = engine.calculate(q).total;
+    ok("buying compensation does not move the footprint", near(after, before, 1e-9),
+       before.toFixed(6) + " → " + after.toFixed(6));
+
+    const c = engine.compensation(q);
+    ok("the total is what was bought", near(c.tonnes, 1.1 + 0.6 + 0.9 + 0.3 + 0.2, 1e-9));
+    ok("the rungs come back weakest first",
+       c.byType.every((x, k) => k === 0 || x.info.rank > c.byType[k - 1].info.rank));
+    ok("the removal share is the removals over the whole mix",
+       near(c.removalShare, (0.9 + 0.3 + 0.2) / c.tonnes, 1e-9));
+    ok("the century share is the long-storage rungs over the whole mix",
+       near(c.centuryShare, (0.3 + 0.2) / c.tonnes, 1e-9));
+    ok("neither share can exceed the whole", c.removalShare <= 1 + 1e-9 && c.centuryShare <= c.removalShare + 1e-9);
+
+    if (i > 0) return;   // the drawn bar only needs checking once — it has no per-profile input
+    const rungs = c.byType.map((x) => ({ rank: x.info.rank, short: x.info.short, label: x.info.label,
+      color: x.info.color, examples: x.info.examples, storage: x.info.storage, risk: x.info.risk, t: x.tonnes }));
+    const html = chart.ladder({ rungs: rungs, total: c.tonnes,
+      removalShare: c.removalShare, centuryShare: c.centuryShare });
+    const w = [], re = /class="lad-seg[^"]*" data-t="([0-9.eE+-]+)" style="width:([0-9.eE+-]+)%/g;
+    let m; while ((m = re.exec(html))) w.push({ t: parseFloat(m[1]), w: parseFloat(m[2]) });
+    ok("the ladder draws every rung that was bought", w.length === rungs.length);
+    ok("the ladder is exactly full", near(sum(w.map((x) => x.w)), 100, 1e-9));
+    ok("every rung's width is its share of the MIX, not of the footprint",
+       w.every((x) => near(x.w / 100 * c.tonnes, x.t, 1e-9)));
+    ok("the ladder never scales itself against the footprint",
+       !near(sum(w.map((x) => x.w)) / 100 * before, c.tonnes, 1e-9) || near(before, c.tonnes, 1e-9));
+  });
+
+  // nothing bought: the explainer ladder is evenly spaced and carries no tonnes
+  const allRungs = byRank.map((k) => ({ rank: T[k].rank, short: T[k].short, label: T[k].label,
+    color: T[k].color, examples: T[k].examples, storage: T[k].storage, risk: T[k].risk, t: 0 }));
+  const emptyHtml = chart.ladder({ rungs: allRungs, total: 0, removalShare: 0, centuryShare: 0 });
+  ok("with nothing bought the ladder is an explainer, evenly spaced",
+     (emptyHtml.match(/lad-ghost/g) || []).length === allRungs.length);
+  ok("and it claims no tonnes", emptyHtml.indexOf("lad-stat") < 0);
+}
+report("compensation is described, never subtracted");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

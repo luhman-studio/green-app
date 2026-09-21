@@ -215,13 +215,64 @@
         "</div>";
     }
 
+    /* ---------- The compensation ladder ----------
+     * Deliberately NOT a chart of tonnes against the footprint. The Oxford Offsetting
+     * Principles exist because a tonne of avoidance credit and a tonne of direct air capture
+     * are not the same tonne; drawing them stacked against a footprint would make exactly the
+     * claim this app refuses to make. So the scale here is the MIX — how the compensation
+     * someone buys is distributed across the ladder — and the axis runs weakest to strongest.
+     * The bar answers "what kind", never "how much of my footprint is cancelled", because the
+     * answer to the second question is none of it.
+     *
+     * With nothing bought, the same ladder is drawn faint and evenly spaced as an explainer:
+     * the rungs are worth knowing before buying, not after.
+     */
+    function ladder(opts) {
+      var rungs = opts.rungs, total = opts.total || 0, empty = !(total > 0);
+      if (!rungs || !rungs.length) return "";
+      var segs = rungs.map(function (r) {
+        var w = empty ? 100 / rungs.length : (r.t / total) * 100;
+        if (w < 1e-6) return "";
+        // ink on the pale end, white on the dark end — the ramp crosses over in the middle
+        var dark = r.rank >= 4;
+        return '<div class="lad-seg' + (empty ? " lad-ghost" : "") + '" data-t="' + (r.t || 0) +
+          '" style="width:' + w + '%;background:' + r.color + '" title="' +
+          esc(r.label + (empty ? "" : ": " + r.t.toFixed(2) + " t of " + total.toFixed(2) + " t")) + '">' +
+          (w >= 24 || (empty && w >= 18)
+            ? '<span style="color:' + (dark ? "#fff" : "#141414") + '">' + esc(r.short) +
+              (empty ? "" : " · " + Math.round(w) + "%") + "</span>"
+            : w >= 9 && !empty
+              ? '<span style="color:' + (dark ? "#fff" : "#141414") + '">' + Math.round(w) + "%</span>"
+              : "") + "</div>";
+      }).join("");
+
+      var keys = rungs.filter(function (r) { return empty || r.t > 0; }).map(function (r) {
+        return '<li class="lad-key"><i style="background:' + r.color + '"></i>' +
+          '<div><span class="lad-key-head">' + esc(r.label) +
+          (empty ? "" : " <b>" + r.t.toFixed(2) + " t</b>") + "</span>" +
+          '<span class="lad-key-detail">' + esc(r.examples) + " — <em>storage: " + esc(r.storage) +
+          "</em>; risk: " + esc(r.risk) + "</span></div></li>";
+      }).join("");
+
+      return '<div class="lad-wrap">' +
+        '<div class="lad-axis"><span>prevents emissions elsewhere</span><span>locked away for 1,000+ years</span></div>' +
+        '<div class="lad-track" role="img" aria-label="' + esc(opts.ariaLabel || "") + '">' + segs + "</div>" +
+        (empty ? "" :
+          '<div class="lad-stats">' +
+            '<div class="lad-stat"><b>' + Math.round(opts.removalShare * 100) + "%</b><span>removes carbon, rather than preventing emissions somewhere else</span></div>" +
+            '<div class="lad-stat"><b>' + Math.round(opts.centuryShare * 100) + "%</b><span>stored for a century or more</span></div>" +
+          "</div>") +
+        '<ul class="lad-keys">' + keys + "</ul>" +
+        "</div>";
+    }
+
     function legend(domains) {
       return domains.map(function (d) {
         return '<span class="legend-item"><i style="background:' + d.color + '"></i>' + esc(d.label) + "</span>";
       }).join("");
     }
 
-    return { render: render, horizontal: horizontal, flow: flow, legend: legend };
+    return { render: render, horizontal: horizontal, flow: flow, ladder: ladder, legend: legend };
   }
 
   var G = (root.GreenApp = root.GreenApp || { sources: {} });

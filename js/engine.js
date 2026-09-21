@@ -380,12 +380,29 @@
     }
 
     // Compensation is reported per type and NEVER subtracted from the footprint.
+    /* Compensation, described but never subtracted.
+     * The two shares are the Oxford Offsetting Principles' two shifts, measured on the mix a
+     * person actually bought: how much of it REMOVES carbon rather than preventing emissions
+     * somewhere else, and how much is stored for a century or more. They are shares of the
+     * mix, never of the footprint — which is the point. A tonne of avoidance credit and a
+     * tonne of direct air capture are not the same tonne, so the total they add up to is not
+     * a number worth putting next to a footprint.
+     */
     function compensation(profile) {
       var o = profile.offsets || {}, list = [], tonnes = 0;
-      ["avoidance", "forest", "natureRemoval", "biochar", "durable"].forEach(function (k) {
-        if (o[k] > 0) { list.push({ type: k, tonnes: o[k], info: F.offsetTypes[k] }); tonnes += o[k]; }
-      });
-      return { tonnes: tonnes, byType: list, contributionEur: o.contributionEur || 0, certification: o.certification || null };
+      Object.keys(F.offsetTypes).filter(function (k) { return k !== "source"; })
+        .sort(function (a, b) { return F.offsetTypes[a].rank - F.offsetTypes[b].rank; })
+        .forEach(function (k) {
+          if (o[k] > 0) { list.push({ type: k, tonnes: o[k], info: F.offsetTypes[k] }); tonnes += o[k]; }
+        });
+      var share = function (pred) {
+        if (!(tonnes > 0)) return 0;
+        return list.reduce(function (a, x) { return a + (pred(x.info) ? x.tonnes : 0); }, 0) / tonnes;
+      };
+      return { tonnes: tonnes, byType: list,
+               removalShare: share(function (i) { return i.removal; }),
+               centuryShare: share(function (i) { return i.centuryStorage; }),
+               contributionEur: o.contributionEur || 0, certification: o.certification || null };
     }
 
 

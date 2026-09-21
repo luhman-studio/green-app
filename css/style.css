@@ -137,6 +137,8 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 .chart-svg .target-label { font-weight: 700; font-size: 13px; fill: var(--ink); }
 .chart-svg .target-sub { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; fill: var(--ink); }
 .chart-svg .range line { stroke: var(--ink); stroke-width: 2; }
+.chart-svg .range .range-mid { stroke-width: 3.5; }
+.chart-svg .range .range-tie { stroke-width: 1.5; stroke-dasharray: 2 2; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; font-size: 14px; }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .legend-item i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); display: inline-block; }
@@ -474,6 +476,8 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .flow-key-detail { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
 
 /* ---------- insights panel under the Sankey ---------- */
+.ins-try { margin-top: 12px; width: 100%; }
+.ins-try-note { margin: 6px 0 0; }
 .insight { margin-top: 0; border-top: none; padding-top: 0; }
 .ins-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
 .ins-title { font-size: 22px; font-weight: 700; line-height: 1.15; }

@@ -51,12 +51,20 @@
         svg.push('<text x="' + (x + barW / 2) + '" y="' + (bottom + 26) + '" class="bar-label">' + esc(b.label) + "</text>");
         svg.push('<text x="' + (x + barW / 2) + '" y="' + (bottom + 46) + '" class="bar-value">' + b.total.toFixed(1) + " t</text>");
 
-        if (b.isYou && range) { // uncertainty bracket
-          var wx = x + barW + 9;
-          svg.push('<g class="range"><title>' + esc("80% likely between " + range.low.toFixed(1) + " and " + range.high.toFixed(1) + " t") + "</title>" +
+        if (b.isYou && range) {
+          /* The uncertainty bracket. A tick marks the central value — the top of the bar —
+           * so the range can be read against it: this spread is right-skewed, because the
+           * uncertainties multiply, and a bracket without the tick hides that. A connector
+           * to the bar top stops the whole thing reading as a floating object.
+           */
+          var wx = x + barW + 11, yc = y(b.total);
+          svg.push('<g class="range"><title>' + esc("Central estimate " + b.total.toFixed(1) + " t · 80% of runs between " +
+              range.low.toFixed(1) + " and " + range.high.toFixed(1) + " t") + "</title>" +
+            '<line class="range-tie" x1="' + (x + barW) + '" x2="' + wx + '" y1="' + yc + '" y2="' + yc + '"/>' +
             '<line x1="' + wx + '" x2="' + wx + '" y1="' + y(range.high) + '" y2="' + y(range.low) + '"/>' +
             '<line x1="' + (wx - 4) + '" x2="' + (wx + 4) + '" y1="' + y(range.high) + '" y2="' + y(range.high) + '"/>' +
-            '<line x1="' + (wx - 4) + '" x2="' + (wx + 4) + '" y1="' + y(range.low) + '" y2="' + y(range.low) + '"/></g>');
+            '<line x1="' + (wx - 4) + '" x2="' + (wx + 4) + '" y1="' + y(range.low) + '" y2="' + y(range.low) + '"/>' +
+            '<line class="range-mid" x1="' + (wx - 5) + '" x2="' + (wx + 5) + '" y1="' + yc + '" y2="' + yc + '"/></g>');
         }
       });
 

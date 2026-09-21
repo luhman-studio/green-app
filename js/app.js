@@ -28,6 +28,10 @@
     var pinned = { det: null, pot: null };   // "<kind>:<id>", survives redraws
     var focusedBand = { det: null, pot: null };   // where the keyboard is inside each diagram
     var chartModel = { det: null, pot: null };    // what each diagram drew, captured at render
+    // When a selection is carried from Details to Potential, the two diagrams are drawn from
+    // different profiles — Details from what you measured, Potential from what you ticked — so
+    // a merged row that exists in one may not exist in the other. This is where to land instead.
+    var potPinFallback = null;
 
     // ---------- persistence (optional; silently skipped if blocked) ----------
     function save() {
@@ -652,6 +656,10 @@
       // biggest first — "click the flights and see what to do about flights". The saving
       // shown against each one stays the whole-footprint saving; the ranking is by how much
       // it takes off the band, which is the question the click asked.
+      // A pin carried over from Details may name a row this diagram does not have. Land on the
+      // area instead of silently dropping the filter, which would look like the button did nothing.
+      if (pinned.pot && potPinFallback && !bandLabel("pot", pinned.pot)) pinned.pot = potPinFallback;
+      potPinFallback = null;
       var bandName = paintBandChip(all, scenario);
       if (pinned.pot) {
         var hits = {};
@@ -676,9 +684,23 @@
       var keepTop = keepId ? doc.activeElement.getBoundingClientRect().top : null;
       ul.innerHTML = "";
       if (!list.length) {
-        ul.appendChild(el("li", "muted", pinned.pot
-          ? "Nothing in the list shrinks " + bandName + ". What is left there is the floor of how this calculator models it — clear the filter above to see everything."
-          : "Nothing to show for this filter."));
+        // "Nothing here" has two very different causes and they deserve different sentences:
+        // no lever exists for this band, or you have already ticked the ones that do.
+        /* "Nothing here" has three different causes and each deserves its own sentence.
+         * Getting this wrong tells someone their flights cannot be reduced when in fact
+         * they have already ticked every change that does it.
+         */
+        var predHere = pinned.pot ? predicateFor("pot", pinned.pot) : null;
+        var leftHere = predHere ? sumSources(scenario, predHere) : 0;
+        var coveredByTicked = predHere && chosen.length &&
+          leversFor(p, all, predHere, false, true).some(function (x) { return picked[x.id]; });
+        ul.appendChild(el("li", "muted", !pinned.pot ? "Nothing to show for this filter."
+          : leftHere <= 0.001
+            ? "Your ticked changes have already removed " + bandName + " entirely — it is drawn as a dashed ghost above."
+            : coveredByTicked
+              ? "Your ticked changes already cover everything in the list that shrinks " + bandName +
+                ". Clear the filter above to see the rest."
+              : "Nothing in the list shrinks " + bandName + ". What is left there is the floor of how this calculator models it — clear the filter above to see everything."));
       }
       var bigStarted = false;
       list.forEach(function (l) {
@@ -957,6 +979,35 @@
     }
     function insBox(title, body) { return '<div class="ins-box"><h4>' + title + "</h4>" + body + "</div>"; }
 
+    /* The bridge from "what would shrink this" to actually trying it.
+     * The Potential tab already narrows its list to a held-open band — this just carries the
+     * selection across, so the answer to "what do I do about my flights" is one click from the
+     * question instead of a tab switch and a hunt. Offered only when changes were actually
+     * proposed: no button under "nothing here would shrink this further".
+     */
+    function tryThereBtn(list, gone, fallback, pred, all) {
+      if (gone || !list.length || !pred || !all) return "";
+      /* Whether to offer the button is decided by running the DESTINATION'S OWN calculation,
+       * not this panel's. The two differ in ways that would otherwise leak out as a broken
+       * promise: this page describes the footprint you measured and lists every change that
+       * would shrink the selection; the Potential list is computed on the scenario you have
+       * ticked, drops the changes already ticked, and only keeps what still saves something
+       * there. So a change worth 40 kg here can be worth nothing there once the heat pump is
+       * on. No count is shown on the button for the same reason — a number that is right on
+       * this page and wrong on the next one is worse than no number.
+       */
+      var note = function (t) { return '<p class="muted small ins-try-note">' + t + "</p>"; };
+      var ticked = applyPicked(all);
+      if (sumSources(ticked, pred) <= 0.001) return note("Your ticked changes already remove this entirely.");
+      if (!leversFor(ticked, all, pred, true, true).length) {
+        return note("You have already ticked everything on this list that still shrinks it.");
+      }
+      potPinFallbackNext = fallback || null;
+      return '<button type="button" class="btn-primary ins-try" id="insToPotential">Show these on the Potential tab →</button>' +
+        note("Opens the Potential tab with the list of changes and the diagram both narrowed to this.");
+    }
+    var potPinFallbackNext = null;
+
     // Nothing pinned: the panel says what clicking would get you, rather than going blank.
     function clearInsight(box) {
       box.hidden = true; box.innerHTML = "";
@@ -986,8 +1037,9 @@
           '<p class="muted small">' + Math.round(row.now / Math.max(area.now, 0.001) * 100) + "% of your " + esc(area.label.toLowerCase()) +
           ", " + (row.now / Math.max(total, 0.001) * 100).toFixed(1) + "% of your whole footprint.</p>");
         var ids = row.srcIds, dom = row.domain;
-        html += insBox("What would shrink this", leverLines(leversFor(scenario, all,
-          function (x) { return x.domain === dom && ids.indexOf(x.id) >= 0; }, false), row.now <= 0.001 && row.base > 0.001));
+        var lvSrc = leversFor(scenario, all, function (x) { return x.domain === dom && ids.indexOf(x.id) >= 0; }, false);
+        var goneSrc = row.now <= 0.001 && row.base > 0.001;
+        html += insBox("What would shrink this", leverLines(lvSrc, goneSrc) + tryThereBtn(lvSrc, goneSrc, "dom:" + dom, function (x) { return x.domain === dom && ids.indexOf(x.id) >= 0; }, all));
 
       } else if (kind === "cause") {
         var c = m.causes.filter(function (x) { return x.id === id; })[0];
@@ -1000,8 +1052,9 @@
           }).join("") + "</ul>" +
           (feeds.length > 7 ? '<p class="muted small">…and ' + (feeds.length - 7) + " more.</p>" : ""));
         html += insBox("How big that is", "<p>" + esc(anchors(c.now)) + "</p>");
-        html += insBox("What would shrink this", leverLines(leversFor(scenario, all,
-          function (x) { return x.cause === id; }, false), c.now <= 0.001 && c.base > 0.001));
+        var lvCause = leversFor(scenario, all, function (x) { return x.cause === id; }, false);
+        var goneCause = c.now <= 0.001 && c.base > 0.001;
+        html += insBox("What would shrink this", leverLines(lvCause, goneCause) + tryThereBtn(lvCause, goneCause, null, function (x) { return x.cause === id; }, all));
 
       } else if (kind === "dom") {
         var a2 = m.areas.filter(function (x) { return x.id === id; })[0];
@@ -1018,8 +1071,9 @@
           '<ul class="ins-list">' + mine.slice(0, 7).map(function (r) {
             return "<li><span>" + esc(r.label) + ' <span class="muted">· ' + esc(r.causeLabel.toLowerCase()) + "</span></span><b>" + r.now.toFixed(2) + " t</b></li>";
           }).join("") + "</ul>");
-        html += insBox("What would shrink this", leverLines(leversFor(scenario, all,
-          function (x) { return x.domain === id; }, false), a2.now <= 0.001 && a2.base > 0.001));
+        var lvDom = leversFor(scenario, all, function (x) { return x.domain === id; }, false);
+        var goneDom = a2.now <= 0.001 && a2.base > 0.001;
+        html += insBox("What would shrink this", leverLines(lvDom, goneDom) + tryThereBtn(lvDom, goneDom, null, function (x) { return x.domain === id; }, all));
 
       } else { // the whole footprint
         value = total; head = "Your whole footprint"; sub = "everything in the diagram";
@@ -1034,7 +1088,8 @@
           "<li><span>" + esc(biggestRow.label) + ' <span class="muted">· ' + esc(biggestRow.domainLabel.toLowerCase()) + "</span></span><b>" + biggestRow.now.toFixed(2) + " t</b></li></ul>");
         html += insBox("How big that is", "<p>" + esc(anchors(total)) + "</p>" +
           '<p class="muted small">Not included: about ' + B.publicShare.austria.toFixed(0) + " t per person of public services, left out of every bar here and out of the 1.5 °C target too.</p>");
-        html += insBox("What would shrink it most", leverLines(leversFor(scenario, all, function () { return true; }, false)));
+        var lvAll = leversFor(scenario, all, function () { return true; }, false);
+        html += insBox("What would shrink it most", leverLines(lvAll, false) + tryThereBtn(lvAll, false, null, function () { return true; }, all));
       }
 
       box.innerHTML =
@@ -1047,6 +1102,12 @@
       $("detInsightEmpty").hidden = true;
       $("detLive").textContent = "Analysis: " + head + ", " + value.toFixed(2) + " tonnes.";
       $("insClose").onclick = function () { pinned[which] = null; renderDetails(); };
+      var tryBtn = $("insToPotential");
+      if (tryBtn) tryBtn.onclick = function () {
+        pinned.pot = pinned[which];
+        potPinFallback = potPinFallbackNext;
+        showTab("potential");
+      };
     }
 
     // ---------- saving results ----------

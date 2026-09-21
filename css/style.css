@@ -551,22 +551,28 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 
 /* ---------- the turned diagram (phones) ---------- */
 .sankey-v { width: 100%; height: auto; display: block; }
-.sankey-v .v-node { stroke: var(--ink); stroke-width: 1.6; }
+/* One weight for everything. The blocks were outlined at 1.6 while the ribbons between them
+   had no outline at all, so the diagram read as boxes with colour spilling between them
+   rather than as one flow. Thinner, and the ribbons carry the same line. fill-opacity rather
+   than opacity, so making the ribbon translucent does not also fade its outline. */
+.sankey-v .v-node { stroke: var(--ink); stroke-width: 1; }
 .sankey-v .v-cause { fill: #EDE3CE; }
-.sankey-v .v-band { opacity: .42; }
+.sankey-v .v-band { fill-opacity: .45; stroke: var(--ink); stroke-width: 1; stroke-opacity: .5; }
 /* Labels sit ON the blocks here, so they must not eat the tap — without this, tapping the
    middle of a named area (the most obvious target there is) hits the text and does nothing. */
 .sankey-v text { pointer-events: none; }
 /* the stage titles cross the ribbons, so they carry a cream casing to stay readable */
-.sankey-v .v-stage { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+/* No text-transform here: it would render the unit as "9.9 T". The strings are already caps. */
+.sankey-v .v-stage { font-size: 11px; font-weight: 700; letter-spacing: .07em;
   fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
-.sankey-v .v-lab-on { font-size: 10.5px; font-weight: 700; fill: #fff; text-anchor: middle; paint-order: stroke;
-  stroke: rgba(20,20,20,.55); stroke-width: 2.6px; stroke-linejoin: round; }
-.sankey-v .v-lab-off { font-size: 10.5px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.sankey-v .v-lab-on, .sankey-v .v-lab-off { font-size: 11px; font-weight: 700; text-anchor: middle;
+  dominant-baseline: central; letter-spacing: .01em; }
+.sankey-v .v-lab-on { fill: #fff; paint-order: stroke; stroke: rgba(20,20,20,.6); stroke-width: 2.6px; stroke-linejoin: round; }
+.sankey-v .v-lab-off { fill: var(--ink); }
 .sankey-v .foot-note { font-size: 9.5px; fill: var(--muted); }
 .sankey-v .hi { opacity: 1; }
-.sankey-v .v-band.hi { opacity: .85; }
-.sankey-v .sel { stroke-width: 3; }
+.sankey-v .v-band.hi { fill-opacity: .85; stroke-opacity: .9; }
+.sankey-v .sel { stroke-width: 2.4; stroke-opacity: 1; }
 
 /* ---------- insights panel under the Sankey ---------- */
 .ins-try { margin-top: 12px; width: 100%; }

@@ -410,9 +410,22 @@
       var rows = L.rows, used = L.used, total = opts.total;
       var domains = opts.domains;
 
+      /* Deliberately about a screen tall. The first version was 250 units high and tried to
+       * fit labels ACROSS blocks that are only as wide as their tonnes — so only the four
+       * biggest ever got one. Turning the labels a quarter changes what limits them: a
+       * rotated label needs the block to be about 13 units WIDE (one line of type) and reads
+       * along its height, which is the axis there is room to spend. So the rows are deep and
+       * the diagram takes a screen, which is also the right size for a thing you scroll to.
+       */
       var W = 380, pad = 11, plot = W - pad * 2;
-      var rowH = 30, bandH = 62, titleH = 17, footH = 15;
-      var yArea = titleH + 4, yAct = yArea + rowH + bandH, yCause = yAct + rowH + bandH;
+      /* The two ribbon bands are NOT the same depth, because they are not doing the same
+       * work. Areas feed activities in the same order, so those ribbons run parallel and
+       * need only enough depth to read as a join. Activities feed causes across the whole
+       * diagram — that is where the crossings are, and crossings need room to be followed.
+       * Spending the height where the information is.
+       */
+      var rowH = 150, bandTop = 64, bandBot = 330, titleH = 17, footH = 15;
+      var yArea = titleH + 4, yAct = yArea + rowH + bandTop, yCause = yAct + rowH + bandBot;
       var H = yCause + rowH + footH + 6;
 
       var slotT = rows.reduce(function (a, r) { return a + Math.max(r.base, r.now); }, 0);
@@ -443,24 +456,33 @@
       var stage = function (yy, txt) {
         svg.push('<text class="v-stage" x="' + pad + '" y="' + yy + '">' + esc(txt) + "</text>");
       };
-      // a label only if the block is genuinely wide enough for it — same rule as the wide view
-      var blockLabel = function (xx, w, yy, txt, cls) {
-        var fits = Math.floor((w - 8) / 5.6);
-        if (fits < 3) return;
-        svg.push('<text class="' + cls + '" x="' + (xx + w / 2) + '" y="' + yy + '">' + esc(shorten(txt, fits)) + "</text>");
+      /* Labels read bottom-to-top, turned with the diagram. Two limits, and they are
+       * different limits: the block must be wide enough for one line of type to sit in
+       * (else there is nowhere to put it), and the text is truncated to the block's height,
+       * which is what it reads along. Same rule as the wide view in spirit — a block too
+       * small for its label is drawn at its true size without one and says what it is when
+       * tapped. Nothing is ever widened to make a label fit.
+       */
+      var blockLabel = function (xx, w, yTop, h, txt, cls) {
+        if (w < 13) return;
+        var fits = Math.floor((h - 14) / 5.6);
+        if (fits < 4) return;
+        var cxx = xx + w / 2, cyy = yTop + h / 2;
+        svg.push('<text class="' + cls + '" x="' + cxx + '" y="' + cyy + '" transform="rotate(-90 ' +
+          cxx.toFixed(2) + " " + cyy.toFixed(2) + ')">' + esc(shorten(txt, fits)) + "</text>");
       };
 
-      stage(titleH - 4, "Your footprint · " + total.toFixed(1) + " t");
+      stage(titleH - 4, "YOUR FOOTPRINT · " + total.toFixed(1) + " t");
       used.forEach(function (d) {
         var mine = rows.filter(function (r) { return r.dom.id === d.id; });
         if (d._h <= 0) return;
         svg.push('<rect class="v-node" x="' + d._x + '" y="' + yArea + '" width="' + d._h + '" height="' + rowH +
           '" fill="' + d.color + '"' + keysAttr(mine) + pickAttr("dom", d.id) + '><title>' +
           esc(d.label + ": " + d._now.toFixed(2) + " t") + "</title></rect>");
-        blockLabel(d._x, d._h, yArea + rowH / 2 + 4, d.label, "v-lab-on");
+        blockLabel(d._x, d._h, yArea, rowH, d.label, "v-lab-on");
       });
 
-      stage(yAct - 6, "What you do");
+      stage(yAct - 6, "WHAT YOU DO");
       rows.forEach(function (r) {
         if (r.h <= 0) return;
         svg.push('<path class="v-band" d="' + vband(r.pos, r.h, yArea + rowH, r.pos, r.h, yAct) + '" fill="' + r.dom.color +
@@ -468,10 +490,10 @@
         svg.push('<rect class="v-node" x="' + r.pos + '" y="' + yAct + '" width="' + r.h + '" height="' + rowH +
           '" fill="' + r.dom.color + '"' + keysAttr([r]) + pickAttr("src", r.key) + '><title>' +
           esc(r.src.label + ": " + r.now.toFixed(2) + " t") + "</title></rect>");
-        blockLabel(r.pos, r.h, yAct + rowH / 2 + 4, r.src.label, "v-lab-on");
+        blockLabel(r.pos, r.h, yAct, rowH, r.src.label, "v-lab-on");
       });
 
-      stage(yCause - 6, "What causes it");
+      stage(yCause - 6, "WHAT CAUSES IT");
       causeList.forEach(function (c) {
         if (c.h <= 0) return;
         var off = 0;
@@ -484,7 +506,7 @@
         svg.push('<rect class="v-node v-cause" x="' + c.x + '" y="' + yCause + '" width="' + c.h + '" height="' + rowH +
           '"' + keysAttr(c.rows) + pickAttr("cause", c.id) + '><title>' +
           esc(c.label + ": " + c.now.toFixed(2) + " t · " + c.groupLabel) + "</title></rect>");
-        blockLabel(c.x, c.h, yCause + rowH / 2 + 4, c.label, "v-lab-off");
+        blockLabel(c.x, c.h, yCause, rowH, c.label, "v-lab-off");
       });
 
       svg.push('<text class="foot-note" x="' + pad + '" y="' + (H - 4) + '">' +

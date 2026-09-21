@@ -469,6 +469,14 @@ console.log("The benchmark data and the excluded-share flow");
      pt.value + " vs " + (wholeBudget - TARGET).toFixed(3));
   ok("it is smaller than what Austria actually uses", pt.value < ps.austria);
   ok("it never drifts above the lifestyle goal", pt.value < TARGET);
+  /* A number that means "the average Austrian" must never be printed as "yours". The card
+   * once said "your 7.4 t bar" where 7.4 was the Austrian average and the reader's own bar
+   * was 9.9. Nothing in 37 questions can allocate a share of a country's hospitals to one
+   * person, so this share is an average and has to be labelled as one.
+   */
+  ok("the Austrian average and the excluded share are different quantities",
+     Math.abs(a.total - ps.austria) > 1,
+     "they are " + a.total + " and " + ps.austria + " — if these ever converge, check nothing is printing one for the other");
 
   // ---- the drawn diagram ----
   const nat = a.nationalTotal;

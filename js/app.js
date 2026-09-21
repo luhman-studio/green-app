@@ -578,16 +578,25 @@
       });
       var flowTotal = flowParts.reduce(function (a, p) { return a + p.t; }, 0);
 
-      $("resPublic").innerHTML = "Your " + B.austria.total.toFixed(1) + " t bar is what <em>you</em> buy. Another <strong>" +
-        flowTotal.toFixed(1) + " t</strong> per person is caused on your behalf by the state and by the firms that build things — " +
-        Math.round((1 - B.austria.finalDemand.households) * 100) + "% of everything one Austrian causes in a year. " +
-        "It is outside every bar here <em>and</em> outside the " + fmtT(B.targets.y2030.value) +
+      /* Two different numbers, and an earlier version printed the wrong one: this said "your
+       * N t bar" while N was the AUSTRIAN AVERAGE. Your bar is your own footprint; the share
+       * below it is an average, because nothing in the 37 questions can tell how much of a
+       * country's hospitals and motorways is yours. Saying "an average of" is not hedging,
+       * it is the difference between a measured number and an allocated one.
+       */
+      var withPublic = r.total + flowTotal;
+      $("resPublic").innerHTML = "Your <strong>" + r.total.toFixed(1) + " t</strong> bar is what <em>you</em> buy. " +
+        "On top of it, an average of <strong>" + flowTotal.toFixed(1) + " t</strong> per person is caused on your behalf by the state " +
+        "and by the firms that build things — that is " + Math.round((1 - B.austria.finalDemand.households) * 100) +
+        "% of what an average Austrian causes, and it brings your own total to roughly <strong>" + withPublic.toFixed(1) + " t</strong>. " +
+        "It is an average rather than your own figure: nothing you answered can say how much of a country's hospitals and motorways is yours. " +
+        "It sits outside every bar here <em>and</em> outside the " + fmtT(B.targets.y2030.value) +
         " goal, which is defined the same way — so the comparison stays fair. Where it actually goes is usually guessed wrong:";
 
       $("resPublicFlow").innerHTML = G.chart.flow({
         parts: flowParts, total: flowTotal, base: nat,
         colorTrunk: ps.colorTrunk, trunkLabel: "Not in your bar",
-        goal: { value: ps.target.value, label: ps.target.value.toFixed(1) + " t · derived" },
+        goal: { value: ps.target.value, label: ps.target.value.toFixed(1) + " t · derived share of the 1.5 °C budget" },
         ariaLabel: "Where the " + flowTotal.toFixed(1) + " t left out of your footprint goes"
       });
 
@@ -600,7 +609,8 @@
       $("resPublicTarget").innerHTML = "<strong>Is there a target for this part?</strong> Not a published one — " +
         "no body sets a figure for the share of a footprint nobody buys as a household, and the " +
         fmtT(B.targets.y2030.value) + " lifestyle goal deliberately excludes it. " +
-        "The dashed mark is <strong>derived</strong>, from the arithmetic of the same report: if lifestyles are 72% of emissions " +
+        "The dashed mark is <strong>derived</strong>, and it is a share of the <em>global</em> budget rather than an Austrian figure — " +
+        "the same way the " + fmtT(B.targets.y2030.value) + " goal is. From the arithmetic of the same report: if lifestyles are 72% of emissions " +
         "and their share of the budget is " + fmtT(B.targets.y2030.value) + ", the whole budget is about 3.5 t a person and what is left " +
         "for everything bought on your behalf is about <strong>" + fmtT(pt.value) + "</strong>. " +
         "Austria is at " + fmtT(flowTotal) + ", so it would have to fall by roughly <strong>" + cutPublic + "%</strong> — " +

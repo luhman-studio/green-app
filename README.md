@@ -7,15 +7,15 @@ Double-click `index.html`. That's it: no install, no server, no internet needed.
 | File | What it does |
 |---|---|
 | `data/factors.js` | Every emission factor, with its uncertainty and source. **Update these numbers yearly.** |
-| `data/benchmarks.js` | Austria / world averages, the 1.5 °C target, domain colours |
+| `data/benchmarks.js` | Austria / world averages, Austria's final-demand split and the excluded share, the 1.5 °C target, domain colours |
 | `data/docs.js` | The method in prose, with every source. Shown in the app and used to generate `METHOD.md` |
 | `js/engine.js` | The maths: central result, Monte Carlo uncertainty range, biggest-uncertainty finder |
 | `js/questions.js` | The guided chat script (questions → profile) |
-| `js/chart.js` | The comparison chart (plain SVG) and the what's-left bar on the Potential tab |
-| `js/sankey.js` | The four-column Sankey on the Potential tab (plain SVG) |
-| `js/app.js` | UI only: chat, answer list, results, code viewer |
+| `js/chart.js` | Four pictures, all plain SVG or CSS: the comparison chart, the what's-left bar (Potential), the excluded-share bar and the compensation ladder (Details) |
+| `js/sankey.js` | The four-column Sankey, drawn on both the Details and Potential tabs (plain SVG) |
+| `js/app.js` | UI only: chat, answer list, the four tabs, the analysis panel, save/load and the code viewer |
 | `tests/engine.test.js` | Hand-calculated test cases (59) |
-| `tests/audit.js` | Independent audit: 3,000 random profiles, ~145,000 property checks |
+| `tests/audit.js` | Independent audit: 3,000 random profiles, ~186,000 property checks in 11 sections |
 | `tools/make-method.js` | Regenerates `METHOD.md` from `data/docs.js` |
 | `METHOD.md` | The full method and sources — **start here if you want to check the numbers** |
 
@@ -44,7 +44,7 @@ Everything to do with saving lives behind one button — **Save & load** in the 
 ## Test the maths
 ```
 node tests/engine.test.js   # 59 hand-calculated assertions
-node tests/audit.js         # 3,000 random profiles, ~145,000 property checks
+node tests/audit.js         # 3,000 random profiles, ~186,000 property checks
 node tools/make-method.js   # regenerate METHOD.md after editing data/docs.js
 ```
 You need Node.js for this (https://nodejs.org). The app itself doesn't.
@@ -54,21 +54,22 @@ You need Node.js for this (https://nodejs.org). The app itself doesn't.
 columns reconcile with `calculate()` to within 10⁻⁹ t, that every lever's claimed saving survives
 a recalculation from scratch, that ticking changes in a different order gives the same total,
 that the uncertainty range brackets the central value, and that a shared factor keeps one value
-within a simulation sample. It found three real bugs — see “What the audit found”.
+within a simulation sample. It found four real bugs — see “What the audit found”.
 
-## The three tabs
+## The four tabs
 1. **Measure** — the guided chat plus your answer list (newest on top, tap to change, ← to go back).
-2. **Results** — your footprint, the comparison chart, the table by area, saving, and the notes.
-3. **Potential** — tick the changes you could make and watch the "After" bar move. Savings overlap, so ticking several is recalculated together, not added up.
+2. **Results** — your footprint, the comparison chart with its uncertainty bracket, and the table by area.
+3. **Details** — the Sankey of where your emissions come from, with an analysis panel: click any band to hold it open and see where it physically happens, what is inside it, how it compares with the Austrian average, and which changes would shrink it. Each of those lists ends with a button that opens the Potential tab already narrowed to the same selection. Also on this tab: compensation drawn as the Oxford ladder, what your money finances, and what the bars leave out.
+4. **Potential** — tick the changes you could make. A bar whose full width is your footprint today shows what is left and what you removed; the Sankey redraws; savings overlap, so ticking several is recalculated together, never added up.
 
 ## Method in short
 - **Flights are counted one-way.** Each leg is asked separately, so a trip out by plane and back by train counts as one flight. The "skip a trip" lever removes 2 legs.
-- **Scope:** lifestyle footprint, meaning consumption-based CO₂e from household consumption only. Public services (about 3 t per person in Austria) are left out of all bars, which is how the 1.5 °C lifestyle targets are defined too.
+- **Scope:** lifestyle footprint, meaning consumption-based CO₂e from household consumption only. The other 32% of what an Austrian causes — investment and construction 21%, public services 8%, international shipping 3% — is left out of every bar, which is how the 1.5 °C lifestyle targets are defined too. The Details tab draws where it goes rather than asserting it, and marks the parts no measurement reaches.
 - **Uncertainty:** each input and factor gets a log-normal distribution. 4,000 samples with a fixed seed give the 10th–90th percentile range. There's an extra ±10% for model simplification.
 - **Measured or estimated heating:** if you know your yearly gas/oil/pellets/wood/district-heat/heat-pump use from the bill, the app uses it (unit conversions in `factors.energyUnits`, 80% space heating / 20% hot water). Otherwise it estimates from floor area × building standard.
 - **Who decides:** home type (house/flat) and tenure (own/rent) decide whether heating and insulation are in your hands, need the co-owners, or need the landlord.
 - **Levers:** each one is named as something you *do*, carries the concrete alternative that replaces it, and explains the mechanism with the number. Overlapping ones (a year without flying contains the night-train swap) are kept rather than hidden: once you tick something, the rest show what they'd add on top, and anything already covered is marked and struck through. `engine.levers()` copies your profile, changes one thing, and recalculates — no lever has a stored “typical saving”. Housing: green tariff, 1 °C lower, a third less electricity, less hot water, solar on your own roof, heat pump, insulation, a quarter less space. Travel: drive less, EV, car-free, skip a flight, train instead of short flights, stop flying, shorter distances overall. Food: beef swap, vegetarian, plant-based, less dairy, less waste, no air freight, no drinks/sweets/ready meals. Stuff: second-hand, half as much, a no-buy year, down to the Austrian average. Going out: a third less, half as much, down to the Austrian average. Digital: less streaming, no AI video. Each is tagged by who decides: in your hands / a big change but yours / co-owners / landlord / when you replace it / hard for you, based on the ownership, electricity-contract, car-dependence and flight-purpose answers.
-- **Per-area goal:** the 2030 target of 3.0 t applies to the total; the per-area values scale Austria's split down to 3.0 t and are only a guide.
+- **Per-area goal:** the 2030 target of 2.5 t applies to the total; the per-area values scale Austria's split down to it and are only a guide. 2.5 t is a *globally unified* target — the remaining budget divided equally among everyone alive — not an Austrian one.
 - **Time instead of distance:** trains, buses, trams and the metro are asked in time and converted with average speeds: train 80 km/h, city transit 18 km/h, car 40 km/h if given in hours.
 - **Periods:** any amount can be entered per day, workday, week, month or year, and is converted to a yearly value.
 - **Food:** you pick what you eat and how often. Each item is portions × portion size × a per-kg footprint (ifeu 2020, including land-use change), plus a plant-based base of 380 kg for bread, vegetables, oils, drinks and so on.
@@ -82,7 +83,7 @@ within a simulation sample. It found three real bugs — see “What the audit f
 - **Money** is shown as a range in tonnes, *beside* the footprint and never inside it. €10,000 invested finances somewhere between 0.8 t (ECB 2025, euro-area bank securities portfolios) and 5.4 t (Make My Money Matter 2021) a year — the same money, a factor of six apart, depending on method. It stays out of the bar because it is attributed rather than consumed (the companies you part-own are already counted in the footprint of whoever buys what they make) and because a six-fold spread has no business inside a bar claiming ±20%. Bank and insurance names are not asked, because nothing could be done with them.
 - **Insurance and banking are not in the footprint.** Running those companies is roughly 0.1 t per person and nearly the same for everyone, a premium mostly moves money around (claims, reserves) rather than buying goods, and the spending-based factor was the weakest number in the model.
 - **Every question is labelled** with its section and how much the answer moves the result: big effect (look it up), medium (a good estimate is enough), small (a guess is fine), or not in the number (used for advice and context only). The labels live in `META` in `questions.js`.
-- **No per-area goal.** The 1.5 °C goal applies to the whole footprint; splitting 3.0 t across housing, food and travel would pretend to know how each person should live. The by-area table shows your value with its range, the Austrian average and the difference in percent, and the goal appears once for the total.
+- **No per-area goal.** The 1.5 °C goal applies to the whole footprint; splitting 2.5 t across housing, food and travel would pretend to know how each person should live. The by-area table shows your value with its range, the Austrian average and the difference in percent, and the goal appears once for the total.
 - **Compensation** is recorded by type (Oxford Offsetting Principles: avoidance, forest protection, nature-based removal, biochar, durable removal, plus contribution claims) and never subtracted.
 
 ## Chart colours
@@ -102,9 +103,9 @@ The six area colours are checked with the dataviz palette validator against the 
 See `METHOD.md` → *What is missing* for the full list. The largest gaps: the embodied emissions of the building itself (~0.3–0.8 t/person/yr), the carbon debt of a new heat pump or battery (the levers show the steady-state saving, not the 1–3 year payback), household waste treatment (~0.1–0.2 t), pets (a medium dog ≈ 0.3–0.6 t), second homes, cruises and ferries, and rebound effects (money saved gets spent on something — every lever is an upper bound). Together with the deliberate exclusions, a real lifestyle footprint is probably somewhat higher than what the app reports.
 
 ## Numbers that need checking before any public release
-- The Austria benchmark of 7.9 t is a derived estimate: about 100 Mt consumption-based ÷ population × 72% household share. The split by area is illustrative; food is set to 1.5 t so it's consistent with the bottom-up food model.
+- The Austria benchmark of 7.4 t is a derived estimate: about 100 Mt consumption-based ÷ population × the 68% household share measured for Austria by Steininger et al. (2018). Earlier versions used a global 72% rule of thumb. The split by area is still illustrative, rescaled with the total.
 - The world benchmark of 5.1 t is derived the same way.
-- The 2030 target of 3.0 t comes from Hot or Cool Institute (2025).
+- The 2030 target of 2.5 t comes from Hot or Cool Institute (2021, Figure C: globally unified lifestyle targets), carried by the 2025 update. It excludes public spending and investment — the same scope as every bar here, which is what makes the comparison fair.
 - The spending intensities for goods and services (kg per €) are rough orders of magnitude. The best upgrade would be Austrian EXIOBASE values.
 - Short- and medium-haul flight factors are approximations of DESNZ 2025.
 - The plant base (380 kg), out-of-season amounts, waste rates and average speeds are estimates.

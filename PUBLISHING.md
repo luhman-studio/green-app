@@ -134,6 +134,15 @@ spaces, and without quotes the command stops at the first space.
 
 ## 4. WHEN THINGS GO WRONG
 
+### FIRST, ALWAYS: hard-reload
+
+> Before you believe anything is broken on the live site, press **Cmd+Shift+R**
+> on the page you are looking at.
+>
+> A normal reload (Cmd+R) is not enough and will lie to you. This is the single
+> most common false alarm, and it has already happened once — see the log in
+> section 8.
+
 Each problem below lists what you will actually see, why, and the fix.
 
 ---
@@ -206,6 +215,23 @@ why pushing suddenly broke.
 **Why, in order of likelihood:**
 
 1. **Browser cache.** Press **Cmd+Shift+R**. Ninety percent of cases.
+
+   Important detail: **browsers cache per exact URL string.** These are two
+   different cache entries even though the server treats them as one file:
+
+   ```
+   https://luhman-studio.github.io/green-app/
+   https://luhman-studio.github.io/green-app/index.html
+   ```
+
+   So one of them can show the new version while the other still shows an old
+   one. That is not a GitHub fault and not a sign of a half-finished deploy —
+   it is two stale-ness states in your own browser. Hard-reload whichever one
+   looks wrong.
+
+   You are the person most affected by this, because you visit the site more
+   than anyone. Visitors arriving for the first time have no old copy and
+   always see the current version.
 2. **Still building.** Go to the repo → **Actions** tab. An orange dot means it
    is still deploying. Wait for the green tick.
 3. **You did not actually push.** In Terminal:
@@ -341,9 +367,15 @@ node tests/audit.js
 node tools/make-method.js
 ```
 
+**Hard-reload (use this constantly)**
+
+```
+Cmd + Shift + R
+```
+
 **Links**
 
-- Live site — https://luhman-studio.github.io/green-app/
+- Live site — https://luhman-studio.github.io/green-app/  ← share this one
 - Repository — https://github.com/luhman-studio/green-app
 - Pages settings — https://github.com/luhman-studio/green-app/settings/pages
 - Tokens — https://github.com/settings/personal-access-tokens
@@ -371,3 +403,39 @@ So you know where the edges are.
 Nothing here costs money. GitHub accounts, public repositories, and GitHub
 Pages are free, with no trial period and no card on file. The only paid thing
 you have been offered is a custom domain, which you declined.
+
+---
+
+## 8. Log — things that actually caught me
+
+Kept so the same surprise costs five seconds the second time instead of ten
+minutes. Newest first. Add to it whenever something wastes your time.
+
+### 21 Sept 2026 — "one URL shows the new version, the other shows the old one"
+
+**What happened.** After pushing eight commits, the site at
+`/green-app/` showed the new four-tab version, but `/green-app/index.html`
+still showed the old three-tab one. It looked like a broken or partial deploy.
+
+**What it actually was.** Browser cache, and nothing else. A fetch from outside
+the browser confirmed GitHub was serving the *new* version at both addresses.
+Because browsers cache per exact URL, the `/index.html` address still held a
+copy from three days earlier, while the bare address had nothing cached and
+fetched fresh.
+
+**The fix.** Cmd+Shift+R on the address that looked wrong.
+
+**The rule.** Hard-reload before believing the site is broken. Every time.
+
+### 21 Sept 2026 — pushing after the guide was written
+
+Went fine. `./deploy.sh` reported "nothing to commit" because the work was
+already committed, then pushed anyway. That message is the expected output in
+that situation, not an error.
+
+### 18 Sept 2026 — the bare URL looked dead right after enabling Pages
+
+The first Pages build takes about a minute. During that window
+`/green-app/` returned nothing, which led to the wrong conclusion that only
+`/green-app/index.html` worked. Both have worked ever since. Wait for the green
+tick in the repo's **Actions** tab before judging a first deploy.

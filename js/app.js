@@ -587,11 +587,29 @@
       $("resPublicFlow").innerHTML = G.chart.flow({
         parts: flowParts, total: flowTotal, base: nat,
         colorTrunk: ps.colorTrunk, trunkLabel: "Not in your bar",
+        goal: { value: ps.target.value, label: ps.target.value.toFixed(1) + " t · derived" },
         ariaLabel: "Where the " + flowTotal.toFixed(1) + " t left out of your footprint goes"
       });
 
       // The keys above already carry the detail; this says only what they cannot —
       // what the picture means for comparing one country with another.
+      // The dashed mark needs saying in words as well as drawn, because "derived" is doing
+      // real work there: it is arithmetic from one report, not a target anyone publishes.
+      var pt = ps.target, cutPublic = Math.round((1 - pt.value / flowTotal) * 100),
+          cutLife = Math.round((1 - B.targets.y2030.value / B.austria.total) * 100);
+      $("resPublicTarget").innerHTML = "<strong>Is there a target for this part?</strong> Not a published one — " +
+        "no body sets a figure for the share of a footprint nobody buys as a household, and the " +
+        fmtT(B.targets.y2030.value) + " lifestyle goal deliberately excludes it. " +
+        "The dashed mark is <strong>derived</strong>, from the arithmetic of the same report: if lifestyles are 72% of emissions " +
+        "and their share of the budget is " + fmtT(B.targets.y2030.value) + ", the whole budget is about 3.5 t a person and what is left " +
+        "for everything bought on your behalf is about <strong>" + fmtT(pt.value) + "</strong>. " +
+        "Austria is at " + fmtT(flowTotal) + ", so it would have to fall by roughly <strong>" + cutPublic + "%</strong> — " +
+        "almost exactly the " + cutLife + "% the lifestyle half has to fall. This is not somebody else's problem that lifestyle change will not touch, " +
+        "and it is not disproportionately worse either. " +
+        '<span class="muted">Austria\u2019s own commitments do cover it, measured differently: climate neutrality by 2040, and −48% by 2030 against 2005 ' +
+        "for the sectors under the EU Effort Sharing Regulation. Those are territorial, economy-wide targets rather than consumption-based per-person ones, " +
+        "so they cannot be drawn on this bar.</span>";
+
       $("resPublicNote").innerHTML = "Why this is worth seeing rather than being told: the usual guess is hospitals and schools, and investment is two and a half times " +
         "the whole of public services — most of what the bars leave out is concrete, steel and machinery bought once and used for decades. " +
         "And the health block is the reason a household footprint is a poor way to rank countries: " +

@@ -450,6 +450,25 @@ console.log("The benchmark data and the excluded-share flow");
       ok(k.id + " carries a source-worthy explanation", typeof k.detail === "string" && k.detail.length > 40));
   });
 
+  /* The one number on this card that nobody publishes: what the excluded share would have
+   * to come down to. It is arithmetic from the same report the lifestyle goal comes from,
+   * so the audit re-derives it rather than trusting the value typed into benchmarks.js —
+   * and insists it is still flagged as derived, because the moment that flag is lost it
+   * starts reading as a target somebody set.
+   */
+  const HOUSEHOLD_SHARE_IN_TARGET = 0.72;   // Hot or Cool's own figure, the one the 2.5 t is built on
+  const pt = ps.target;
+  ok("the excluded share carries a target at all", !!pt && pt.value > 0);
+  ok("it is marked as derived, not published", pt.derived === true);
+  ok("it says where it came from", typeof pt.source === "string" && pt.source.length > 80);
+  ok("it names the real Austrian commitments as context", /2040/.test(pt.context || "") && /Effort Sharing/.test(pt.context || ""));
+  const wholeBudget = TARGET / HOUSEHOLD_SHARE_IN_TARGET;
+  ok("the derived target is the budget minus the lifestyle part",
+     near(pt.value, wholeBudget - TARGET, 0.01),
+     pt.value + " vs " + (wholeBudget - TARGET).toFixed(3));
+  ok("it is smaller than what Austria actually uses", pt.value < ps.austria);
+  ok("it never drifts above the lifestyle goal", pt.value < TARGET);
+
   // ---- the drawn diagram ----
   const nat = a.nationalTotal;
   const parts = ps.parts.map((p) => {
@@ -486,6 +505,17 @@ console.log("The benchmark data and the excluded-share flow");
   ok("every part without a measured breakdown is marked as not broken down",
      unknown === parts.filter((p) => !p.parts).length,
      unknown + " hatched for " + parts.filter((p) => !p.parts).length + " unmeasured parts");
+  // the dashed mark has to sit at its own share of the bar, like every other width here
+  const ghtml = chart.flow({ parts: parts, total: total, base: nat, trunkLabel: "x",
+    goal: { value: pt.value, label: "derived" } });
+  const gm = ghtml.match(/class="fl-goal-line" style="left:([0-9.]+)%/);
+  ok("the derived mark is drawn", !!gm);
+  ok("and it sits at its own share of the bar",
+     gm && near(parseFloat(gm[1]) / 100 * total, pt.value, 1e-3),
+     gm ? (parseFloat(gm[1]) / 100 * total).toFixed(4) + " vs " + pt.value : "-");
+  ok("a bar with no target drawn carries no mark",
+     chart.flow({ parts: parts, total: total, base: nat, trunkLabel: "x" }).indexOf("fl-goal-line") < 0);
+
   ok("a part WITH a measured breakdown is never hatched",
      !parts.filter((p) => p.parts).some((p) => html.indexOf('fl-unknown" data-kind="leaf" data-t="' + p.t) >= 0));
 }

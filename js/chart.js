@@ -212,9 +212,26 @@
           '<span class="flow-key-detail">' + esc(n.detail || "") + "</span></div></li>";
       }
 
+      /* The dashed mark for what this share would have to come down to. It is DERIVED, not
+       * published — no body sets a target for the part of a footprint nobody buys as a
+       * household — so it is drawn dashed like the 1.5 °C line elsewhere but says "derived"
+       * where that one says the year. Drawing it at all is worth it: without a mark, a bar
+       * of 3.5 tonnes invites the reading that this share is fixed and someone else's
+       * problem, when it has to fall by about as much as the lifestyle half does.
+       */
+      var goalMark = "", goalLine = "";
+      if (opts.goal && opts.goal.value > 0 && opts.goal.value < total) {
+        var g = Number((opts.goal.value / total * 100).toFixed(3));
+        var shift = g > 86 ? "translateX(-100%)" : (g < 9 ? "translateX(0)" : "translateX(-50%)");
+        goalMark = '<div class="fl-goal" style="left:' + g + "%;transform:" + shift + '">' +
+          esc(opts.goal.label) + '</div><div class="fl-goal-tick" style="left:' + g + '%"></div>';
+        goalLine = '<div class="fl-goal-line" style="left:' + g + '%"></div>';
+      }
+
       return '<div class="fl-wrap">' +
         '<div class="fl-rowlabel">where it goes</div>' +
-        '<div class="fl-track" role="img" aria-label="' + esc(opts.ariaLabel || "") + '">' + top.join("") + "</div>" +
+        (goalMark ? '<div class="fl-goalrow">' + goalMark + "</div>" : "") +
+        '<div class="fl-track" role="img" aria-label="' + esc(opts.ariaLabel || "") + '">' + top.join("") + goalLine + "</div>" +
         '<div class="fl-rowlabel">how far the measurements reach</div>' +
         '<div class="fl-track fl-track-sub">' + bottom.join("") + "</div>" +
         '<ul class="flow-keys">' + keys.join("") + "</ul>" +

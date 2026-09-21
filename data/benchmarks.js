@@ -75,6 +75,35 @@
       publicShare: {
         austria: 3.5,                         // 10.9 × (1 − 0.68)
         colorTrunk: "#6B4A2F",
+
+        /* There is NO published target for this share — not for Austria, not anywhere, and
+         * the app should not pretend otherwise. What exists:
+         *   · the 2.5 t lifestyle target explicitly EXCLUDES public spending and investment,
+         *     which is precisely what makes comparing it with the bars fair;
+         *   · Austria's real commitments — climate neutrality by 2040, and −48% by 2030
+         *     against 2005 under the EU Effort Sharing Regulation — are territorial and
+         *     economy-wide. Not consumption-based, not per person, not split by who did the
+         *     buying. Applying that percentage to a figure like this one would be a category
+         *     error, so it is quoted as context and never drawn as a line;
+         *   · other bodies publish a total per-capita consumption figure, but on budgets that
+         *     do not reconcile with this one (Oxfam's is roughly 2.3 t against the 3.5 t
+         *     implied here). Mixing them is the same problem the app refuses for financed
+         *     emissions.
+         *
+         * One figure IS derivable without mixing sources, from the arithmetic of the very
+         * report the 2.5 t comes from: lifestyles are ~72% of emissions and the lifestyle
+         * target is 2.5 t, so the whole budget is 2.5 ÷ 0.72 ≈ 3.47 t per person and what is
+         * left for everything bought on your behalf is ≈ 0.97 t. Marked derived, drawn dashed,
+         * and labelled as such on screen. The audit checks it against that arithmetic rather
+         * than trusting the number typed here.
+         */
+        target: {
+          value: 0.97,
+          derived: true,
+          label: "1.5 °C share 2030",
+          source: "Derived from Hot or Cool Institute (2021): lifestyle target 2.5 t ÷ the 72% household share they use (Hertwich & Peters 2009) = ≈3.47 t total per person, minus the 2.5 t lifestyle part = ≈0.97 t for public services, infrastructure and investment. It is arithmetic from one report, not a published target — no body publishes one for this share.",
+          context: "Austria's own commitments cover this share but are measured differently: climate neutrality by 2040, and −48% by 2030 against 2005 for the sectors under the EU Effort Sharing Regulation. Those are territorial, economy-wide targets, not consumption-based per-person ones."
+        },
         parts: [
           {
             id: "investment", label: "Investment & construction",

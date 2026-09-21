@@ -8,11 +8,26 @@
     var STORE_KEY = "greenapp.v3"; // bump when the profile structure changes
     var $ = function (id) { return doc.getElementById(id); };
 
+    // The uncertainty range is a 4,000-sample Monte Carlo — the most expensive thing the app
+    // does, and identical until an answer changes. Keyed on the answers themselves, so it
+    // cannot go stale: nothing has to remember to clear it.
+    var simMemo = { key: null, value: null };
+    function simulate(p) {
+      var key = JSON.stringify(p);
+      if (simMemo.key !== key) simMemo = { key: key, value: E.simulate(p, { samples: 4000, seed: 42 }) };
+      return simMemo.value;
+    }
+
     function freshState() { return { profile: Q.blankProfile(), answered: {}, order: {}, seq: 0, finished: false, currentId: null }; }
     var state = freshState();
     var leverFilter = "all";
     var picked = {}; // lever ids ticked in the Potential tab
-    var pinned = null; // "<kind>:<id>" — the band held open in the Sankey, survives redraws
+    // Two diagrams now exist — one per tab — so everything about "which band is held open"
+    // is per page. On Details the pin opens the analysis; on Potential it narrows the list of
+    // changes to the ones that shrink that band.
+    var pinned = { det: null, pot: null };   // "<kind>:<id>", survives redraws
+    var focusedBand = { det: null, pot: null };   // where the keyboard is inside each diagram
+    var chartModel = { det: null, pot: null };    // what each diagram drew, captured at render
 
     // ---------- persistence (optional; silently skipped if blocked) ----------
     function save() {
@@ -52,7 +67,8 @@
     }
 
     // ---------- tabs ----------
-    var TABS = { measure: ["panelMeasure", "tabMeasure"], results: ["panelResults", "tabResults"], potential: ["panelPotential", "tabPotential"] };
+    var TABS = { measure: ["panelMeasure", "tabMeasure"], results: ["panelResults", "tabResults"],
+                 details: ["panelDetails", "tabDetails"], potential: ["panelPotential", "tabPotential"] };
     function showTab(name) {
       Object.keys(TABS).forEach(function (k) {
         var on = k === name;
@@ -60,6 +76,7 @@
         $(TABS[k][1]).setAttribute("aria-selected", on ? "true" : "false");
       });
       if (name === "potential") renderPotential();
+      if (name === "details") renderDetails();
       root.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -332,6 +349,7 @@
       var first = !state.finished;
       state.finished = true;
       $("tabResults").disabled = false;
+      $("tabDetails").disabled = false;
       $("tabPotential").disabled = false;
       showResults();
       if (first) {
@@ -385,7 +403,7 @@
     function showResults() {
       var p = state.profile;
       var r = E.calculate(p);
-      var sim = E.simulate(p, { samples: 4000, seed: 42 });
+      var sim = simulate(p);
       var tip = E.biggestUncertainty(p, { samples: 1500, seed: 7 });
       var at = B.austria, target = B.targets.y2030.value;
 
@@ -461,6 +479,14 @@
         ? "Your biggest lever: " + all[0].label.toLowerCase() + " (−" + all[0].saved.toFixed(1) + " t). Everything in your own hands together: −" + (mine.length ? E.combined(p, mine).toFixed(1) : "0.0") + " t. Tick and untick them in the Potential tab to see the bar move."
         : "No changes to suggest — your footprint is already very low.";
 
+      renderNotes(p, r);
+    }
+
+    /* ---------- compensation, money and the public share ----------
+     * Lives on the Details tab, but it is written here because it belongs to the measured
+     * result, not to the diagram — and because the Results tab still fills it for printing.
+     */
+    function renderNotes(p, r) {
       var o = E.compensation(p), oh = [];
       if (!o.tonnes && !o.contributionEur) {
         oh.push("<p>You don’t buy compensation. That’s fine: reducing emissions counts first. If you do, it’s shown here — not subtracted from your footprint.</p>");
@@ -566,19 +592,14 @@
           baseSources.push(blank);
         });
       });
-      $("potChart").innerHTML = G.sankey.render({
+      drawChart("pot", "potChart", "potChartWrap", "potTip", "chartLive", {
         domains: B.domains,
         sources: E.sources(scenario),
         total: after.total,
         baseline: baseSources,           // frozen layout + the dashed ghost of today
         baselineTotal: now.total,
-        goal: { value: target.value, label: "1.5 °C budget 2030:" }
-      });
-      G.sankey.attach($("potChartWrap"), $("potTip"), {
-        selected: pinned,
-        onSelect: function (pick) { pinned = pick; renderInsight(scenario, all); }
-      });
-      renderInsight(scenario, all);
+        goal: { value: target.value, label: "1.5 °C budget 2030:", short: "2030 budget:" }
+      }, function () { renderPotential(); });
       $("potChartState").textContent = chosen.length ? "· with your " + chosen.length + (chosen.length === 1 ? " change" : " changes") : "· as you live today";
 
       // Read the list easy first, drastic last: ordinary changes by saving, then the ones marked
@@ -589,6 +610,19 @@
                  .concat(xs.filter(function (l) { return l.control === "big"; }));
       };
       var list = order(leverFilter === "yours" ? all.filter(function (l) { return l.control === "yours"; }) : all);
+
+      // A band held open in the diagram narrows the list to what would shrink THAT part,
+      // biggest first — "click the flights and see what to do about flights". The saving
+      // shown against each one stays the whole-footprint saving; the ranking is by how much
+      // it takes off the band, which is the question the click asked.
+      var bandName = paintBandChip(all, scenario);
+      if (pinned.pot) {
+        var hits = {};
+        leversFor(scenario, all, predicateFor("pot", pinned.pot), true, true)
+          .forEach(function (x, i) { hits[x.id] = i; });
+        list = list.filter(function (l) { return hits[l.id] != null; })
+                   .sort(function (a, b) { return hits[a.id] - hits[b.id]; });
+      }
       var max = all.reduce(function (m, l) { return Math.max(m, l.saved); }, 0.001);
       // What each remaining change would add ON TOP of the ones already ticked. Several of these
       // overlap by design — a year without flying contains the night-train swap — and saying so
@@ -597,11 +631,21 @@
       var extra = {};
       all.forEach(function (l) { if (!picked[l.id]) extra[l.id] = E.combined(p, chosen.concat([l])) - already; });
       var ul = $("levers");
+      // Rebuilding the list throws away the checkbox that has focus and — because the
+      // "on top of what you've ticked" notes appear and vanish — moves everything below the
+      // one you just ticked. Remember where the active element sat on screen; put both back.
+      var keepId = doc.activeElement && doc.activeElement.id && ul.contains(doc.activeElement)
+        ? doc.activeElement.id : null;
+      var keepTop = keepId ? doc.activeElement.getBoundingClientRect().top : null;
       ul.innerHTML = "";
-      if (!list.length) ul.appendChild(el("li", "muted", "Nothing to show for this filter."));
+      if (!list.length) {
+        ul.appendChild(el("li", "muted", pinned.pot
+          ? "Nothing in the list shrinks " + bandName + ". What is left there is the floor of how this calculator models it — clear the filter above to see everything."
+          : "Nothing to show for this filter."));
+      }
       var bigStarted = false;
       list.forEach(function (l) {
-        if (l.control === "big" && !bigStarted && leverFilter !== "yours") {
+        if (l.control === "big" && !bigStarted && leverFilter !== "yours" && !pinned.pot) {
           bigStarted = true;
           ul.appendChild(el("li", "lever-divider", "Bigger changes — still yours to make, but they change how you live"));
         }
@@ -623,6 +667,210 @@
         li.querySelector("input").onchange = function () { picked[l.id] = this.checked; renderPotential(); };
         ul.appendChild(li);
       });
+
+      // focus back on the same checkbox, and the page nudged so that checkbox has not moved
+      if (keepId) {
+        var back = doc.getElementById(keepId);
+        if (back) {
+          back.focus({ preventScroll: true });
+          var drift = back.getBoundingClientRect().top - keepTop;
+          if (Math.abs(drift) > 0.5) root.scrollBy(0, drift);
+        }
+      }
+
+      announce(after.total, saved, chosen.length);
+    }
+
+    /* ---------- the Details tab: the footprint you measured, explained ----------
+     * Same shape as Potential — sticky result bar, diagram held on the left, a column that
+     * scrolls beside it — but nothing here answers to the changes. The diagram is your
+     * footprint as measured, and the panel beside it explains whichever band you hold open.
+     */
+    var leverMemo = { key: null, value: null };
+    function detLevers(p) {
+      var key = JSON.stringify(p);
+      if (leverMemo.key !== key) leverMemo = { key: key, value: E.levers(p) };
+      return leverMemo.value;
+    }
+    function renderDetails() {
+      if (!state.finished) return;
+      var p = state.profile, r = E.calculate(p), target = B.targets.y2030;
+
+      $("detTotal").textContent = r.total.toFixed(1) + " t CO₂e / year";
+      $("detCompare").innerHTML = r.total <= target.value
+        ? "Inside the 1.5 °C budget of " + fmtT(target.value) + " for 2030."
+        : "<strong>" + (r.total / target.value).toFixed(1) + "×</strong> the 1.5 °C budget of " +
+          fmtT(target.value) + " for 2030, and " +
+          (r.total >= B.austria.total
+            ? (r.total / B.austria.total).toFixed(1) + "× the Austrian average."
+            : Math.round((1 - r.total / B.austria.total) * 100) + "% below the Austrian average.");
+      var sim = simulate(p);
+      $("detRange").innerHTML = "Most likely between <strong>" + sim.low.toFixed(1) + " and " +
+        sim.high.toFixed(1) + " t</strong> — the range your answers leave open.";
+
+      // Same bar as on Potential, with nothing removed: it is the composition of today.
+      $("detBar").innerHTML = G.chart.horizontal({
+        domains: B.domains,
+        now: r.byDomain, after: r.byDomain,
+        baseTotal: r.total, total: r.total,
+        goal: { value: target.value, label: "1.5 °C goal " + target.value.toFixed(1) + " t" },
+        caption: "The full width is your <strong>" + r.total.toFixed(1) +
+          " t</strong>, split by area. The dashed line is the 1.5 °C budget of " +
+          target.value.toFixed(1) + " t for 2030."
+      });
+
+      drawChart("det", "detChart", "detChartWrap", "detTip", "detChartLive", {
+        domains: B.domains,
+        sources: E.sources(p),
+        total: r.total,
+        goal: { value: target.value, label: "1.5 °C budget 2030:", short: "2030 budget:" }
+      }, function () { renderInsight("det", p, detLevers(p)); });
+
+      renderInsight("det", p, detLevers(p));
+      renderNotes(p, r);
+    }
+
+    /* ---------- one diagram, drawn the same way on both tabs ----------
+     * `which` is "det" or "pot". The SVG is thrown away and rebuilt on every change, so
+     * whatever the keyboard was holding has to be handed back: which band it was on, and
+     * whether the diagram itself was the focused element. The model of what was drawn is
+     * captured here rather than read later, because two diagrams now exist and the module
+     * only remembers the last one it drew.
+     */
+    function drawChart(which, chartId, wrapId, tipId, liveId, opts, redraw) {
+      var hadFocus = $(chartId).contains(doc.activeElement);
+      opts.labelScale = splitMode() ? 1.3 : 1;   // drawn narrower beside the panel: bigger type
+      $(chartId).innerHTML = G.sankey.render(opts);
+      chartModel[which] = G.sankey.model();
+      G.sankey.attach($(wrapId), $(tipId), {
+        selected: pinned[which],
+        focus: focusedBand[which],
+        live: $(liveId),
+        onFocus: function (pick) { focusedBand[which] = pick; },
+        onSelect: function (pick) {
+          pinned[which] = pick;
+          if (pick) focusedBand[which] = pick;
+          redraw();
+          bringPanelIntoView(which);
+        }
+      });
+      if (hadFocus) { var sv = $(chartId).querySelector("svg"); if (sv) sv.focus(); }
+    }
+
+    function splitMode() { return !!(root.matchMedia && root.matchMedia("(min-width: 1240px)").matches); }
+
+    // Clicking a band asks a question whose answer is in the column beside the diagram. If
+    // that column starts above the window — you clicked while deep in it — bring its top
+    // just under the sticky bar. It never scrolls when the top is already in view.
+    function bringPanelIntoView(which) {
+      var panel = $(which === "det" ? "detInsight" : "levers").closest(".pot-panel");
+      if (!panel) return;
+      var top = panel.getBoundingClientRect().top;
+      var lid = ($(which === "det" ? "detBarWrap" : "potBarWrap").getBoundingClientRect().height || 0) + 12;
+      if (top < lid) {
+        root.scrollBy({ top: top - lid - 8, left: 0,
+          behavior: root.matchMedia && root.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      }
+    }
+
+    // The chip above the list of changes, naming the band the list is narrowed to.
+    function paintBandChip(all, scenario) {
+      var chip = $("bandChip"), n = Object.keys(picked).filter(function (k) { return picked[k]; }).length;
+      $("paneCount").textContent = n ? n : "";
+      $("paneCount").hidden = !n;
+      if (!pinned.pot) { chip.hidden = true; chip.innerHTML = ""; return ""; }
+      var name = bandLabel("pot", pinned.pot);
+      if (!name) { pinned.pot = null; chip.hidden = true; chip.innerHTML = ""; return ""; }
+      chip.hidden = false;
+      chip.innerHTML = '<span>Changes that shrink <strong>' + esc(name) + "</strong></span>" +
+        '<button type="button" class="seg-btn" id="bandChipClear">Show all changes</button>';
+      $("bandChipClear").onclick = function () { pinned.pot = null; renderPotential(); };
+      return name;
+    }
+
+    // What a pick is called, and which sources it covers — the two things every consumer of
+    // a held-open band needs. Both read the model of the diagram that was actually drawn.
+    function bandLabel(which, pick) {
+      var m = chartModel[which];
+      if (!m || !pick) return "";
+      var bits = pick.split(":"), kind = bits[0], id = bits.slice(1).join(":");
+      if (kind === "total") return "your whole footprint";
+      var from = kind === "src" ? m.rows.filter(function (r) { return r.key === id; })
+               : kind === "cause" ? m.causes.filter(function (c) { return c.id === id; })
+               : m.areas.filter(function (a) { return a.id === id; });
+      return from.length ? from[0].label : "";
+    }
+    function predicateFor(which, pick) {
+      var m = chartModel[which];
+      var bits = pick.split(":"), kind = bits[0], id = bits.slice(1).join(":");
+      if (kind === "total") return function () { return true; };
+      if (kind === "cause") return function (x) { return x.cause === id; };
+      if (kind === "dom") return function (x) { return x.domain === id; };
+      var row = m && m.rows.filter(function (r) { return r.key === id; })[0];
+      if (!row) return function () { return false; };
+      return function (x) { return x.domain === row.domain && row.srcIds.indexOf(x.id) >= 0; };
+    }
+
+    /* ---------- keeping the result bar on screen ----------
+     * The bar is `position: sticky` in the stylesheet, which is the right way to do it and
+     * costs nothing while it works. This does two things on top of that.
+     *
+     * One: it keeps the page the same length. The bar sheds its legend and caption when it
+     * sticks, and without compensation everything below would lurch up by that much at the
+     * moment it does. #potBarSpacer takes up exactly the difference.
+     *
+     * Two: it does not take sticky on trust. The first time we scroll past the bar, it asks
+     * whether the bar actually held its place. If it did, nothing else happens. If it slid
+     * away — an engine that ignores sticky here — the bar is pinned by hand with
+     * `position: fixed` and the spacer takes over its whole height instead.
+     */
+    function startStickWatch(sentinelId, barId, spacerId, panelId) {
+      var bar = $(barId), sentinel = $(sentinelId), spacer = $(spacerId);
+      var stickyWorks = null, queued = false, openH = 0;
+
+      function measure() {
+        queued = false;
+        if ($(panelId).hidden) return;
+        var past = sentinel.getBoundingClientRect().top < 0;
+
+        // how much room the bar takes up in the flow right now (nothing, once it is fixed)
+        var takes = function () {
+          if (bar.classList.contains("pinned")) return 0;
+          return bar.offsetHeight + (parseFloat(root.getComputedStyle(bar).marginBottom) || 0);
+        };
+
+        if (!past) {                      // at rest: remember the room it takes when open
+          bar.classList.remove("stuck", "pinned");
+          spacer.style.height = "";
+          openH = takes();
+          return;
+        }
+
+        bar.classList.add("stuck");
+        // one honest test, the first time we scroll past it: did sticky hold?
+        if (stickyWorks === null) stickyWorks = bar.getBoundingClientRect().top > -2;
+        if (!stickyWorks) bar.classList.add("pinned");
+        spacer.style.height = Math.max(0, openH - takes()) + "px";
+      }
+      function onScroll() {
+        if (queued) return;
+        queued = true;
+        (root.requestAnimationFrame || function (f) { setTimeout(f, 16); })(measure);
+      }
+      root.addEventListener("scroll", onScroll, { passive: true });
+      root.addEventListener("resize", onScroll);
+      measure();
+    }
+
+    // One short sentence for screen readers whenever the number moves. The hero and the bar
+    // re-render wholesale, so announcing them directly would read the whole card out again.
+    var lastSaid = "";
+    function announce(total, saved, count) {
+      var msg = total.toFixed(1) + " tonnes" +
+        (count ? ", " + count + (count === 1 ? " change" : " changes") + " ticked, saving " + saved.toFixed(1) + " tonnes" : ", nothing ticked");
+      if (msg === lastSaid) return;
+      lastSaid = msg;
+      $("potLive").textContent = msg;
     }
 
     /* ---------- the insights panel under the Sankey ----------
@@ -639,15 +887,16 @@
     }
     // Which unticked changes would reduce the selected part, and by how much — measured on
     // top of the changes already ticked, because that is the question the person is asking.
-    function leversFor(scenario, all, pred) {
+    function leversFor(scenario, all, pred, skipTicked, keepAll) {
       var before = sumSources(scenario, pred);
       if (before <= 0.001) return [];
-      return all.filter(function (l) { return !picked[l.id]; }).map(function (l) {
+      var out = all.filter(function (l) { return !skipTicked || !picked[l.id]; }).map(function (l) {
         var q = JSON.parse(JSON.stringify(scenario));
         l.change(q);
-        return { label: l.label, control: l.control, saved: before - sumSources(q, pred) };
+        return { id: l.id, label: l.label, control: l.control, saved: before - sumSources(q, pred) };
       }).filter(function (x) { return x.saved > 0.005; })
-        .sort(function (a, b) { return b.saved - a.saved; }).slice(0, 4);
+        .sort(function (a, b) { return b.saved - a.saved; });
+      return keepAll ? out : out.slice(0, 4);
     }
     function leverLines(list, gone) {
       if (gone) return '<p>Your ticked changes remove this completely — it is drawn as a dashed ghost above.</p>';
@@ -666,20 +915,28 @@
       var legs = t * 1000 / (F.flights.distanceKm.short * F.flights.distanceUplift * F.flights.perPkm.short.value);
       var out = [km.toLocaleString("en-US") + " km in a petrol car"];
       if (legs >= 0.4) out.push(legs.toFixed(legs < 3 ? 1 : 0) + " short-haul flight" + (legs >= 1.95 ? "s" : ""));
-      out.push(Math.round(t / B.targets.y2030.value * 100) + "% of the 3.0 t budget for 2030");
+      out.push(Math.round(t / B.targets.y2030.value * 100) + "% of the " + fmtT(B.targets.y2030.value) + " budget for 2030");
       return out.join(" · ");
     }
     function insBox(title, body) { return '<div class="ins-box"><h4>' + title + "</h4>" + body + "</div>"; }
 
-    function renderInsight(scenario, all) {
-      var box = $("potInsight"), m = G.sankey.model();
-      if (!m || !pinned) { box.hidden = true; box.innerHTML = ""; return; }
-      var bits = pinned.split(":"), kind = bits[0], id = bits.slice(1).join(":");
+    // Nothing pinned: the panel says what clicking would get you, rather than going blank.
+    function clearInsight(box) {
+      box.hidden = true; box.innerHTML = "";
+      $("detInsightEmpty").hidden = false;
+      $("detLive").textContent = "";
+    }
+    // `which` is always "det" today — the analysis lives on the Details tab — but it reads
+    // the same way either diagram is drawn, so nothing here assumes which page called it.
+    function renderInsight(which, scenario, all) {
+      var box = $("detInsight"), m = chartModel[which], held = pinned[which];
+      if (!m || !held) { clearInsight(box); return; }
+      var bits = held.split(":"), kind = bits[0], id = bits.slice(1).join(":");
       var total = m.total, html = "", head = "", sub = "", value = 0;
 
       if (kind === "src") {
         var row = m.rows.filter(function (r) { return r.key === id; })[0];
-        if (!row) { pinned = null; box.hidden = true; box.innerHTML = ""; return; }
+        if (!row) { pinned[which] = null; clearInsight(box); return; }
         var area = m.areas.filter(function (a) { return a.id === row.domain; })[0] || { now: row.now, label: row.domainLabel };
         value = row.now; head = row.label; sub = "in " + row.domainLabel;
         html += insBox("Where it actually happens",
@@ -693,11 +950,11 @@
           ", " + (row.now / Math.max(total, 0.001) * 100).toFixed(1) + "% of your whole footprint.</p>");
         var ids = row.srcIds, dom = row.domain;
         html += insBox("What would shrink this", leverLines(leversFor(scenario, all,
-          function (x) { return x.domain === dom && ids.indexOf(x.id) >= 0; }), row.now <= 0.001 && row.base > 0.001));
+          function (x) { return x.domain === dom && ids.indexOf(x.id) >= 0; }, false), row.now <= 0.001 && row.base > 0.001));
 
       } else if (kind === "cause") {
         var c = m.causes.filter(function (x) { return x.id === id; })[0];
-        if (!c) { pinned = null; box.hidden = true; box.innerHTML = ""; return; }
+        if (!c) { pinned[which] = null; clearInsight(box); return; }
         value = c.now; head = c.label; sub = c.groupLabel;
         var feeds = m.rows.filter(function (r) { return r.cause === id && r.now > 0; }).sort(function (a, b) { return b.now - a.now; });
         if (feeds.length) html += insBox("What this feeds",
@@ -707,11 +964,11 @@
           (feeds.length > 7 ? '<p class="muted small">…and ' + (feeds.length - 7) + " more.</p>" : ""));
         html += insBox("How big that is", "<p>" + esc(anchors(c.now)) + "</p>");
         html += insBox("What would shrink this", leverLines(leversFor(scenario, all,
-          function (x) { return x.cause === id; }), c.now <= 0.001 && c.base > 0.001));
+          function (x) { return x.cause === id; }, false), c.now <= 0.001 && c.base > 0.001));
 
       } else if (kind === "dom") {
         var a2 = m.areas.filter(function (x) { return x.id === id; })[0];
-        if (!a2) { pinned = null; box.hidden = true; box.innerHTML = ""; return; }
+        if (!a2) { pinned[which] = null; clearInsight(box); return; }
         value = a2.now; head = a2.label; sub = "one of the six areas";
         var avg = B.austria.byDomain[id];
         var diff = avg ? Math.round((a2.now - avg) / avg * 100) : null;
@@ -725,7 +982,7 @@
             return "<li><span>" + esc(r.label) + ' <span class="muted">· ' + esc(r.causeLabel.toLowerCase()) + "</span></span><b>" + r.now.toFixed(2) + " t</b></li>";
           }).join("") + "</ul>");
         html += insBox("What would shrink this", leverLines(leversFor(scenario, all,
-          function (x) { return x.domain === id; }), a2.now <= 0.001 && a2.base > 0.001));
+          function (x) { return x.domain === id; }, false), a2.now <= 0.001 && a2.base > 0.001));
 
       } else { // the whole footprint
         value = total; head = "Your whole footprint"; sub = "everything in the diagram";
@@ -740,7 +997,7 @@
           "<li><span>" + esc(biggestRow.label) + ' <span class="muted">· ' + esc(biggestRow.domainLabel.toLowerCase()) + "</span></span><b>" + biggestRow.now.toFixed(2) + " t</b></li></ul>");
         html += insBox("How big that is", "<p>" + esc(anchors(total)) + "</p>" +
           '<p class="muted small">Not included: about ' + B.publicShare.austria.toFixed(0) + " t per person of public services, left out of every bar here and out of the 1.5 °C target too.</p>");
-        html += insBox("What would shrink it most", leverLines(leversFor(scenario, all, function () { return true; })));
+        html += insBox("What would shrink it most", leverLines(leversFor(scenario, all, function () { return true; }, false)));
       }
 
       box.innerHTML =
@@ -750,7 +1007,9 @@
         '<button type="button" class="seg-btn" id="insClose">Let go</button></div>' +
         '<div class="ins-grid">' + html + "</div>";
       box.hidden = false;
-      $("insClose").onclick = function () { pinned = null; renderPotential(); };
+      $("detInsightEmpty").hidden = true;
+      $("detLive").textContent = "Analysis: " + head + ", " + value.toFixed(2) + " tonnes.";
+      $("insClose").onclick = function () { pinned[which] = null; renderDetails(); };
     }
 
     // ---------- saving results ----------
@@ -760,7 +1019,7 @@
     function writeSaved(list) { try { localStorage.setItem(SAVED_KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
 
     function snapshot(name) {
-      var r = E.calculate(state.profile), sim = E.simulate(state.profile, { samples: 4000, seed: 42 });
+      var r = E.calculate(state.profile), sim = simulate(state.profile);
       var now = new Date();
       return {
         format: "green-app-result", formatVersion: 1, factorsVersion: F.version,
@@ -830,6 +1089,7 @@
       }
       state.finished = true;
       $("tabResults").disabled = false;
+      $("tabDetails").disabled = false;
       $("tabPotential").disabled = false;
       say("Loaded saved answers from " + fmtDate(snap.savedAt) + ". Tap any answer to change it.");
       showResults();
@@ -961,6 +1221,7 @@
       $("codeClose").onclick = function () { $("codeDialog").close(); };
       $("tabMeasure").onclick = function () { showTab("measure"); };
       $("tabResults").onclick = function () { if (state.finished) showTab("results"); };
+      $("tabDetails").onclick = function () { if (state.finished) showTab("details"); };
       $("tabPotential").onclick = function () { if (state.finished) showTab("potential"); };
       $("toPotential").onclick = function () { showTab("potential"); };
       $("selectMine").onclick = function () {
@@ -983,6 +1244,22 @@
           renderPotential();
         };
       });
+
+      startStickWatch("potStickTop", "potBarWrap", "potBarSpacer", "panelPotential");
+      startStickWatch("detStickTop", "detBarWrap", "detBarSpacer", "panelDetails");
+
+      // Crossing into or out of the side-by-side layout changes how small the diagram is
+      // drawn, and so how big its labels must be. Redraw — but only on the crossing.
+      if (root.matchMedia) {
+        var mq = root.matchMedia("(min-width: 1240px)");
+        var onCross = function () {
+          if (!state.finished) return;
+          if (!$("panelPotential").hidden) renderPotential();
+          if (!$("panelDetails").hidden) renderDetails();
+        };
+        if (mq.addEventListener) mq.addEventListener("change", onCross);
+        else if (mq.addListener) mq.addListener(onCross);
+      }
       $("saveForm").onsubmit = function (ev) {
         ev.preventDefault();
         if (!state.finished) return;
@@ -1007,6 +1284,7 @@
         state = freshState();
         $("messages").innerHTML = "";
         $("tabResults").disabled = true;
+        $("tabDetails").disabled = true;
         $("tabPotential").disabled = true;
         picked = {};
         status("");
@@ -1019,6 +1297,7 @@
       if (restored && !nextStep()) {
         state.finished = true;
         $("tabResults").disabled = false;
+        $("tabDetails").disabled = false;
         $("tabPotential").disabled = false;
         say("Welcome back! Your previous answers are loaded — change any of them on the right, or press “Start over”.");
         showResults();

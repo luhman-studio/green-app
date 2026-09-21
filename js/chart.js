@@ -121,14 +121,23 @@
         segs.push('<div class="pb-goal-line" style="left:' + g + '%"></div>');
       }
 
-      return '<div class="pb-wrap">' + goalMark +
-        '<div class="pb-track" role="img" aria-label="' +
-          esc("Of " + base.toFixed(1) + " t today, " + left.toFixed(1) + " t remain after the changes you ticked") + '">' +
-          segs.join("") + "</div>" +
+      // A compact readout of the same two numbers, always in the markup but only shown once the
+      // bar sticks to the top of the window — by then the hero figure has scrolled out of sight.
+      var readout = '<div class="pb-now" aria-hidden="true"><b>' + left.toFixed(1) + " t</b>" +
+        (saved > 0.005 ? '<em class="pb-down">−' + saved.toFixed(1) + " t</em>"
+                       : '<em class="pb-none">nothing ticked</em>') + "</div>";
+
+      return '<div class="pb-wrap">' + readout +
+        '<div class="pb-bar">' + goalMark +
+          '<div class="pb-track" role="img" aria-label="' +
+            esc("Of " + base.toFixed(1) + " t today, " + left.toFixed(1) + " t remain after the changes you ticked") + '">' +
+            segs.join("") + "</div>" +
+        "</div>" +
         '<div class="pb-legend">' + keys.join("") + "</div>" +
-        '<p class="pb-caption small muted">The full width is your <strong>' + base.toFixed(1) +
+        '<p class="pb-caption small muted">' + (opts.caption ||
+          "The full width is your <strong>" + base.toFixed(1) +
           " t</strong> today and never changes. Ticking a change subtracts it from its own area, so the coloured part shrinks; the hatched part is what you removed" +
-          (saved > 0.005 ? " \u2014 <strong>" + saved.toFixed(1) + " t</strong> so far." : " \u2014 nothing yet.") + "</p>" +
+          (saved > 0.005 ? " \u2014 <strong>" + saved.toFixed(1) + " t</strong> so far." : " \u2014 nothing yet.")) + "</p>" +
         "</div>";
     }
 

@@ -6,7 +6,7 @@
   <title>Green App – Carbon Footprint</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
   <header class="top">
@@ -23,9 +23,10 @@
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Sections">
-      <button class="tab" id="tabMeasure" role="tab" type="button" aria-selected="true" aria-controls="panelMeasure">1 · Measure</button>
-      <button class="tab" id="tabResults" role="tab" type="button" aria-selected="false" aria-controls="panelResults" disabled>2 · Results</button>
-      <button class="tab" id="tabPotential" role="tab" type="button" aria-selected="false" aria-controls="panelPotential" disabled>3 · Potential</button>
+      <button class="tab" id="tabMeasure" role="tab" type="button" aria-selected="true" aria-controls="panelMeasure"><span class="tab-n">1 · </span>Measure</button>
+      <button class="tab" id="tabResults" role="tab" type="button" aria-selected="false" aria-controls="panelResults" disabled><span class="tab-n">2 · </span>Results</button>
+      <button class="tab" id="tabDetails" role="tab" type="button" aria-selected="false" aria-controls="panelDetails" disabled><span class="tab-n">3 · </span>Details</button>
+      <button class="tab" id="tabPotential" role="tab" type="button" aria-selected="false" aria-controls="panelPotential" disabled><span class="tab-n">4 · </span>Potential</button>
     </nav>
     <svg class="wave" viewBox="0 0 1440 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,0 L1440,0 L1440,18 C1080,44 720,6 360,26 C220,34 100,30 0,22 Z"/></svg>
   </header>
@@ -88,6 +89,52 @@
         <button class="btn-primary" type="button" id="toPotential">Try it out →</button>
       </div>
 
+    </section>
+
+    <!-- TAB 3: DETAILS — the footprint you measured, explained band by band -->
+    <section id="panelDetails" role="tabpanel" aria-labelledby="tabDetails" hidden>
+      <div class="card result-hero hero-open">
+        <div>
+          <div class="eyebrow">Your footprint, in detail</div>
+          <div class="big" id="detTotal">–</div>
+          <p class="lead" id="detCompare"></p>
+        </div>
+        <div>
+          <p class="range-line" id="detRange"></p>
+          <p class="muted small">Everything here is your footprint as you measured it — nothing on this page is a what-if. The changes live on the Potential tab.</p>
+        </div>
+      </div>
+      <div id="detStickTop" aria-hidden="true"></div>
+      <div class="pot-sticky" id="detBarWrap">
+        <div id="detBar" class="potbar"></div>
+      </div>
+      <div id="detBarSpacer" aria-hidden="true"></div>
+
+      <div class="pot-split">
+        <div class="pot-left">
+          <div class="card pot-chart-card">
+            <div class="card-title">Where it comes from <span class="muted small">· as you live today</span></div>
+            <div id="detChartWrap" class="sankey-wrap">
+              <div id="detChart"></div>
+              <div id="detTip" class="sankey-tip" hidden></div>
+            </div>
+            <p class="muted small chart-hint"><strong>Hover to follow a path, click to hold it</strong> — the analysis opens beside it. Arrow keys work too.</p>
+            <details class="chart-help">
+              <summary>How to read this diagram</summary>
+              <p class="muted small">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030.</p>
+            </details>
+          </div>
+        </div>
+
+        <div class="pot-right">
+          <div class="card pot-panel">
+            <div class="card-title">Analysis</div>
+            <div id="detInsight" class="insight" hidden></div>
+            <p class="muted analysis-empty" id="detInsightEmpty">Click any band in the diagram — a cause, an activity, an area, or the total — and this is where it is explained: where the emission physically happens, how big it is in everyday terms, and which changes would shrink <em>that</em> part.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="card notes">
         <div>
           <div class="card-title">Compensation</div>
@@ -102,11 +149,13 @@
           <p id="resPublic"></p>
         </div>
       </div>
+      <p class="sr-only" id="detLive" role="status" aria-live="polite"></p>
+      <p class="sr-only" id="detChartLive" role="status" aria-live="polite"></p>
     </section>
 
-    <!-- TAB 3: POTENTIAL -->
+    <!-- TAB 4: POTENTIAL — the same diagram, but this one answers to the changes you tick -->
     <section id="panelPotential" role="tabpanel" aria-labelledby="tabPotential" hidden>
-      <div class="card result-hero">
+      <div class="card result-hero hero-open">
         <div>
           <div class="eyebrow">If you did the selected changes</div>
           <div class="big" id="potTotal">–</div>
@@ -115,38 +164,57 @@
         <div>
           <p class="range-line" id="potGap"></p>
           <p class="small" id="potSum"></p>
-          <p class="muted small" id="potHint">Tick the changes below and watch the bar move. Nothing is saved to your answers — it’s a what-if.</p>
+          <p class="muted small" id="potHint">Tick the changes and watch the bar move — it stays with you as you scroll. Nothing is saved to your answers; it’s a what-if.</p>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Where it comes from <span id="potChartState" class="muted small"></span></div>
-        <div id="potChartWrap" class="sankey-wrap">
-          <div id="potChart"></div>
-          <div id="potTip" class="sankey-tip" hidden></div>
-        </div>
-        <p class="muted small">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030. Ticking a change below redraws everything. <strong>Hover to follow a path from left to right, click to hold it and see more.</strong></p>
-        <div id="potInsight" class="insight" hidden></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Pick your changes</div>
+      <!-- the sentinel tells us the moment the bar below starts sticking -->
+      <div id="potStickTop" aria-hidden="true"></div>
+      <!-- Lives visually inside the hero card, but it is a sibling so that `position: sticky`
+           is measured against the whole tab rather than against the card's own 200 px. -->
+      <div class="pot-sticky" id="potBarWrap">
         <div id="potBar" class="potbar"></div>
-        <div class="pot-actions">
-          <div class="filter" role="group" aria-label="Filter levers">
-            <button type="button" class="seg-btn on" data-filter="all">All</button>
-            <button type="button" class="seg-btn" data-filter="yours">In my hands</button>
-          </div>
-          <div>
-            <button type="button" class="seg-btn" id="reachGoal">Reach the 1.5 °C goal</button>
-            <button type="button" class="seg-btn" id="selectMine">Tick all in my hands</button>
-            <button type="button" class="seg-btn" id="clearLevers">Clear</button>
+      </div>
+      <!-- holds the bar's place if it has to be pinned by hand (see startStickWatch in app.js) -->
+      <div id="potBarSpacer" aria-hidden="true"></div>
+
+      <div class="pot-split">
+        <div class="pot-left">
+          <div class="card pot-chart-card">
+            <div class="card-title">Where it comes from <span id="potChartState" class="muted small"></span></div>
+            <div id="potChartWrap" class="sankey-wrap">
+              <div id="potChart"></div>
+              <div id="potTip" class="sankey-tip" hidden></div>
+            </div>
+            <p class="muted small chart-hint"><strong>Click any band</strong> and the list beside it narrows to the changes that shrink that part. Arrow keys work too.</p>
+            <details class="chart-help">
+              <summary>How to read this diagram</summary>
+              <p class="muted small">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030.</p>
+            </details>
           </div>
         </div>
-        <ul id="levers" class="levers two-col"></ul>
+
+        <div class="pot-right">
+          <div class="card pot-panel">
+            <div class="card-title">Pick your changes <span class="pane-count" id="paneCount" hidden></span></div>
+            <div id="bandChip" class="band-chip" hidden></div>
+            <div class="pot-actions">
+              <div class="filter" role="group" aria-label="Filter levers">
+                <button type="button" class="seg-btn on" data-filter="all">All</button>
+                <button type="button" class="seg-btn" data-filter="yours">In my hands</button>
+              </div>
+              <div>
+                <button type="button" class="seg-btn" id="reachGoal">Reach the 1.5 °C goal</button>
+                <button type="button" class="seg-btn" id="selectMine">Tick all in my hands</button>
+                <button type="button" class="seg-btn" id="clearLevers">Clear</button>
+              </div>
+            </div>
+            <ul id="levers" class="levers"></ul>
+          </div>
+        </div>
       </div>
+      <p class="sr-only" id="potLive" role="status" aria-live="polite"></p>
+      <p class="sr-only" id="chartLive" role="status" aria-live="polite"></p>
     </section>
-  </main>
 
   <!-- SAVE & LOAD -->
   <dialog id="saveDialog" class="code-dialog save-dialog">
@@ -197,13 +265,13 @@
   </dialog>
 
   <!-- Order matters: data first, then engine, then UI -->
-  <script src="data/factors.js"></script>
-  <script src="data/benchmarks.js"></script>
-  <script src="data/docs.js"></script>
-  <script src="js/engine.js"></script>
-  <script src="js/questions.js"></script>
-  <script src="js/chart.js"></script>
-  <script src="js/sankey.js"></script>
-  <script src="js/app.js"></script>
+  <script src="data/factors.js?v=4"></script>
+  <script src="data/benchmarks.js?v=4"></script>
+  <script src="data/docs.js?v=4"></script>
+  <script src="js/engine.js?v=4"></script>
+  <script src="js/questions.js?v=4"></script>
+  <script src="js/chart.js?v=4"></script>
+  <script src="js/sankey.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>

@@ -34,8 +34,12 @@
       },
 
       targets: {
-        y2030: { value: 3.0, label: "1.5 °C goal 2030" },
-        source: "Hot or Cool Institute, ‘A Climate for Sufficiency’ (2025): 1.5 °C-aligned lifestyle footprint ≈ 3.0 t CO2e per person in 2030, falling to ~1–1.5 t by 2035."
+        y2030: { value: 2.5, label: "1.5 °C goal 2030" },
+        // A GLOBALLY UNIFIED target, not an Austrian one: the remaining budget divided
+        // equally across the world population. Austria and Bangladesh get the same 2.5 t;
+        // what differs is the distance to it. A target weighted by historical responsibility
+        // would put Austria BELOW 2.5, not above.
+        source: "Hot or Cool Institute, ‘1.5-Degree Lifestyles: Towards A Fair Consumption Space for All’ (2021), Figure C: globally unified lifestyle carbon footprint targets of 2.5 t CO2e per person per year by 2030 and 0.7 t by 2050. The 2025 update (‘A Climate for Sufficiency’) states 1.1 t by 2035 and 0.3 t by 2050 and shows the same trajectory through 2030."
       },
 
       publicShare: {

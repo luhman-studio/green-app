@@ -26,7 +26,7 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 .wave { display: block; width: 100%; height: 34px; }
 .wave path { fill: var(--yellow); }
 .top .wave { position: absolute; bottom: -33px; left: 0; }
-.tabs { max-width: 1180px; margin: 0 auto; padding: 10px 16px 0; display: flex; gap: 6px; position: relative; z-index: 1; }
+.tabs { max-width: 1180px; margin: 0 auto; padding: 10px 16px 0; display: flex; gap: 6px; flex-wrap: wrap; position: relative; z-index: 1; }
 .tab { border: 2.5px solid var(--ink); border-bottom: none; background: #f9dc92; border-radius: 14px 14px 0 0; padding: 9px 18px; font-weight: 700; font-size: 15px; cursor: pointer; color: var(--ink); }
 .tab[aria-selected="true"] { background: var(--cream); }
 .tab:disabled { opacity: .45; cursor: not-allowed; }
@@ -40,6 +40,8 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 .results-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; margin: 20px 0; }
 #panelResults > .card + .card,
 #panelPotential > .card + .card,
+#panelDetails > .card + .card,
+#panelDetails > .pot-split + .card,
 #panelResults > .card + .results-grid,
 #panelPotential > .card + .results-grid { margin-top: 20px; }
 .card { background: var(--paper); border: 3px solid var(--line); border-radius: var(--radius); padding: 20px; min-width: 0; }
@@ -212,6 +214,15 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .doc-view .doc-src { max-width: 70ch; margin: 0 0 8px; padding-left: 20px; font-size: 13.5px; color: #4a4740; }
 .doc-view .doc-src li { margin-bottom: 6px; }
 
+/* a fourth tab does not fit a phone at full size: tighten, then drop the numbers */
+@media (max-width: 860px) {
+  .tab { padding: 8px 12px; font-size: 14px; }
+}
+@media (max-width: 560px) {
+  .tab { padding: 7px 10px; font-size: 13.5px; }
+  .tab-n { display: none; }
+}
+
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; }
   .profile-card { position: static; }
@@ -272,6 +283,15 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
   .page { padding-top: 12px; }
   .card { break-inside: avoid; }
   .results-grid { grid-template-columns: 1fr 1fr; }
+  /* on paper nothing sticks and nothing is behind a tab */
+  /* the diagram and the notes live on Details now, and both belong in a printed result */
+  #panelDetails { display: block !important; }
+  #panelDetails > .result-hero, #panelDetails .pot-sticky, #panelDetails .pot-right { display: none !important; }
+  .pot-sticky { position: static; box-shadow: none; }
+  .pot-left { position: static; }
+  .pot-split { display: block; }
+  .pot-split .sankey { max-height: none; }
+  .chart-help, .chart-hint, .band-chip { display: none; }
 }
 
 /* sankey */
@@ -280,19 +300,21 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .sankey .rb { fill-opacity: .5; stroke: var(--ink); stroke-width: .75; transition: fill-opacity .12s, opacity .12s; }
 .sankey .nd { stroke: var(--ink); stroke-width: 1.5; }
 .sankey .trunk { fill: var(--ink); }
-.sankey .trunk-label { font-size: 13px; font-weight: 700; text-anchor: middle; fill: var(--ink); }
-.sankey .dom-label { font-size: 12.5px; font-weight: 700; fill: var(--ink); }
-.sankey .cause-label { font-size: 11px; fill: var(--ink); }
+.sankey .trunk-label { font-size: calc(var(--lbl, 1) * 13px); font-weight: 700; text-anchor: middle; fill: var(--ink); }
+.sankey .dom-label { font-size: calc(var(--lbl-dom, var(--lbl, 1)) * 12.5px); font-weight: 700; fill: var(--ink); }
+.sankey .cause-label { font-size: calc(var(--lbl, 1) * 11px); fill: var(--ink); }
 .sankey .cause-label .val { fill: var(--muted); }
-.sankey .col-head { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; fill: #8A8474; }
+.sankey .col-head { font-size: calc(var(--lbl, 1) * 10.5px); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; fill: #8A8474; }
 .sankey .dom-label .val { fill: var(--muted); font-weight: 500; }
-.sankey .src-label { font-size: 11px; fill: var(--ink); }
+.sankey .src-label { font-size: calc(var(--lbl, 1) * 11px); fill: var(--ink); }
 .sankey .src-label .val { fill: var(--muted); }
 .sankey .goal-line { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 7 5; }
 .sankey .goal-label, .sankey .src-label, .sankey .dom-label, .sankey .cause-label, .sankey .trunk-label { paint-order: stroke fill; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
-.sankey .goal-label { font-size: 11px; font-weight: 700; fill: var(--ink); }
-.sankey .goal-sub { font-size: 10.5px; fill: var(--muted); }
+.sankey .goal-label { font-size: calc(var(--lbl, 1) * 11px); font-weight: 700; fill: var(--ink); }
+.sankey .goal-sub { font-size: calc(var(--lbl, 1) * 10.5px); fill: var(--muted); }
 .sankey [data-pick] { cursor: pointer; }
+.sankey:focus { outline: none; }
+.sankey:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
 /* invisible hit strip for bands too thin to point at — never drawn, never dimmed */
 .sankey .hit { stroke: none; }
 /* bands under 2 px: the outline would be wider than the band itself */
@@ -313,16 +335,18 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .sankey .ghost-band { fill: #EFE9DA; fill-opacity: .45; stroke: var(--muted); stroke-width: .75; stroke-dasharray: 4 3; }
 .sankey .src-label.gone, .sankey .dom-label.gone, .sankey .cause-label.gone { fill: var(--muted); text-decoration: line-through; }
 .sankey .group-bracket { fill: none; stroke: var(--muted); stroke-width: 1.5; }
-.sankey .group-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; fill: #8A8474; }
-.sankey .foot-note { font-size: 10.5px; fill: var(--muted); }
+.sankey .group-label { font-size: calc(var(--lbl, 1) * 10px); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; fill: #8A8474; }
+.sankey .foot-note { font-size: calc(var(--lbl, 1) * 10.5px); fill: var(--muted); }
 .sankey.active .ghost, .sankey.active .ghost-band { opacity: .25; }
 
 
 /* ---------- Potential: what is left of your footprint ----------
  * The track is a fixed width = the footprint today. Only the fill changes.
  */
-.potbar { margin: 4px 0 18px; }
-.pb-wrap { position: relative; padding-top: 19px; }
+.potbar { margin: 0; }
+.pb-wrap { position: relative; }
+.pb-bar { position: relative; padding-top: 19px; }
+.pb-now { display: none; }
 .pb-track { position: relative; display: flex; height: 30px; border: 2.5px solid var(--ink); border-radius: 10px; overflow: hidden; background: #fff; }
 .pb-seg { height: 100%; min-width: 0; }
 .pb-shadow { height: 100%; min-width: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -340,8 +364,91 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .pb-up { font-style: normal; font-weight: 700; color: var(--bad); }
 .pb-caption { margin: 9px 0 0; max-width: 78ch; }
 
+/* ---------- Potential: the result bar that follows you ----------
+ * The bar reads as the bottom of the hero card, but it is a sibling of that card so its
+ * sticky containing block is the whole tab. Stuck, it drops the legend and the caption and
+ * shows the two numbers that scrolled away with the hero: what is left, and what you removed.
+ */
+.pot-sticky {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--paper); border: 3px solid var(--line); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 0 20px 18px; margin-bottom: 20px;
+}
+.hero-open { border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; padding-bottom: 14px; }
+#potStickTop { height: 1px; margin-bottom: -1px; }
+#potBarSpacer { height: 0; }
+
+.pot-sticky.stuck {
+  border-radius: 0; border-top: none; padding: 8px 20px 9px;
+  box-shadow: 0 6px 18px rgba(40, 36, 25, .16);
+  margin-left: -16px; margin-right: -16px; padding-left: 36px; padding-right: 36px;
+}
+.pot-sticky.stuck .pb-wrap { display: flex; align-items: center; gap: 16px; }
+.pot-sticky.stuck .pb-bar { padding-top: 0; flex: 1; min-width: 0; }
+.pot-sticky.stuck .pb-track { height: 24px; }
+.pot-sticky.stuck .pb-goal, .pot-sticky.stuck .pb-legend, .pot-sticky.stuck .pb-caption { display: none; }
+.pot-sticky.stuck .pb-now { display: flex; align-items: baseline; gap: 9px; white-space: nowrap; }
+.pb-now b { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+.pb-now em { font-style: normal; font-size: 13.5px; font-weight: 700; }
+.pb-now .pb-none { color: var(--muted); font-weight: 500; }
+/* The hand-pinned fallback, switched on only where `position: sticky` turns out not to hold
+   (see startStickWatch). It comes after .stuck so it wins on the margins it has to reset. */
+.pot-sticky.pinned {
+  position: fixed; top: 0; left: 0; right: 0;
+  margin: 0; border-left: none; border-right: none; max-width: 100vw;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pot-sticky { transition: padding .12s ease, box-shadow .12s ease; }
+}
+
+/* ---------- Potential: diagram left, analysis or changes right ----------
+ * The diagram sticks so that a change you tick is never more than a glance away from the
+ * picture it changes. Only the right column scrolls — no nested scrollbar, just sticky.
+ */
+.pot-split { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+.pot-panel { display: flex; flex-direction: column; min-height: 0; }
+.pane-count { font-size: 12px; font-weight: 700; background: var(--ink); color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 4px; letter-spacing: 0; }
+.analysis-empty { max-width: 56ch; }
+
+/* the chip above the list of changes, when a band in the diagram has narrowed it */
+.band-chip {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between;
+  background: var(--cream); border: 2.5px solid var(--ink); border-radius: 14px;
+  padding: 9px 9px 9px 14px; margin: 0 0 14px; font-size: 14.5px;
+}
+.band-chip strong { white-space: normal; }
+
+@media (min-width: 1240px) {
+  /* The diagram needs the room, so this one tab bleeds wider than the 1180 px page.
+     Negative margins rather than a transform — a transformed ancestor upsets sticky. */
+  #panelPotential, #panelDetails {
+    --pot-w: min(1560px, calc(100vw - 32px));
+    --pot-over: calc((var(--pot-w) - 100%) / 2);
+    margin-left: calc(-1 * var(--pot-over)); margin-right: calc(-1 * var(--pot-over));
+  }
+  .pot-split { grid-template-columns: minmax(0, 1.42fr) minmax(360px, 1fr); }
+  .pot-left { position: sticky; top: 84px; }
+  .pot-chart-card { padding-bottom: 14px; }
+  /* keep the whole card inside one screen, so it can actually stick */
+  .pot-split .sankey { max-height: calc(100vh - 250px); }
+  .pot-right { min-height: 1px; }
+}
+@media (min-width: 1240px) and (max-width: 1420px) {
+  .pot-split { grid-template-columns: minmax(0, 1.55fr) minmax(330px, .9fr); }
+  .pot-sticky.stuck .pb-legend { display: none; }
+}
+
+.chart-hint { margin: 10px 0 0; }
+.chart-help { margin-top: 8px; }
+.chart-help summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.chart-help summary:hover { color: var(--ink); }
+.chart-help p { margin: 8px 0 0; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 /* ---------- insights panel under the Sankey ---------- */
-.insight { margin-top: 18px; border-top: 3px solid var(--ink); padding-top: 16px; }
+.insight { margin-top: 0; border-top: none; padding-top: 0; }
 .ins-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
 .ins-title { font-size: 22px; font-weight: 700; line-height: 1.15; }
 .ins-num { font-size: 22px; font-weight: 700; white-space: nowrap; }

@@ -21,6 +21,9 @@ require("../js/engine.js");
 require("../js/questions.js");
 require("../js/chart.js");
 const { engine, factors: F } = globalThis.GreenApp;
+// The goal is read from the data, never repeated here — a target the audit hard-codes
+// is a target the audit stops checking the moment the app changes it.
+const TARGET = globalThis.GreenApp.benchmarks.targets.y2030.value;
 
 let failed = 0, passed = 0, checks = 0;
 function ok(name, cond, extra) {
@@ -219,10 +222,10 @@ report("overlap and synergy both appear, and both are recalculated");
 // ---------- pathToTarget ----------
 console.log("Reaching the goal");
 profiles.slice(0, 200).forEach((p, i) => {
-  const path = engine.pathToTarget(p, 3.0);
+  const path = engine.pathToTarget(p, TARGET);
   const check = engine.calculate(p).total - engine.combined(p, path.levers);
   ok("path total matches recalculation (" + i + ")", Math.abs(check - path.total) < 1e-9);
-  ok("reached flag is honest (" + i + ")", path.reached === (path.total <= 3.0));
+  ok("reached flag is honest (" + i + ")", path.reached === (path.total <= TARGET));
   const ids = path.levers.map((l) => l.id);
   ok("no lever is picked twice", ids.length === new Set(ids).size);
 });
@@ -230,18 +233,18 @@ report("pathToTarget is honest about what it reaches");
 
 // The Potential tab is only worth having if the goal is actually reachable. A calculator that
 // tells someone "even every change together isn't enough" and stops has given up on them.
-// So: every profile, however extreme, must have a route to 3.0 t.
+// So: every profile, however extreme, must have a route to the goal in data/benchmarks.js.
 console.log("The goal has to be reachable for everyone");
 {
   let worst = null, unreached = 0;
   profiles.forEach((p, i) => {
-    const path = engine.pathToTarget(p, 3.0);
+    const path = engine.pathToTarget(p, TARGET);
     if (!path.reached) {
       unreached++;
       if (!worst || path.total > worst.total) worst = { i, total: path.total, before: engine.calculate(p).total };
     }
   });
-  ok("every random profile has a route to 3.0 t", unreached === 0,
+  ok("every random profile has a route to the goal", unreached === 0,
      unreached + " of " + profiles.length + " could not get there; worst ends at " +
      (worst ? worst.total.toFixed(2) + " t (from " + worst.before.toFixed(1) + " t)" : "–"));
   // And a deliberately absurd one: a big old oil-heated house alone, a diesel doing 35,000 km,
@@ -266,8 +269,8 @@ console.log("The goal has to be reachable for everyone");
     money: {}, offsets: {}
   };
   const before = engine.calculate(absurd).total;
-  const path = engine.pathToTarget(absurd, 3.0);
-  ok("even the most extreme profile can reach 3.0 t", path.reached,
+  const path = engine.pathToTarget(absurd, TARGET);
+  ok("even the most extreme profile can reach the goal", path.reached,
      before.toFixed(1) + " t only comes down to " + path.total.toFixed(2) + " t");
   console.log("    worst case: " + before.toFixed(1) + " t → " + path.total.toFixed(2) + " t with " + path.levers.length + " changes");
   // and the easy ones have to come first
@@ -370,7 +373,7 @@ console.log("The bar on Pick your changes");
 
     const html = chart.horizontal({
       domains: domains, now: base.byDomain, after: left.byDomain,
-      baseTotal: base.total, total: left.total, goal: { value: 3.0, label: "goal" }
+      baseTotal: base.total, total: left.total, goal: { value: TARGET, label: "goal" }
     });
     const segs = widths(html, "pb-seg"), shadow = widths(html, "pb-shadow");
     const t = (w) => w / 100 * base.total;   // a width, read back as tonnes

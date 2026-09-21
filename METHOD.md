@@ -42,7 +42,7 @@ The unit everywhere is tonnes of CO₂e per person per year. Household quantitie
 
 **Sources**
 
-- Hot or Cool Institute (2025), A Climate for Sufficiency — 1.5 °C-aligned lifestyle footprint targets; household consumption scope.
+- Hot or Cool Institute (2021 and 2025 update) — 1.5 °C-aligned lifestyle footprint targets; household consumption scope, explicitly excluding public spending and investment.
 - IPCC AR6 GWP-100 values for converting gases to CO₂e.
 
 ## How to read the code
@@ -142,7 +142,7 @@ legs × distance × 1.08 × kg per passenger-km × class multiplier
 
 **In the code:** `engine.js → flights()`
 
-**Check it:** One return long-haul trip in economy: 2 × 7,500 × 1.08 × 0.142 = 2,300 kg = 2.3 t. That is already three quarters of the 3.0 t budget for 2030.
+**Check it:** One return long-haul trip in economy: 2 × 7,500 × 1.08 × 0.142 = 2,300 kg = 2.3 t. That is already more than nine tenths of the 2.5 t budget for 2030.
 
 **Sources**
 
@@ -269,13 +269,13 @@ A sixth tag, "a big change, but yours", marks the levers that change how you liv
 
 Two of those deserve explaining, because their size comes from your own answers rather than from a fixed percentage. "Buy no more than an average Austrian" and "Go out and travel no more than an average Austrian" only appear if you are above the Austrian average in that area, and they bring you down to it — so the lever is meaningful for a big spender and simply absent for everyone else. They stack with the ordinary ones: average first, then half of that, then mostly second-hand.
 
-Above the list sits a bar whose full width is the footprint you have today. It never changes width. Ticking a change subtracts it from its own area, so the coloured part shrinks and stays left-aligned, and the hatched part that opens up on the right is exactly the tonnes you removed — one picture for how far you have come and how far there is left to go, with the 3.0 t mark drawn on it. Every width is a plain percentage of today's total, taken from a real recalculation and never rounded, so the coloured segments add up to what is left and the hatch adds up to what went: the same rule the Sankey follows. Where a change moves emissions rather than removing them — a night train instead of a flight — one area grows while another shrinks, and the legend says so in red.
+Above the list sits a bar whose full width is the footprint you have today. It never changes width. Ticking a change subtracts it from its own area, so the coloured part shrinks and stays left-aligned, and the hatched part that opens up on the right is exactly the tonnes you removed — one picture for how far you have come and how far there is left to go, with the 2.5 t mark drawn on it. Every width is a plain percentage of today's total, taken from a real recalculation and never rounded, so the coloured segments add up to what is left and the hatch adds up to what went: the same rule the Sankey follows. Where a change moves emissions rather than removing them — a night train instead of a flight — one area grows while another shrinks, and the legend says so in red.
 
-"Reach the 1.5 °C goal" takes the levers one at a time, ordinary before drastic and biggest first, until you are under 3.0 t. The audit checks that this works for every one of 3,000 random profiles and for a deliberately absurd one (a 220 m² oil-heated house lived in alone, 24 business-class flights, meat twice a day and €44,000 a year on things and going out: 82 t down to 2.0 t). An earlier version of the lever list could not do this — see "What the audit found".
+"Reach the 1.5 °C goal" takes the levers one at a time, ordinary before drastic and biggest first, until you are under the 2.5 t goal. The audit checks that this works for every one of 3,000 random profiles and for a deliberately absurd one (a 220 m² oil-heated house lived in alone, 24 business-class flights, meat twice a day and €44,000 a year on things and going out: 82 t down to 2.0 t). An earlier version of the lever list could not do this — see "What the audit found".
 
 **In the code:** `engine.js → levers(), combined(), pathToTarget()`
 
-**Check it:** tests/audit.js recalculates every lever from scratch on 400 random profiles and checks the claimed saving; it checks that ticking changes in a different order never changes the total, which was a real bug found in the audit; and it checks that every single one of the 3,000 random profiles has a route to 3.0 t. It also reads the widths back out of the bar's own markup on 300 profiles and checks that each area's width is its tonnes, that the hatched part is exactly the saving, and that the track is full to within a billionth of a percent.
+**Check it:** tests/audit.js recalculates every lever from scratch on 400 random profiles and checks the claimed saving; it checks that ticking changes in a different order never changes the total, which was a real bug found in the audit; and it checks that every single one of the 3,000 random profiles has a route to the goal — and it reads that goal out of data/benchmarks.js rather than repeating the number, so changing the target re-tests the whole lever list instead of quietly bypassing the check. It also reads the widths back out of the bar's own markup on 300 profiles and checks that each area's width is its tonnes, that the hatched part is exactly the saving, and that the track is full to within a billionth of a percent.
 
 ## Compensation
 
@@ -371,13 +371,13 @@ Austria 7.9 t per person is a derived estimate: roughly 100 Mt of consumption-ba
 
 The split of the Austrian average across the six areas is illustrative: it is scaled to be consistent with the bottom-up food model rather than measured independently. Use it to see roughly where you sit, not as a precise per-area benchmark.
 
-The 1.5 °C line is 3.0 t per person by 2030, from the Hot or Cool Institute. It is a lifestyle target on the same household-consumption scope as everything else in the app, which is what makes the comparison fair.
+The 1.5 °C line is 2.5 t per person by 2030, from the Hot or Cool Institute. Two things about it. It is a lifestyle target on the same household-consumption scope as everything else in the app, which is what makes the comparison fair — the public share is outside the bars AND outside the target, not missing from one of them. And it is a globally unified number: the remaining budget divided equally among everyone alive, so Austria and Bangladesh are held to the same 2.5 t. What differs by country is the distance: Austria has to fall by about two thirds, while the poorest half of the world could consume more and still be inside it. A target weighted by historical responsibility would put Austria below 2.5 t, not above.
 
-There is no per-area 2030 target. Splitting 3.0 t across housing, food and travel would pretend to know how each person should live; one person can fly and eat plants, another can be vegan and drive. The goal applies to the total.
+There is no per-area 2030 target. Splitting 2.5 t across housing, food and travel would pretend to know how each person should live; one person can fly and eat plants, another can be vegan and drive. The goal applies to the total.
 
 **Sources**
 
-- Hot or Cool Institute (2025), A Climate for Sufficiency: 1.5 °C-aligned lifestyle footprint of 3.0 t CO₂e per person by 2030.
+- Hot or Cool Institute (2021), 1.5-Degree Lifestyles: Towards A Fair Consumption Space for All, Figure C: globally unified lifestyle carbon footprint targets of 2.5 t CO₂e per person per year by 2030 and 0.7 t by 2050. The 2025 update, A Climate for Sufficiency, carries the same trajectory and states 1.1 t by 2035 and 0.3 t by 2050.
 - Consumption-based national totals: Global Carbon Project / OECD-style footprint accounts, applied to Austrian population and household share.
 
 ## How to check this yourself
@@ -402,7 +402,7 @@ Fixed — levers were order-dependent. "Stop flying" and "train instead of short
 
 Not a bug — savings that are more than the sum of their parts. A green tariff plus a heat pump saves more together than separately, because clean electricity makes the new system cleaner. The app's wording said "they overlap" in both cases; it now says which of the two is happening.
 
-Fixed — the 1.5 °C goal was not reachable for heavy profiles. A deliberately extreme profile bottomed out at 5.0 t with every lever ticked, because whole areas had weak levers or none at all: services could only be cut by a third, goods by half, and household electricity, hot water, living space, the plant-based food base and digital use had no lever whatsoever. Eleven levers were added — less electricity, solar on your own roof, less hot water, a quarter less living space, a heat pump for district heating too, insulation for wood and pellet heating (previously hidden, but it was the single biggest thing left in a large firewood-heated house), travelling shorter distances, cutting drinks and snacks, a no-buy year, halving going out, less streaming and no AI video, plus the two "down to the Austrian average" levers. Every one of the 3,000 audit profiles can now reach 3.0 t, and so can the absurd one.
+Fixed — the 1.5 °C goal was not reachable for heavy profiles. A deliberately extreme profile bottomed out at 5.0 t with every lever ticked, because whole areas had weak levers or none at all: services could only be cut by a third, goods by half, and household electricity, hot water, living space, the plant-based food base and digital use had no lever whatsoever. Eleven levers were added — less electricity, solar on your own roof, less hot water, a quarter less living space, a heat pump for district heating too, insulation for wood and pellet heating (previously hidden, but it was the single biggest thing left in a large firewood-heated house), travelling shorter distances, cutting drinks and snacks, a no-buy year, halving going out, less streaming and no AI video, plus the two "down to the Austrian average" levers. Every one of the 3,000 audit profiles can now reach the goal, and so can the absurd one — including after the target was tightened from 3.0 to 2.5 t (the absurd profile bottoms out at 2.0 t).
 
 Unchanged and confirmed: the Sankey's four columns reconcile exactly with the calculation on all 3,000 test profiles, every lever's claimed saving survives an independent recalculation, and nothing produces a negative, infinite or missing value.
 
@@ -461,7 +461,7 @@ Generated directly from `data/factors.js` and `data/benchmarks.js`, so it cannot
 - **`factors.offsetTypes`** — Categories follow the Oxford Offsetting Principles (2024 revision): cut emissions first, shift to removals, shift to durable storage. Credit integrity: Probst et al. (2024), Nature Communications.
 - **`benchmarks.austria`** — Derived estimate: Austrian consumption-based emissions ≈ 100 Mt CO2e (2023, Joanneum Research / CCCA) ÷ 9.16 M inhabitants ≈ 10.9 t, × 72% household share (Hot or Cool Institute). Germany in the same report: 8.1 t.
 - **`benchmarks.world`** — Derived estimate: global GHG ≈ 57 Gt CO2e (UNEP Emissions Gap 2024) ÷ 8.05 bn people ≈ 7.1 t, × 72% household share. Illustrative split.
-- **`benchmarks.targets`** — Hot or Cool Institute, ‘A Climate for Sufficiency’ (2025): 1.5 °C-aligned lifestyle footprint ≈ 3.0 t CO2e per person in 2030, falling to ~1–1.5 t by 2035.
+- **`benchmarks.targets`** — Hot or Cool Institute, ‘1.5-Degree Lifestyles: Towards A Fair Consumption Space for All’ (2021), Figure C: globally unified lifestyle carbon footprint targets of 2.5 t CO2e per person per year by 2030 and 0.7 t by 2050. The 2025 update (‘A Climate for Sufficiency’) states 1.1 t by 2035 and 0.3 t by 2050 and shows the same trajectory through 2030.
 - **`benchmarks.publicShare`** — ≈ 28% of Austria’s consumption-based total (public services, infrastructure, investment). Not controllable by lifestyle; excluded from the comparison.
 
 ---

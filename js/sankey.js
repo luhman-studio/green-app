@@ -61,7 +61,12 @@
      */
     function render(opts) {
       var domains = opts.domains, total = opts.total, goal = opts.goal;
-      var W = 1130, padTop = 46, padBottom = 30;
+      // Drawn narrower (beside the analysis panel) the whole picture is scaled down, so the
+      // labels shrink with it. labelScale enlarges the type in user units to compensate — and
+      // enlarges the height a label needs by exactly the same factor, so the rule "a band too
+      // thin to hold its label doesn't get one" keeps meaning what it says.
+      var lblScale = opts.labelScale || 1;
+      var W = 1130, padTop = 46, padBottom = 30 + Math.round((lblScale - 1) * 26);
       var groupX = 20, causeLabelR = 252, causeX = 260, nodeW = 15, actX = 470, areaX = 690, trunkX = 910, trunkW = 26;
       var hasBase = !!opts.baseline;
       var baseTotal = hasBase ? opts.baselineTotal : total;
@@ -168,7 +173,9 @@
       var fy = function (yTop, h) { return H - padBottom - (yTop - padTop) - h; };
       var ty = function (yy) { return H - padBottom - (yy - padTop); };
 
-      var svg = ['<svg viewBox="0 0 ' + W + " " + H + '" class="sankey' + (hasBase ? " has-ghost" : "") + '" role="img" aria-label="Where your emissions come from">'];
+      var svg = ['<svg viewBox="0 0 ' + W + " " + H + '" class="sankey' + (hasBase ? " has-ghost" : "") +
+        '" style="--lbl:' + lblScale + ";--lbl-dom:" + (1 + (lblScale - 1) * 0.55).toFixed(3) + '" tabindex="0" role="application" aria-roledescription="flow diagram" ' +
+        'aria-label="Where your emissions come from. Use the arrow keys to move between bands, Enter to open one in the analysis panel, Escape to let go.">'];
       svg.push('<text class="col-head" x="' + causeLabelR + '" y="18" text-anchor="end">What causes it</text>');
       svg.push('<text class="col-head" x="' + (actX + nodeW + 8) + '" y="18">What you do</text>');
       svg.push('<text class="col-head" x="' + (areaX + nodeW + 8) + '" y="18">Area</text>');
@@ -185,7 +192,12 @@
       // A line of text needs about this much room. Below it the band is still drawn at its
       // true height — only the label is left off, because a label that overlaps its neighbours
       // is worse than no label, and the tooltip and the insights panel cover it.
-      var LABEL_MIN = 13;
+      var LABEL_MIN = 13 * lblScale;
+      // The gutters between the columns are fixed. Bigger type therefore has to mean fewer
+      // characters, or a label walks into the column next to it.
+      var chars = function (n) { return Math.max(14, Math.round(n / lblScale)); };
+      // the activity column has the tightest gutter (197 units, shared with the value)
+      var actChars = lblScale > 1.05 ? 18 : 32;
       // A 0.75 px outline around a 0.3 px band would double its apparent size, which is exactly
       // the distortion this diagram is trying not to commit. Below 2 px, no outline.
       var thin = function (h) { return h < 2 ? " thin" : ""; };
@@ -222,7 +234,7 @@
         var cKeys = keysAttr(c.rows), cPick = pickAttr("cause", c.id);
         svg.push('<rect class="nd' + thin(c.h) + " cause-" + c.id + '" x="' + causeX + '" y="' + fy(c.y, Math.max(c.h, 1)) + '" width="' + nodeW + '" height="' + Math.max(c.h, 1) + '" rx="3" fill="#4A463C"' + cKeys + cPick + ' data-tip="' + tip + '"/>');
         if (c.slot >= LABEL_MIN) svg.push('<text class="cause-label cause-' + c.id + (c.now <= 0 ? " gone" : "") + '" x="' + causeLabelR + '" y="' + (ty(c.y + c.slot / 2) + 4) + '" text-anchor="end"' + cKeys + cPick + ' data-tip="' + tip + '">' +
-          esc(shorten(c.label, 30)) + ' <tspan class="val">' + c.now.toFixed(2) + " t</tspan></text>");
+          esc(shorten(c.label, chars(30))) + ' <tspan class="val">' + c.now.toFixed(2) + " t</tspan></text>");
         c.rows.slice().sort(function (a, b) { return a.y - b.y; }).forEach(function (r) {
           if (r.h <= 0) return;
           svg.push('<path class="rb' + thin(r.h) + " cause-" + c.id + " src-" + r.key + '" d="' + band(causeX + nodeW, fy(cursor, r.h), r.h, actX, fy(r.y, r.h), r.h) + '" fill="' + r.dom.color +
@@ -247,7 +259,7 @@
           areaCursor[r.dom.id] += r.h;
         }
         if (r.slot >= LABEL_MIN) svg.push('<text class="src-label ' + cls + (r.h <= 0 ? " gone" : "") + '" x="' + (actX + nodeW + 8) + '" y="' + (ty(r.y + r.slot / 2) + 4) + '"' + rKeys + rPick + ' data-tip="' + tip + '">' +
-          esc(shorten(r.src.label, 32)) + ' <tspan class="val">' + (r.h <= 0 ? "gone" : r.now.toFixed(2) + " t") + "</tspan></text>");
+          esc(shorten(r.src.label, actChars)) + ' <tspan class="val">' + (r.h <= 0 ? "gone" : r.now.toFixed(2) + " t") + "</tspan></text>");
       });
 
       // area → footprint (the trunk stays one solid bar: areas stack inside it)
@@ -284,16 +296,20 @@
       // whole picture says nothing, so it highlights only itself and opens the overview.
       svg.push('<rect class="nd trunk" x="' + trunkX + '" y="' + fy(trunkY, Math.max(trunkH, 1)) + '" width="' + trunkW + '" height="' + Math.max(trunkH, 1) + '" rx="4"' + keysAttr(rows) + pickAttr("total", "all") + ' data-tip="' +
         esc("Your footprint: " + total.toFixed(1) + " t CO₂e per year" + (hasBase && baseTotal - total > 0.05 ? " — down from " + baseTotal.toFixed(1) + " t" : "")) + '"/>');
-      svg.push('<text class="trunk-label" x="' + (trunkX + trunkW) + '" y="' + (H - padBottom + 18) + '" text-anchor="end">' + total.toFixed(1) + " t in total" +
+      svg.push('<text class="trunk-label" x="' + (trunkX + trunkW) + '" y="' + (H - padBottom + 16 * lblScale) + '" text-anchor="end">' + total.toFixed(1) + " t in total" +
         (hasBase && baseTotal - total > 0.05 ? " · was " + baseTotal.toFixed(1) + " t" : "") + "</text>");
 
       // the 1.5 °C budget, marked on the total bar, caption in the right gutter
       if (goal) {
         var gy = ty(trunkY + Math.min(goal.value * scale, trunkSlot)); // the same tonnes-to-pixels rate as everything else
         svg.push('<line class="goal-line" x1="' + (trunkX - 16) + '" x2="' + (trunkX + trunkW + 10) + '" y1="' + gy + '" y2="' + gy + '"/>');
-        svg.push('<text class="goal-label" x="' + (trunkX + trunkW + 14) + '" y="' + (gy - 4) + '">' + esc(goal.label + " " + goal.value.toFixed(1) + " t") + "</text>");
-        svg.push('<text class="goal-sub" x="' + (trunkX + trunkW + 14) + '" y="' + (gy + 12) + '">' +
-          (total > goal.value ? "above the line: over budget" : "you fit inside the budget") + "</text>");
+        // the gutter right of the trunk is 180 units wide whatever the type size
+        var gLabel = lblScale > 1.05 ? (goal.short || goal.label) : goal.label;
+        var gSub = total > goal.value
+          ? (lblScale > 1.05 ? "over budget" : "above the line: over budget")
+          : (lblScale > 1.05 ? "inside the budget" : "you fit inside the budget");
+        svg.push('<text class="goal-label" x="' + (trunkX + trunkW + 14) + '" y="' + (gy - 4) + '">' + esc(gLabel + " " + goal.value.toFixed(1) + " t") + "</text>");
+        svg.push('<text class="goal-sub" x="' + (trunkX + trunkW + 14) + '" y="' + (gy + 12) + '">' + gSub + "</text>");
       }
 
       // What was drawn, in data form, so the app can build the insights panel for whatever the
@@ -318,7 +334,7 @@
 
       var notes = ["stacks grow upwards · every band's height is exactly its tonnes — thin ones carry no label, hover or click them"];
       if (hasBase && baseTotal - total > 0.05) notes.unshift("dashed = what your ticked changes remove");
-      svg.push('<text class="foot-note" x="' + groupX + '" y="' + (H - 8) + '">' + esc(notes.join(" · ")) + "</text>");
+      svg.push('<text class="foot-note" x="' + groupX + '" y="' + (H - 6) + '">' + esc(notes.join(" · ")) + "</text>");
 
       svg.push("</svg>");
       return svg.join("");
@@ -388,29 +404,113 @@
         tooltip.hidden = true;
       };
 
+      // show the tooltip at a point in the container, or centred on an element
+      var showTip = function (el, x, y) {
+        tooltip.textContent = el.getAttribute("data-tip");
+        tooltip.hidden = false;
+        var box = container.getBoundingClientRect();
+        if (x == null) { var r = el.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top + r.height / 2; }
+        tooltip.style.left = Math.min(Math.max(8, x - box.left + 12), Math.max(8, box.width - 260)) + "px";
+        tooltip.style.top = Math.max(4, y - box.top + 12) + "px";
+      };
+
       svg.addEventListener("mousemove", function (ev) {
         var el = ev.target.closest("[data-tip]");
         if (!el) { restore(); return; }
         light(el, el.getAttribute("data-pick") === selected);
-        tooltip.textContent = el.getAttribute("data-tip");
-        tooltip.hidden = false;
-        var box = container.getBoundingClientRect();
-        tooltip.style.left = Math.min(Math.max(8, ev.clientX - box.left + 12), Math.max(8, box.width - 260)) + "px";
-        tooltip.style.top = (ev.clientY - box.top + 12) + "px";
+        showTip(el, ev.clientX, ev.clientY);
       });
       svg.addEventListener("mouseleave", restore);
 
+      var byMouse = false;
+      svg.addEventListener("mousedown", function () { byMouse = true; setTimeout(function () { byMouse = false; }, 0); });
       svg.addEventListener("click", function (ev) {
         var el = ev.target.closest("[data-pick]");
         var pick = el ? el.getAttribute("data-pick") : null;
         selected = (!pick || pick === selected) ? null : pick;   // click again to let go
+        if (pick) syncIndex(pick);                               // so the arrow keys carry on from here
         restore();
         tell(selected);
       });
 
-      // keyboard: the diagram is reachable, and Escape lets go of the selection
+      /* ---------- keyboard ----------
+       * The diagram is one tab stop, not two hundred. Inside it the arrow keys walk the
+       * picture the way it reads: up and down within a column, left and right between the
+       * four columns, landing on whatever sits nearest the height you were already at.
+       * Enter opens it in the analysis panel, Escape lets go. Every move speaks its label
+       * through the same live region the rest of the page uses, so this works unseen.
+       */
+      var ORDER = ["cause", "src", "dom", "total"];
+      var cols = ORDER.map(function (kind) {
+        var seen = {}, out = [];
+        Array.prototype.forEach.call(svg.querySelectorAll('[data-pick^="' + kind + ':"]'), function (n) {
+          var p = n.getAttribute("data-pick");
+          if (seen[p]) return;
+          if (n.classList.contains("hit") && svg.querySelector('rect.nd[data-pick="' + p + '"]')) return;
+          seen[p] = true; out.push(n);
+        });
+        return out.sort(function (a, b) { return a.getBoundingClientRect().top - b.getBoundingClientRect().top; });
+      });
+      var mid = function (el) { var r = el.getBoundingClientRect(); return r.top + r.height / 2; };
+      var ci = 1, ri = 0;   // start on "what you do" — the column the changes act on
+      var cur = function () { return (cols[ci] || [])[ri] || null; };
+      var speak = function (el) {
+        if (opts.live && el) opts.live.textContent = el.getAttribute("data-tip") || "";
+      };
+      var goTo = function (el) {
+        if (!el) return;
+        light(el, el.getAttribute("data-pick") === selected);
+        showTip(el);
+        speak(el);
+      };
+      var syncIndex = function (pick) {
+        cols.forEach(function (list, k) {
+          list.forEach(function (n, i) { if (n.getAttribute("data-pick") === pick) { ci = k; ri = i; } });
+        });
+      };
+      // pick up wherever the app left us (the SVG is rebuilt on every change)
+      if (opts.focus) syncIndex(opts.focus);
+
+      svg.addEventListener("focus", function () {
+        if (byMouse) return;                       // a click already said where we are
+        if (!cur()) { ci = 1; ri = 0; }
+        goTo(cur());
+        if (typeof opts.onFocus === "function") opts.onFocus(cur() && cur().getAttribute("data-pick"));
+      });
+      svg.addEventListener("blur", function () { restore(); });
+
       svg.addEventListener("keydown", function (ev) {
-        if (ev.key === "Escape" && selected) { selected = null; restore(); tell(null); }
+        var k = ev.key, list = cols[ci] || [], el = cur();
+        if (k === "Escape") {
+          if (!selected) return;
+          selected = null; restore(); tell(null);
+          if (el) goTo(el);
+          ev.preventDefault(); return;
+        }
+        if (k === "Enter" || k === " " || k === "Spacebar") {
+          if (!el) return;
+          var pick = el.getAttribute("data-pick");
+          selected = pick === selected ? null : pick;
+          restore(); tell(selected); goTo(el);
+          ev.preventDefault(); return;
+        }
+        if (k === "ArrowDown" || k === "ArrowUp") {
+          if (!list.length) return;
+          ri = Math.min(list.length - 1, Math.max(0, ri + (k === "ArrowDown" ? 1 : -1)));
+        } else if (k === "ArrowRight" || k === "ArrowLeft") {
+          var want = el ? mid(el) : 0;
+          var next = ci + (k === "ArrowRight" ? 1 : -1);
+          while (next >= 0 && next < cols.length && !cols[next].length) next += (k === "ArrowRight" ? 1 : -1);
+          if (next < 0 || next >= cols.length) return;
+          ci = next;
+          ri = 0;                                   // land nearest the height we were at
+          cols[ci].forEach(function (n, i) { if (Math.abs(mid(n) - want) < Math.abs(mid(cols[ci][ri]) - want)) ri = i; });
+        } else if (k === "Home") { ri = 0; }
+        else if (k === "End") { ri = Math.max(0, list.length - 1); }
+        else return;
+        ev.preventDefault();
+        goTo(cur());
+        if (typeof opts.onFocus === "function") opts.onFocus(cur() && cur().getAttribute("data-pick"));
       });
 
       restore();

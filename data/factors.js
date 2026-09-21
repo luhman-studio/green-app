@@ -237,6 +237,33 @@
         source: "Categories follow the Oxford Offsetting Principles (2024 revision): cut emissions first, shift to removals, shift to durable storage. Credit integrity: Probst et al. (2024), Nature Communications."
       },
 
+      /* ---------- REBOUND (never multiplied into anything) ----------
+       * Every saving this app reports is an UPPER BOUND, and it is worth being precise about
+       * why, because two different effects get called by the same name:
+       *
+       *   direct   — you use the efficient thing more. Insulate, then keep the house warmer.
+       *              Reviews of energy services put this at roughly 10–30% of the saving.
+       *   indirect — you spend the money somewhere else, and that has its own footprint.
+       *              For a single measure this is small. For a whole package of changes it
+       *              is the dominant one, because the money saved is large.
+       *
+       * The app used to quote the 10–30% direct figure while DESCRIBING the indirect effect.
+       * That understated it for exactly the case this app produces: someone ticking a dozen
+       * changes at once. Hence the Norwegian figures below, which measured that case.
+       *
+       * Nothing here is used in a calculation. Rebound depends on what a particular person
+       * does with the money, not on the lever, so subtracting a guess would replace a
+       * measurable upper bound with an unmeasurable point estimate. It is stated beside the
+       * numbers instead — the same treatment as compensation and financed emissions. The
+       * audit checks that engine.js never reads this object.
+       */
+      rebound: {
+        usedInArithmetic: false,
+        directLow: 0.10, directHigh: 0.30,
+        packageCutBefore: 0.58, packageCutAfterLow: 0.24, packageCutAfterHigh: 0.35,
+        source: "Direct rebound 10–30%: reviews of energy-service rebound (Sorrell et al.). Whole-package indirect rebound: Norwegian households, 34 actions across seven consumption areas, EXIOBASE input–output linked to expenditure survey data — a 58% footprint cut before re-spending became 24–35% after it, the best case being the lowest-carbon spending scenario."
+      },
+
       // Period conversions to "per year"
       perYear: { day: 365, workday: 230, week: 52, month: 12, year: 1 },
 

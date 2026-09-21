@@ -589,6 +589,9 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .sankey-v .v-band.hi { fill-opacity: .85; stroke-opacity: .9; }
 .sankey-v .sel { stroke-width: 2.4; stroke-opacity: 1; }
 
+/* the upper-bound warning: present, not shouty — it is a caveat, not an error */
+.rebound-note { margin: 10px 0 0; border-left: 3px solid var(--yellow); padding-left: 11px; }
+
 /* ---------- insights panel under the Sankey ---------- */
 .ins-try { margin-top: 12px; width: 100%; }
 .ins-try-note { margin: 6px 0 0; }

@@ -671,6 +671,31 @@
         goal: { value: target.value, label: "1.5 \u00b0C goal " + target.value.toFixed(1) + " t" }
       });
 
+      /* Every figure on this tab is an upper bound, and the more is ticked the further from
+       * the truth that gets — because the money not spent on fuel, flights and meat is real
+       * money that goes somewhere, and where it goes has its own footprint. The app does not
+       * subtract a guess for that: rebound is a property of the person, not of the lever, and
+       * subtracting it would trade a measurable upper bound for an unmeasurable point
+       * estimate. So it is said, beside the number, and said harder as the number grows.
+       */
+      var rb = F.rebound, rbEl = $("potRebound");
+      if (saved < 0.3) {
+        rbEl.hidden = true; rbEl.innerHTML = "";
+      } else {
+        var big = saved >= 2 || chosen.length >= 6;
+        rbEl.hidden = false;
+        rbEl.innerHTML = "<strong>Read this as an upper bound.</strong> The money you stop spending on fuel, flights or meat does not vanish — " +
+          "it gets spent on something else, and that has its own footprint. " +
+          (big
+            ? "For a package this size that is the bigger effect, not a footnote: when Norwegian households' " +
+              Math.round(rb.packageCutBefore * 100) + "% cut across 34 changes was recalculated with the re-spending included, it came out at " +
+              Math.round(rb.packageCutAfterLow * 100) + "–" + Math.round(rb.packageCutAfterHigh * 100) + "%. " +
+              "Between a third and a half of the saving came back, and the best of their scenarios was the one where the money went to the lowest-carbon things."
+            : "Using the efficient thing more takes back perhaps " + Math.round(rb.directLow * 100) + "–" + Math.round(rb.directHigh * 100) +
+              "% on its own; re-spending the money takes back more, and grows as you tick more.") +
+          ' <span class="muted">Nothing here is reduced for it — that depends on what you do with the money, not on the change itself.</span>';
+      }
+
       var scenario = applyPicked(all);
       // reserve a row for anything a lever could add (e.g. train instead of flights),
       // so the diagram keeps exactly the same height whatever is ticked

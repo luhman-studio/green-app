@@ -17,6 +17,7 @@
  *  10. the benchmark data agrees with itself, and the excluded-share flow is the arithmetic
  *  11. compensation is described, never subtracted, and its ladder is the mix
  *  12. the turned diagram is the same arithmetic as the wide one, on the other axis
+ *  13. rebound is stated, never subtracted — the savings stay upper bounds
  */
 require("../data/factors.js");
 require("../data/benchmarks.js");
@@ -679,6 +680,45 @@ console.log("The turned diagram");
   ok("the turned diagram is marked as such, so the CSS can find it", /class="sankey sankey-v"/.test(html));
 }
 report("the turned diagram is the same arithmetic");
+
+/* ---------- 13. rebound is stated, never subtracted ----------
+ * The app reports upper bounds and says so. The temptation is to "improve" the numbers by
+ * discounting them for rebound, and that would be worse, not better: rebound depends on what
+ * a particular person does with the money they stop spending, not on the lever, so a
+ * discounted figure is an unmeasurable point estimate dressed up as a measurement. The rule
+ * is the same one compensation and financed emissions follow — stated beside the number,
+ * never inside it — and this section is what stops someone quietly changing it.
+ */
+console.log("Rebound");
+{
+  const rb = F.rebound;
+  const src = globalThis.GreenApp.sources["js/engine.js"];
+  ok("rebound is recorded as data", !!rb && rb.usedInArithmetic === false);
+  ok("it cites where its numbers come from", typeof rb.source === "string" && rb.source.length > 80);
+  ok("it separates direct rebound from re-spending",
+     rb.directLow > 0 && rb.directHigh > rb.directLow && rb.packageCutBefore > rb.packageCutAfterHigh);
+  ok("the package figures are a take-back, not a gain", rb.packageCutAfterHigh < rb.packageCutBefore);
+
+  // The load-bearing one: the engine must never have seen this object.
+  ok("the engine never reads it — the savings are not discounted",
+     typeof src === "string" && src.indexOf("rebound") < 0,
+     "engine.js mentions rebound");
+
+  // And the savings themselves must still be exactly what a recalculation gives.
+  profiles.slice(0, 60).forEach((p, i) => {
+    const all = engine.levers(p);
+    if (!all.length) return;
+    const base = engine.calculate(p).total;
+    all.slice(0, 4).forEach((l) => {
+      const q = clone(p);
+      l.change(q);
+      const got = base - engine.calculate(q).total;
+      ok("a lever's saving is the undiscounted recalculation (" + l.id + ")",
+         Math.abs(got - l.saved) <= 1e-9, got.toFixed(6) + " vs " + l.saved.toFixed(6));
+    });
+  });
+}
+report("rebound is stated, never subtracted");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

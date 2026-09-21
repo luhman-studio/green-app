@@ -70,7 +70,14 @@
           <div class="card-title">How that compares</div>
           <div id="chart" class="chart"></div>
           <div id="legend" class="legend"></div>
-          <p class="muted small">Tonnes CO₂e per person per year, consumption-based, stacked by area. Austria and world are published averages, so they carry no bracket. The dashed line is the 1.5 °C-aligned lifestyle footprint for 2030 (Paris Agreement). <strong>The bracket next to “You” is how unsure the calculator is about your own number</strong> — not a measurement error, because nothing here was measured. Your answers are recalculated 4,000 times over, and on each run every emission factor and every quantity you were unsure about is redrawn somewhere inside its published uncertainty. The bracket covers the middle 80% of those runs: one in ten lands below it, one in ten above. It is usually not centred on the bar, because these uncertainties multiply rather than add, which stretches the top more than the bottom. Answering “exact” instead of “rough guess” on the questions marked <em>big effect</em> is what makes it narrower.</p>
+          <p class="muted small chart-cap">Tonnes CO₂e per person per year, consumption-based, stacked by area. Austria and world are published averages, so only your own bar carries a range. The dashed line is the 1.5 °C-aligned lifestyle footprint for 2030.</p>
+          <details class="fold">
+            <summary>Where the range comes from, and why it is not centred</summary>
+            <p>It is not a measurement error — nothing here was measured. Your answers are recalculated 4,000 times over, and on each run every emission factor and every quantity you were unsure about is redrawn somewhere inside its published uncertainty. The bracket covers the middle 80% of those runs: one in ten lands below it, one in ten above.</p>
+            <p>The top of the bar is the central estimate, and the bracket usually reaches further above it than below. That is not a drawing error: these uncertainties multiply rather than add, so they stretch the top more than the bottom.</p>
+            <p>It is an uncertainty interval rather than a box plot on purpose. A box plot summarises a distribution of observations — quartiles, whiskers, outliers, many things measured. There is one of you and one footprint; the spread is how unsure the calculator is about a single value, not variation between people.</p>
+            <p>Answering “exact” instead of “rough guess” on the questions marked <em>big effect</em> is what makes it narrower.</p>
+          </details>
         </div>
 
         <div class="card">

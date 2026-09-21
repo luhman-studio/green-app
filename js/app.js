@@ -446,7 +446,10 @@
         target: B.targets.y2030,
         range: sim
       });
-      $("legend").innerHTML = G.chart.legend(B.domains);
+      $("legend").innerHTML = G.chart.legend(B.domains, {
+        range: true,
+        rangeLabel: "80% likely range · " + sim.low.toFixed(1) + "–" + sim.high.toFixed(1) + " t"
+      });
 
       // By area: your value with range, the Austrian average, and how each area compares
       var rows = ['<tr><th>Area</th><th>You <span class="th-sub">80% range</span></th><th>Austria</th><th>vs. average</th></tr>'];

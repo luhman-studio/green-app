@@ -1,7 +1,7 @@
 /*
  * Comparison chart as plain SVG (no library).
  * Stacked bars: You / Austria / World, dashed line = 1.5 °C goal,
- * bracket next to "You" = uncertainty range.
+ * bracket centred on "You" = the 80% uncertainty range.
  */
 (function (root) {
   function defineChart() {
@@ -52,19 +52,25 @@
         svg.push('<text x="' + (x + barW / 2) + '" y="' + (bottom + 46) + '" class="bar-value">' + b.total.toFixed(1) + " t</text>");
 
         if (b.isYou && range) {
-          /* The uncertainty bracket. A tick marks the central value — the top of the bar —
-           * so the range can be read against it: this spread is right-skewed, because the
-           * uncertainties multiply, and a bracket without the tick hides that. A connector
-           * to the bar top stops the whole thing reading as a floating object.
+          /* The uncertainty range sits ON the bar, centred, the way an error bar normally does.
+           * It used to stand beside it with a dotted tie and a tick at the central value; that
+           * was three marks doing one job and it read as a box with a line through it. The bar's
+           * own top edge already IS the central value, so the caps being unequal distances from
+           * it is the skew, shown without extra ink.
+           *
+           * The lower half runs over the coloured segments, so every line is drawn twice: a wide
+           * cream casing first, the ink line on top. That keeps it legible over any fill without
+           * a halo filter.
            */
-          var wx = x + barW + 11, yc = y(b.total);
+          var cx = x + barW / 2, yHi = y(range.high), yLo = y(range.low), cap = 7;
+          var marks = function (cls) {
+            return '<line class="' + cls + '" x1="' + cx + '" x2="' + cx + '" y1="' + yHi + '" y2="' + yLo + '"/>' +
+              '<line class="' + cls + '" x1="' + (cx - cap) + '" x2="' + (cx + cap) + '" y1="' + yHi + '" y2="' + yHi + '"/>' +
+              '<line class="' + cls + '" x1="' + (cx - cap) + '" x2="' + (cx + cap) + '" y1="' + yLo + '" y2="' + yLo + '"/>';
+          };
           svg.push('<g class="range"><title>' + esc("Central estimate " + b.total.toFixed(1) + " t · 80% of runs between " +
               range.low.toFixed(1) + " and " + range.high.toFixed(1) + " t") + "</title>" +
-            '<line class="range-tie" x1="' + (x + barW) + '" x2="' + wx + '" y1="' + yc + '" y2="' + yc + '"/>' +
-            '<line x1="' + wx + '" x2="' + wx + '" y1="' + y(range.high) + '" y2="' + y(range.low) + '"/>' +
-            '<line x1="' + (wx - 4) + '" x2="' + (wx + 4) + '" y1="' + y(range.high) + '" y2="' + y(range.high) + '"/>' +
-            '<line x1="' + (wx - 4) + '" x2="' + (wx + 4) + '" y1="' + y(range.low) + '" y2="' + y(range.low) + '"/>' +
-            '<line class="range-mid" x1="' + (wx - 5) + '" x2="' + (wx + 5) + '" y1="' + yc + '" y2="' + yc + '"/></g>');
+            marks("range-casing") + marks("range-line") + "</g>");
         }
       });
 
@@ -266,10 +272,22 @@
         "</div>";
     }
 
-    function legend(domains) {
-      return domains.map(function (d) {
+    /* The legend carries the bracket too. It used to be explained only in a paragraph under
+     * the chart, which meant the one mark people actually ask about was the one mark with no
+     * key beside it. A glyph in the legend answers "what is that line" where the question is
+     * asked; the paragraph is still there for "how is it calculated", folded away.
+     */
+    function legend(domains, opts) {
+      var out = domains.map(function (d) {
         return '<span class="legend-item"><i style="background:' + d.color + '"></i>' + esc(d.label) + "</span>";
-      }).join("");
+      });
+      if (opts && opts.range) {
+        out.push('<span class="legend-item legend-range"><i class="legend-bracket" aria-hidden="true">' +
+          '<svg viewBox="0 0 14 14" focusable="false"><line x1="7" x2="7" y1="2" y2="12"/>' +
+          '<line x1="2.5" x2="11.5" y1="2" y2="2"/><line x1="2.5" x2="11.5" y1="12" y2="12"/></svg></i>' +
+          esc(opts.rangeLabel || "80% likely range") + "</span>");
+      }
+      return out.join("");
     }
 
     return { render: render, horizontal: horizontal, flow: flow, ladder: ladder, legend: legend };

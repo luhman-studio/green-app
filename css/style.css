@@ -136,12 +136,27 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 .chart-svg .target-line { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 7 5; }
 .chart-svg .target-label { font-weight: 700; font-size: 13px; fill: var(--ink); }
 .chart-svg .target-sub { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; fill: var(--ink); }
-.chart-svg .range line { stroke: var(--ink); stroke-width: 2; }
-.chart-svg .range .range-mid { stroke-width: 3.5; }
-.chart-svg .range .range-tie { stroke-width: 1.5; stroke-dasharray: 2 2; }
+/* Drawn twice: the casing clears a path through the coloured segments, the line sits on it. */
+.chart-svg .range .range-casing { stroke: var(--paper); stroke-width: 4.6; stroke-linecap: round; opacity: .82; }
+.chart-svg .range .range-line { stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; font-size: 14px; }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .legend-item i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); display: inline-block; }
+/* the bracket gets a key beside the colours, because it is the mark people ask about */
+.legend-item .legend-bracket { border: none; border-radius: 0; width: 15px; height: 15px; }
+.legend-bracket svg { width: 15px; height: 15px; display: block; }
+.legend-bracket line { stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; }
+.legend-range { font-variant-numeric: tabular-nums; }
+
+/* folded detail: the long explanation stays available without owning the card */
+.fold { margin-top: 10px; border-top: 1px solid var(--soft); padding-top: 8px; }
+.fold > summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: #3b3320; list-style: none; padding: 2px 0; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before { content: "+"; display: inline-block; width: 1em; font-weight: 700; }
+.fold[open] > summary::before { content: "–"; }
+.fold > summary:hover, .fold > summary:focus-visible { text-decoration: underline; outline: none; }
+.fold p { font-size: 13.5px; color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+.chart-cap { margin-bottom: 0; }
 .breakdown { width: 100%; border-collapse: collapse; font-size: 15px; }
 .breakdown th { text-align: right; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 6px; }
 .breakdown th:first-child { text-align: left; }
@@ -303,6 +318,10 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
   .pot-split { display: block; }
   .pot-split .sankey { max-height: none; }
   .chart-help, .chart-hint, .band-chip { display: none; }
+  /* a printed result should carry the whole explanation, open or not on screen */
+  .fold > * { display: block !important; }
+  .fold > summary { list-style: none; }
+  .fold > summary::before { content: "" !important; }
 }
 
 /* sankey */

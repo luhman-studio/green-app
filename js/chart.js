@@ -139,7 +139,7 @@
       // bar sticks to the top of the window — by then the hero figure has scrolled out of sight.
       var readout = '<div class="pb-now" aria-hidden="true"><b>' + left.toFixed(1) + " t</b>" +
         (saved > 0.005 ? '<em class="pb-down">−' + saved.toFixed(1) + " t</em>"
-                       : '<em class="pb-none">nothing ticked</em>') + "</div>";
+                       : '<em class="pb-none">' + esc(opts.idleLabel || "nothing ticked") + "</em>") + "</div>";
 
       return '<div class="pb-wrap">' + readout +
         '<div class="pb-bar">' + goalMark +

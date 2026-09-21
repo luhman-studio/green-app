@@ -109,6 +109,17 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 /* what you do instead, then why it moves the number */
 .lever-do { display: block; font-size: 14.5px; margin-top: 3px; }
 .lever-why { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; border-left: 3px solid var(--soft); padding-left: 9px; }
+/* Wide screens read it as plain text, exactly as before — the fold only exists for phones. */
+.lever-why-fold > summary { display: none; }
+.lever-why-fold > * { display: block; }
+@media (max-width: 700px) {
+  .lever-why-fold:not([open]) > .lever-why { display: none; }
+  .lever-why-fold > summary { display: block; cursor: pointer; list-style: none; margin-top: 6px;
+    font-size: 12.5px; font-weight: 700; color: #3b3320; padding: 3px 0; }
+  .lever-why-fold > summary::-webkit-details-marker { display: none; }
+  .lever-why-fold > summary::before { content: "+ "; }
+  .lever-why-fold[open] > summary::before { content: "– "; }
+}
 .lever-extra { display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 700; background: var(--soft); border-radius: 999px; padding: 2px 9px; }
 .lever.covered { opacity: .55; }
 .lever.covered .save-num { text-decoration: line-through; font-weight: 400; }
@@ -237,9 +248,19 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 @media (max-width: 860px) {
   .tab { padding: 8px 12px; font-size: 14px; }
 }
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   .tab { padding: 7px 10px; font-size: 13.5px; }
   .tab-n { display: none; }
+  /* The header was eating nearly half the first screen: two rows of buttons, a title, and
+     the result number repeated by the hero directly below it. Tighten the padding, shrink
+     the buttons to one row, and once there IS a result let the hero be the one that says it. */
+  .top-inner { padding: 11px 16px 2px; gap: 8px; }
+  .top-actions { gap: 6px; }
+  .top-actions .btn-ghost { padding: 6px 11px; font-size: 13px; border-width: 2px; }
+  .btn-word { display: none; }
+  .tabs { padding-top: 8px; }
+  body.has-result #headline { display: none; }
+  body.has-result .top-inner { align-items: center; }
 }
 
 @media (max-width: 860px) {
@@ -518,6 +539,34 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
 .lad-key-head { display: block; font-size: 14px; font-weight: 700; }
 .lad-key-head b { font-weight: 700; font-variant-numeric: tabular-nums; }
 .lad-key-detail { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+/* Two wordings, one truth: below 700px the diagram is turned and the input is a finger,
+   so the instructions change with it. Same breakpoint as portraitMode() in app.js — if one
+   moves, move the other. */
+.say-touch { display: none; }
+@media (max-width: 700px) {
+  .say-pointer { display: none; }
+  .say-touch { display: inline; }
+}
+
+/* ---------- the turned diagram (phones) ---------- */
+.sankey-v { width: 100%; height: auto; display: block; }
+.sankey-v .v-node { stroke: var(--ink); stroke-width: 1.6; }
+.sankey-v .v-cause { fill: #EDE3CE; }
+.sankey-v .v-band { opacity: .42; }
+/* Labels sit ON the blocks here, so they must not eat the tap — without this, tapping the
+   middle of a named area (the most obvious target there is) hits the text and does nothing. */
+.sankey-v text { pointer-events: none; }
+/* the stage titles cross the ribbons, so they carry a cream casing to stay readable */
+.sankey-v .v-stage { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
+.sankey-v .v-lab-on { font-size: 10.5px; font-weight: 700; fill: #fff; text-anchor: middle; paint-order: stroke;
+  stroke: rgba(20,20,20,.55); stroke-width: 2.6px; stroke-linejoin: round; }
+.sankey-v .v-lab-off { font-size: 10.5px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.sankey-v .foot-note { font-size: 9.5px; fill: var(--muted); }
+.sankey-v .hi { opacity: 1; }
+.sankey-v .v-band.hi { opacity: .85; }
+.sankey-v .sel { stroke-width: 3; }
 
 /* ---------- insights panel under the Sankey ---------- */
 .ins-try { margin-top: 12px; width: 100%; }

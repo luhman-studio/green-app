@@ -19,7 +19,7 @@
         <button class="btn-ghost" id="savedBtn" type="button">Save &amp; load</button>
         <input type="file" id="openFileInput" accept=".json,application/json" hidden>
         <button class="btn-ghost" id="restartBtn" type="button">Start over</button>
-        <button class="btn-ghost" id="codeBtn" type="button">&lt;/&gt; View the code</button>
+        <button class="btn-ghost" id="codeBtn" type="button">&lt;/&gt;<span class="btn-word"> View the code</span></button>
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Sections">
@@ -125,10 +125,10 @@
               <div id="detChart"></div>
               <div id="detTip" class="sankey-tip" hidden></div>
             </div>
-            <p class="muted small chart-hint"><strong>Hover to follow a path, click to hold it</strong> — the analysis opens beside it. Arrow keys work too.</p>
+            <p class="muted small chart-hint"><span class="say-pointer"><strong>Hover to follow a path, click to hold it</strong> — the analysis opens beside it. Arrow keys work too.</span><span class="say-touch"><strong>Tap any block to hold it</strong> — the analysis opens below. Tap it again to let go.</span></p>
             <details class="chart-help">
               <summary>How to read this diagram</summary>
-              <p class="muted small">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030.</p>
+              <p class="muted small"><span class="say-pointer">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030.</span><span class="say-touch">Read it top to bottom: your whole footprint split into areas → what you do → what causes the emissions (the fuel, the electricity, the farm, the factory). Every block’s width is exactly its tonnes and the rows have no gaps, so the picture is the arithmetic — which means a small thing looks small. Blocks too narrow to hold a label don’t get one; tap them instead.</span></p>
             </details>
           </div>
         </div>
@@ -137,7 +137,7 @@
           <div class="card pot-panel">
             <div class="card-title">Analysis</div>
             <div id="detInsight" class="insight" hidden></div>
-            <p class="muted analysis-empty" id="detInsightEmpty">Click any band in the diagram — a cause, an activity, an area, or the total — and this is where it is explained: where the emission physically happens, how big it is in everyday terms, and which changes would shrink <em>that</em> part.</p>
+            <p class="muted analysis-empty" id="detInsightEmpty"><span class="say-pointer">Click any band in the diagram — a cause, an activity, an area, or the total — and this is where it is explained:</span><span class="say-touch">Tap any block in the diagram — an area, something you do, or a cause — and this is where it is explained:</span> where the emission physically happens, how big it is in everyday terms, and which changes would shrink <em>that</em> part.</p>
           </div>
         </div>
       </div>
@@ -195,10 +195,10 @@
               <div id="potChart"></div>
               <div id="potTip" class="sankey-tip" hidden></div>
             </div>
-            <p class="muted small chart-hint"><strong>Click any band</strong> and the list beside it narrows to the changes that shrink that part. Arrow keys work too.</p>
+            <p class="muted small chart-hint"><span class="say-pointer"><strong>Click any band</strong> and the list beside it narrows to the changes that shrink that part. Arrow keys work too.</span><span class="say-touch"><strong>Tap any block</strong> and the list below narrows to the changes that shrink that part.</span></p>
             <details class="chart-help">
               <summary>How to read this diagram</summary>
-              <p class="muted small">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030.</p>
+              <p class="muted small"><span class="say-pointer">Read it left to right: what causes the emissions (the fuel, the electricity, the farm, the factory) → what you do with it → which area it belongs to → your whole footprint. Every band’s height is exactly its tonnes and the columns have no gaps, so the picture is the arithmetic — which means a small thing looks small. Bands too thin to hold a label don’t get one; hover or click them instead. The dashed line is the 1.5 °C budget for 2030.</span><span class="say-touch">Read it top to bottom: your whole footprint split into areas → what you do → what causes the emissions (the fuel, the electricity, the farm, the factory). Every block’s width is exactly its tonnes and the rows have no gaps, so the picture is the arithmetic — which means a small thing looks small. Blocks too narrow to hold a label don’t get one; tap them instead.</span></p>
             </details>
           </div>
         </div>

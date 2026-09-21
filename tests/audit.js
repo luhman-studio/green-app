@@ -16,12 +16,14 @@
  *   9. the Potential bar's widths are the tonnes (that picture is the arithmetic too)
  *  10. the benchmark data agrees with itself, and the excluded-share flow is the arithmetic
  *  11. compensation is described, never subtracted, and its ladder is the mix
+ *  12. the turned diagram is the same arithmetic as the wide one, on the other axis
  */
 require("../data/factors.js");
 require("../data/benchmarks.js");
 require("../js/engine.js");
 require("../js/questions.js");
 require("../js/chart.js");
+require("../js/sankey.js");
 const { engine, factors: F } = globalThis.GreenApp;
 // The goal is read from the data, never repeated here — a target the audit hard-codes
 // is a target the audit stops checking the moment the app changes it.
@@ -570,6 +572,83 @@ console.log("Compensation");
   ok("and it claims no tonnes", emptyHtml.indexOf("lad-stat") < 0);
 }
 report("compensation is described, never subtracted");
+
+/* ---------- 12. the turned diagram is the same diagram ----------
+ * A phone gets the Sankey rotated: three stages read top to bottom, widths where the wide
+ * version uses heights. Two things must hold or it is a second, disagreeing picture:
+ *   - every block's width is exactly its tonnes on ONE scale, and each stage sums to the
+ *     same total width, so the columns reconcile exactly as they do on a wide screen;
+ *   - both orientations report the SAME model, because the analysis panel reads that model
+ *     and must not say different things depending on the width of the window.
+ */
+console.log("The turned diagram");
+{
+  const sankey = globalThis.GreenApp.sankey;
+  const domains = globalThis.GreenApp.benchmarks.domains;
+  const sum = (xs) => xs.reduce((x, y) => x + y, 0);
+  const near = (x, y, eps) => Math.abs(x - y) <= (eps || 1e-9);
+
+  profiles.slice(0, 200).forEach((p, i) => {
+    const r = engine.calculate(p);
+    if (!(r.total > 0)) return;
+    const opts = { domains: domains, sources: engine.sources(p), total: r.total };
+
+    const vhtml = sankey.renderVertical(opts);
+    const vmodel = sankey.model();
+    const hhtml = sankey.render(opts);
+    const hmodel = sankey.model();
+
+    // --- the same rows, causes and areas, whichever way it is drawn
+    ok("both orientations report the same rows",
+       JSON.stringify(vmodel.rows) === JSON.stringify(hmodel.rows), "profile " + i);
+    /* Causes are compared by content, not by draw order. Both orientations group them the
+     * same way — by where the emission physically happens — but within a group they are
+     * ordered by position along the axis they were laid out on, and those axes have
+     * different scales. Two causes at almost the same position can therefore swap places
+     * between the two pictures. That is a drawing order, not a disagreement: the analysis
+     * panel looks a cause up by id. What must not differ is which rows feed which cause.
+     */
+    var byId = function (xs) { return xs.slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }); };
+    ok("both orientations report the same causes, fed by the same rows",
+       JSON.stringify(byId(vmodel.causes)) === JSON.stringify(byId(hmodel.causes)), "profile " + i);
+    ok("the causes are grouped the same way in both",
+       JSON.stringify(vmodel.causes.map(function (c) { return c.group; }).sort()) ===
+       JSON.stringify(hmodel.causes.map(function (c) { return c.group; }).sort()), "profile " + i);
+    ok("both orientations report the same areas",
+       JSON.stringify(vmodel.areas) === JSON.stringify(hmodel.areas), "profile " + i);
+    ok("both report the same total", near(vmodel.total, hmodel.total));
+
+    // --- every block's width is its tonnes, and the three stages reconcile
+    const blocks = [];
+    const re = /class="v-node[^"]*" x="([0-9.eE+-]+)" y="([0-9.eE+-]+)" width="([0-9.eE+-]+)"/g;
+    let m; while ((m = re.exec(vhtml))) blocks.push({ x: +m[1], y: +m[2], w: +m[3] });
+    const stages = {};
+    blocks.forEach((bk) => { (stages[bk.y] = stages[bk.y] || []).push(bk); });
+    const ys = Object.keys(stages);
+    ok("the turned diagram has three stages", ys.length === 3, ys.length + " found");
+    const widths = ys.map((k) => sum(stages[k].map((bk) => bk.w)));
+    ok("every stage carries the same total width — the columns reconcile",
+       widths.every((w) => near(w, widths[0], 1e-6)), widths.map((w) => w.toFixed(6)).join(" / "));
+    // one scale, derived from the drawing itself rather than assumed
+    const scale = widths[0] / vmodel.total;
+    const areaBlocks = stages[ys[0]];
+    ok("each area's width is its own tonnes on that one scale",
+       areaBlocks.every((bk) => vmodel.areas.some((a) => near(a.now * scale, bk.w, 1e-6))),
+       "profile " + i);
+    ok("nothing is given a minimum width", blocks.every((bk) => bk.w >= 0));
+    ok("blocks never start before the left margin or run past the right",
+       blocks.every((bk) => bk.x >= 0 && bk.x + bk.w <= 380 + 1e-6));
+  });
+
+  // labels must never swallow a tap: the picks have to live on the shapes
+  const p0 = profiles[1], r0 = engine.calculate(p0);
+  const html = sankey.renderVertical({ domains: domains, sources: engine.sources(p0), total: r0.total });
+  ok("every stage is tappable", /data-pick="dom:/.test(html) && /data-pick="src:/.test(html) && /data-pick="cause:/.test(html));
+  ok("labels carry no pick of their own, so they cannot intercept one",
+     !/<text[^>]*data-pick/.test(html));
+  ok("the turned diagram is marked as such, so the CSS can find it", /class="sankey sankey-v"/.test(html));
+}
+report("the turned diagram is the same arithmetic");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

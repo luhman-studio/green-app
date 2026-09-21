@@ -412,6 +412,8 @@
       var at = B.austria, target = B.targets.y2030.value;
 
       $("headline").textContent = r.total.toFixed(1) + " t CO₂e per year";
+      // On a phone the hero repeats this number one line further down, so the header drops it.
+      doc.body.classList.add("has-result");
       $("resTotal").textContent = r.total.toFixed(1) + " t CO₂e / year";
       $("printDate").textContent = "· " + new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) + " · factors " + F.version;
 
@@ -756,7 +758,14 @@
         li.innerHTML = '<input type="checkbox" id="' + id + '"' + (picked[l.id] ? " checked" : "") + '>' +
           '<label for="' + id + '" class="lever-main"><span class="lever-title">' + esc(l.label) + (c[0] ? ' <span class="badge ' + c[1] + '">' + c[0] + "</span>" : "") + "</span>" +
           '<span class="lever-do">' + esc(l.detail) + "</span>" +
-          (l.why ? '<span class="lever-why">' + esc(l.why) + "</span>" : "") + note + "</label>" +
+          /* The mechanism is the most valuable text on this card and the longest: 26 of them
+           * is most of a 12-screen page on a phone. It is folded here and forced open by CSS
+           * on a wide screen, so the desktop reading is unchanged and the phone gets a list
+           * it can actually scroll. It is a <details> inside a <label>, so the summary is a
+           * sibling of the checkbox's label text, not part of it — tapping it must not tick.
+           */
+          (l.why ? '<details class="lever-why-fold"><summary>why this works</summary>' +
+                   '<span class="lever-why">' + esc(l.why) + "</span></details>" : "") + note + "</label>" +
           '<div class="lever-save"><div class="save-num">−' + fmtSave(l.saved) + '</div><div class="save-bar"><span style="width:' + Math.max(4, Math.round(l.saved / max * 100)) + '%"></span></div></div>';
         li.querySelector("input").onchange = function () { picked[l.id] = this.checked; renderPotential(); };
         ul.appendChild(li);
@@ -810,7 +819,9 @@
         goal: { value: target.value, label: "1.5 °C goal " + target.value.toFixed(1) + " t" },
         caption: "The full width is your <strong>" + r.total.toFixed(1) +
           " t</strong>, split by area. The dashed line is the 1.5 °C budget of " +
-          target.value.toFixed(1) + " t for 2030."
+          target.value.toFixed(1) + " t for 2030.",
+        // this page is not a what-if, so "nothing ticked" would be the wrong thing to say
+        idleLabel: "as you measured it"
       });
 
       drawChart("det", "detChart", "detChartWrap", "detTip", "detChartLive", {
@@ -834,7 +845,9 @@
     function drawChart(which, chartId, wrapId, tipId, liveId, opts, redraw) {
       var hadFocus = $(chartId).contains(doc.activeElement);
       opts.labelScale = splitMode() ? 1.3 : 1;   // drawn narrower beside the panel: bigger type
-      $(chartId).innerHTML = G.sankey.render(opts);
+      // Same rows, same arithmetic, turned a quarter: on a phone the four columns become
+      // three stages read top to bottom, because 390 px cannot hold four columns of labels.
+      $(chartId).innerHTML = portraitMode() ? G.sankey.renderVertical(opts) : G.sankey.render(opts);
       chartModel[which] = G.sankey.model();
       G.sankey.attach($(wrapId), $(tipId), {
         selected: pinned[which],
@@ -852,6 +865,8 @@
     }
 
     function splitMode() { return !!(root.matchMedia && root.matchMedia("(min-width: 1240px)").matches); }
+    // Below this the diagram is turned: overview on top, causes at the bottom, read by scrolling.
+    function portraitMode() { return !!(root.matchMedia && root.matchMedia("(max-width: 700px)").matches); }
 
     // Clicking a band asks a question whose answer is in the column beside the diagram. If
     // that column starts above the window — you clicked while deep in it — bring its top
@@ -1384,14 +1399,17 @@
       // Crossing into or out of the side-by-side layout changes how small the diagram is
       // drawn, and so how big its labels must be. Redraw — but only on the crossing.
       if (root.matchMedia) {
-        var mq = root.matchMedia("(min-width: 1240px)");
         var onCross = function () {
           if (!state.finished) return;
           if (!$("panelPotential").hidden) renderPotential();
           if (!$("panelDetails").hidden) renderDetails();
         };
-        if (mq.addEventListener) mq.addEventListener("change", onCross);
-        else if (mq.addListener) mq.addListener(onCross);
+        // two crossings matter: into the side-by-side layout, and into the turned diagram
+        ["(min-width: 1240px)", "(max-width: 700px)"].forEach(function (q) {
+          var mq = root.matchMedia(q);
+          if (mq.addEventListener) mq.addEventListener("change", onCross);
+          else if (mq.addListener) mq.addListener(onCross);
+        });
       }
       $("saveForm").onsubmit = function (ev) {
         ev.preventDefault();
@@ -1422,6 +1440,7 @@
         picked = {};
         status("");
         $("headline").textContent = "What’s your carbon footprint?";
+        doc.body.classList.remove("has-result");
         showTab("measure");
         renderProfile(); intro();
       };

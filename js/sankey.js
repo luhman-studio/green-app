@@ -59,15 +59,14 @@
      *       baseline [...] & baselineTotal (optional — freezes the layout and draws the ghost),
      *       goal {value,label}
      */
-    function render(opts) {
-      var domains = opts.domains, total = opts.total, goal = opts.goal;
-      // Drawn narrower (beside the analysis panel) the whole picture is scaled down, so the
-      // labels shrink with it. labelScale enlarges the type in user units to compensate — and
-      // enlarges the height a label needs by exactly the same factor, so the rule "a band too
-      // thin to hold its label doesn't get one" keeps meaning what it says.
-      var lblScale = opts.labelScale || 1;
-      var W = 1130, padTop = 46, padBottom = 30 + Math.round((lblScale - 1) * 26);
-      var groupX = 20, causeLabelR = 252, causeX = 260, nodeW = 15, actX = 470, areaX = 690, trunkX = 910, trunkW = 26;
+    /* ---------- the model, shared by both orientations ----------
+     * Which rows exist, which area each belongs to, and what each is worth — everything
+     * that is true about the diagram before anything is positioned. The horizontal and
+     * vertical renderers lay the SAME rows out along different axes, so extracting this
+     * is what stops the two pictures ever disagreeing about the arithmetic.
+     */
+    function buildRows(opts) {
+      var domains = opts.domains, total = opts.total;
       var hasBase = !!opts.baseline;
       var baseTotal = hasBase ? opts.baselineTotal : total;
 
@@ -108,7 +107,65 @@
         });
       });
       if (!rows.length) { lastModel = null; return '<svg viewBox="0 0 10 10" class="sankey"></svg>'; }
+      if (!rows.length) return null;
       rows.forEach(function (r, i) { r.i = i; });
+      return { rows: rows, used: used, byDomain: byDomain, nowBy: nowBy,
+               hasBase: hasBase, baseTotal: baseTotal, baseRowCount: baseRowCount };
+    }
+
+    /* Causes, grouped by where the emission physically happens. Ordering needs each row's
+     * position along whatever axis it was laid out on, so this runs AFTER positioning and
+     * takes `pos` from the rows — which is why it is not part of buildRows().
+     */
+    function groupCauses(rows) {
+      var causes = {};
+      rows.forEach(function (r) {
+        var c = causes[r.src.cause] = causes[r.src.cause] || { id: r.src.cause, label: r.src.causeLabel,
+          group: r.src.causeGroup, groupLabel: r.src.causeGroupLabel, now: 0, base: 0, slot: 0, h: 0, pos: 0, rows: [] };
+        c.now += r.now; c.base += r.base; c.slot += r.slot; c.h += r.h; c.pos += r.pos * r.slot; c.rows.push(r);
+      });
+      var order = { direct: 0, electricity: 1, upstream: 2 };
+      var list = Object.keys(causes).map(function (k) { return causes[k]; });
+      list.forEach(function (c) { c.pos /= Math.max(c.slot, 1); });
+      list.sort(function (a, b) { return ((order[a.group] || 0) - (order[b.group] || 0)) || (a.pos - b.pos); });
+      return list;
+    }
+
+    // What was drawn, in data form, so the app can build the analysis panel for whatever is
+    // picked without re-deriving the merge. Identical for both orientations.
+    function buildModel(total, baseTotal, hasBase, rows, causeList, used) {
+      return {
+        total: total, baseTotal: baseTotal, hasBase: hasBase,
+        rows: rows.map(function (r) {
+          return { key: r.key, domain: r.dom.id, domainLabel: r.dom.label, color: r.dom.color,
+            label: r.src.label, now: r.now, base: r.base, cause: r.src.cause, causeLabel: r.src.causeLabel,
+            causeGroup: r.src.causeGroup, causeGroupLabel: r.src.causeGroupLabel, detail: r.src.detail || null,
+            srcIds: r.src.parts ? r.src.parts.map(function (x) { return x.id; }) : [r.src.id] };
+        }),
+        causes: causeList.map(function (c) {
+          return { id: c.id, label: c.label, group: c.group, groupLabel: c.groupLabel, now: c.now, base: c.base,
+            rowKeys: c.rows.map(function (r) { return r.key; }) };
+        }),
+        areas: used.map(function (d) {
+          return { id: d.id, label: d.label, color: d.color, now: d._now, base: d._base,
+            rowKeys: rows.filter(function (r) { return r.dom.id === d.id; }).map(function (r) { return r.key; }) };
+        })
+      };
+    }
+
+    function render(opts) {
+      var domains = opts.domains, total = opts.total, goal = opts.goal;
+      // Drawn narrower (beside the analysis panel) the whole picture is scaled down, so the
+      // labels shrink with it. labelScale enlarges the type in user units to compensate — and
+      // enlarges the height a label needs by exactly the same factor, so the rule "a band too
+      // thin to hold its label doesn't get one" keeps meaning what it says.
+      var lblScale = opts.labelScale || 1;
+      var W = 1130, padTop = 46, padBottom = 30 + Math.round((lblScale - 1) * 26);
+      var groupX = 20, causeLabelR = 252, causeX = 260, nodeW = 15, actX = 470, areaX = 690, trunkX = 910, trunkW = 26;
+      var L = buildRows(opts);
+      if (!L) { lastModel = null; return '<svg viewBox="0 0 10 10" class="sankey"></svg>'; }
+      var rows = L.rows, used = L.used, nowBy = L.nowBy, hasBase = L.hasBase,
+          baseTotal = L.baseTotal, baseRowCount = L.baseRowCount;
 
       // Every drawn thing carries the row numbers it is part of, so hovering or selecting
       // anything can light up the WHOLE path it belongs to — cause → activity → area →
@@ -314,29 +371,127 @@
 
       // What was drawn, in data form, so the app can build the insights panel for whatever the
       // person clicks without re-deriving the merge and the stacking. Read it right after render().
-      lastModel = {
-        total: total, baseTotal: baseTotal, hasBase: hasBase,
-        rows: rows.map(function (r) {
-          return { key: r.key, domain: r.dom.id, domainLabel: r.dom.label, color: r.dom.color,
-            label: r.src.label, now: r.now, base: r.base, cause: r.src.cause, causeLabel: r.src.causeLabel,
-            causeGroup: r.src.causeGroup, causeGroupLabel: r.src.causeGroupLabel, detail: r.src.detail || null,
-            srcIds: r.src.parts ? r.src.parts.map(function (x) { return x.id; }) : [r.src.id] };
-        }),
-        causes: causeList.map(function (c) {
-          return { id: c.id, label: c.label, group: c.group, groupLabel: c.groupLabel, now: c.now, base: c.base,
-            rowKeys: c.rows.map(function (r) { return r.key; }) };
-        }),
-        areas: used.map(function (d) {
-          return { id: d.id, label: d.label, color: d.color, now: d._now, base: d._base,
-            rowKeys: rows.filter(function (r) { return r.dom.id === d.id; }).map(function (r) { return r.key; }) };
-        })
-      };
+      lastModel = buildModel(total, baseTotal, hasBase, rows, causeList, used);
 
       var notes = ["stacks grow upwards · every band's height is exactly its tonnes — thin ones carry no label, hover or click them"];
       if (hasBase && baseTotal - total > 0.05) notes.unshift("dashed = what your ticked changes remove");
       svg.push('<text class="foot-note" x="' + groupX + '" y="' + (H - 6) + '">' + esc(notes.join(" · ")) + "</text>");
 
       svg.push("</svg>");
+      return svg.join("");
+    }
+
+    // one flow band running DOWNWARDS, from (x0 … x0+w0) at y0 to (x1 … x1+w1) at y1
+    function vband(x0, w0, y0, x1, w1, y1) {
+      var my = (y0 + y1) / 2;
+      return "M" + x0 + "," + y0 +
+        "C" + x0 + "," + my + " " + x1 + "," + my + " " + x1 + "," + y1 +
+        "L" + (x1 + w1) + "," + y1 +
+        "C" + (x1 + w1) + "," + my + " " + (x0 + w0) + "," + my + " " + (x0 + w0) + "," + y0 + "Z";
+    }
+
+    /* ---------- the same diagram, turned for a phone ----------
+     * Read top to bottom: your whole footprint, split into areas → what you do → what causes
+     * it. Overview first, detail as you scroll, which is the way a thumb moves.
+     *
+     * It is a transpose, not a second diagram. buildRows() decides what exists and what each
+     * row is worth; only the axis changes. Widths here play the part heights play on a wide
+     * screen, and the rule is the same one: every block's width is exactly its tonnes times
+     * one scale, no minimum, and a block too narrow for its label goes without one rather
+     * than being fattened to fit. Tapping it says what it is.
+     *
+     * One deliberate simplification: no baseline ghosts. On a phone the "what you removed"
+     * story is carried by the sticky area bar above, which shows it far more clearly than a
+     * dashed outline three pixels wide ever could.
+     */
+    function renderVertical(opts) {
+      var L = buildRows(opts);
+      if (!L) { lastModel = null; return '<svg viewBox="0 0 10 10" class="sankey"></svg>'; }
+      var rows = L.rows, used = L.used, total = opts.total;
+      var domains = opts.domains;
+
+      var W = 380, pad = 11, plot = W - pad * 2;
+      var rowH = 30, bandH = 62, titleH = 17, footH = 15;
+      var yArea = titleH + 4, yAct = yArea + rowH + bandH, yCause = yAct + rowH + bandH;
+      var H = yCause + rowH + footH + 6;
+
+      var slotT = rows.reduce(function (a, r) { return a + Math.max(r.base, r.now); }, 0);
+      var scale = plot / Math.max(slotT, 0.001);
+      var x = pad;
+      rows.forEach(function (r) {
+        r.slot = Math.max(r.base, r.now) * scale;
+        r.pos = x;                       // left edge of the slot, the vertical twin of r.y
+        r.h = r.now * scale;             // the drawn width IS the value
+        x += r.slot;
+      });
+      used.forEach(function (d) {
+        var mine = rows.filter(function (r) { return r.dom.id === d.id; });
+        d._x = mine[0].pos;
+        d._h = mine.reduce(function (a, r) { return a + r.h; }, 0);
+        d._now = mine.reduce(function (a, r) { return a + r.now; }, 0);
+        d._base = mine.reduce(function (a, r) { return a + r.base; }, 0);
+      });
+      var causeList = groupCauses(rows);
+      var cx = pad;
+      causeList.forEach(function (c) { c.x = cx; cx += c.slot; });
+
+      var keysAttr = function (list) { return ' data-keys="' + list.map(function (r) { return r.i; }).join(" ") + '"'; };
+      var pickAttr = function (kind, id) { return ' data-pick="' + kind + ":" + esc(id) + '"'; };
+      var svg = ['<svg viewBox="0 0 ' + W + " " + H + '" class="sankey sankey-v" role="img" tabindex="0" aria-label="' +
+        esc("Your footprint " + total.toFixed(1) + " t, from area down to cause") + '">'];
+
+      var stage = function (yy, txt) {
+        svg.push('<text class="v-stage" x="' + pad + '" y="' + yy + '">' + esc(txt) + "</text>");
+      };
+      // a label only if the block is genuinely wide enough for it — same rule as the wide view
+      var blockLabel = function (xx, w, yy, txt, cls) {
+        var fits = Math.floor((w - 8) / 5.6);
+        if (fits < 3) return;
+        svg.push('<text class="' + cls + '" x="' + (xx + w / 2) + '" y="' + yy + '">' + esc(shorten(txt, fits)) + "</text>");
+      };
+
+      stage(titleH - 4, "Your footprint · " + total.toFixed(1) + " t");
+      used.forEach(function (d) {
+        var mine = rows.filter(function (r) { return r.dom.id === d.id; });
+        if (d._h <= 0) return;
+        svg.push('<rect class="v-node" x="' + d._x + '" y="' + yArea + '" width="' + d._h + '" height="' + rowH +
+          '" fill="' + d.color + '"' + keysAttr(mine) + pickAttr("dom", d.id) + '><title>' +
+          esc(d.label + ": " + d._now.toFixed(2) + " t") + "</title></rect>");
+        blockLabel(d._x, d._h, yArea + rowH / 2 + 4, d.label, "v-lab-on");
+      });
+
+      stage(yAct - 6, "What you do");
+      rows.forEach(function (r) {
+        if (r.h <= 0) return;
+        svg.push('<path class="v-band" d="' + vband(r.pos, r.h, yArea + rowH, r.pos, r.h, yAct) + '" fill="' + r.dom.color +
+          '"' + keysAttr([r]) + pickAttr("src", r.key) + "/>");
+        svg.push('<rect class="v-node" x="' + r.pos + '" y="' + yAct + '" width="' + r.h + '" height="' + rowH +
+          '" fill="' + r.dom.color + '"' + keysAttr([r]) + pickAttr("src", r.key) + '><title>' +
+          esc(r.src.label + ": " + r.now.toFixed(2) + " t") + "</title></rect>");
+        blockLabel(r.pos, r.h, yAct + rowH / 2 + 4, r.src.label, "v-lab-on");
+      });
+
+      stage(yCause - 6, "What causes it");
+      causeList.forEach(function (c) {
+        if (c.h <= 0) return;
+        var off = 0;
+        c.rows.forEach(function (r) {
+          if (r.h <= 0) return;
+          svg.push('<path class="v-band" d="' + vband(r.pos, r.h, yAct + rowH, c.x + off, r.h, yCause) + '" fill="' +
+            r.dom.color + '"' + keysAttr([r]) + pickAttr("cause", c.id) + "/>");
+          off += r.h;
+        });
+        svg.push('<rect class="v-node v-cause" x="' + c.x + '" y="' + yCause + '" width="' + c.h + '" height="' + rowH +
+          '"' + keysAttr(c.rows) + pickAttr("cause", c.id) + '><title>' +
+          esc(c.label + ": " + c.now.toFixed(2) + " t · " + c.groupLabel) + "</title></rect>");
+        blockLabel(c.x, c.h, yCause + rowH / 2 + 4, c.label, "v-lab-off");
+      });
+
+      svg.push('<text class="foot-note" x="' + pad + '" y="' + (H - 4) + '">' +
+        esc("every block's width is exactly its tonnes — tap a thin one to see what it is") + "</text>");
+      svg.push("</svg>");
+
+      lastModel = buildModel(total, L.baseTotal, L.hasBase, rows, causeList, used);
       return svg.join("");
     }
 
@@ -519,7 +674,7 @@
     // what the app needs to describe whatever was clicked (see the end of render())
     function model() { return lastModel; }
 
-    return { render: render, attach: attach, model: model, mergeSmall: mergeSmall };
+    return { render: render, renderVertical: renderVertical, attach: attach, model: model, mergeSmall: mergeSmall };
   }
 
   var G = (root.GreenApp = root.GreenApp || { sources: {} });

@@ -519,7 +519,44 @@
       }
       $("resMoney").innerHTML = mt.join(" ");
 
-      $("resPublic").textContent = "Roughly " + B.publicShare.austria.toFixed(0) + " t more per person come from public services, infrastructure and investment in Austria (hospitals, roads, schools…). Everyone carries this share; you influence it through politics, not lifestyle — so it’s left out on all three bars.";
+      /* What the bars leave out, drawn rather than asserted.
+       * Every tonne below is a share from data/benchmarks.js multiplied by Austria's
+       * national total — no number is typed in here, and the blocks sum to the trunk
+       * because they are the trunk divided. The audit checks exactly that.
+       */
+      var ps = B.publicShare, nat = B.austria.nationalTotal;
+      var flowParts = ps.parts.map(function (p) {
+        var t = p.shareOfNational * nat;
+        var out = { id: p.id, label: p.label, t: t, share: p.shareOfNational, color: p.color,
+                    detail: p.detail, individual: p.individual };
+        if (p.parts) out.parts = p.parts.map(function (k) {
+          return { id: k.id, label: k.label, t: k.shareOfParent * t, share: k.shareOfParent * p.shareOfNational,
+                   color: k.color, detail: k.detail, individual: k.individual };
+        });
+        return out;
+      });
+      var flowTotal = flowParts.reduce(function (a, p) { return a + p.t; }, 0);
+
+      $("resPublic").innerHTML = "Your " + B.austria.total.toFixed(1) + " t bar is what <em>you</em> buy. Another <strong>" +
+        flowTotal.toFixed(1) + " t</strong> per person is caused on your behalf by the state and by the firms that build things — " +
+        Math.round((1 - B.austria.finalDemand.households) * 100) + "% of everything one Austrian causes in a year. " +
+        "It is outside every bar here <em>and</em> outside the " + fmtT(B.targets.y2030.value) +
+        " goal, which is defined the same way — so the comparison stays fair. Where it actually goes is usually guessed wrong:";
+
+      $("resPublicFlow").innerHTML = G.chart.flow({
+        parts: flowParts, total: flowTotal, base: nat,
+        colorTrunk: ps.colorTrunk, trunkLabel: "Not in your bar",
+        ariaLabel: "Where the " + flowTotal.toFixed(1) + " t left out of your footprint goes"
+      });
+
+      // The keys above already carry the detail; this says only what they cannot —
+      // what the picture means for comparing one country with another.
+      $("resPublicNote").innerHTML = "Why this is worth seeing rather than being told: the usual guess is hospitals and schools, and investment is two and a half times " +
+        "the whole of public services — most of what the bars leave out is concrete, steel and machinery bought once and used for decades. " +
+        "And the health block is the reason a household footprint is a poor way to rank countries: " +
+        "Eurostat uses <em>Actual Individual Consumption</em> instead, precisely because a country that provides care publicly moves those emissions " +
+        "off its citizens' personal accounts while a country that leaves people to pay for their own keeps them on. " +
+        "A low household figure can mean a strong public system rather than a lighter life.";
     }
 
     // ---------- Potential tab: tick changes, watch the bar move ----------

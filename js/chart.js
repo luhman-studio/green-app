@@ -141,13 +141,79 @@
         "</div>";
     }
 
+    /* ---------- What the bars leave out ----------
+     * Two aligned rows on one scale. The top row is where the excluded tonnes go; the
+     * bottom row is how far the measurements actually reach into each of them.
+     *
+     * A flow diagram was the obvious first choice and it was wrong: nothing here flows
+     * or transforms, it is a whole divided, and ribbons between equal-height blocks read
+     * as blocks. Two rows say the same thing in less ink.
+     *
+     * The rule that matters: a block is only subdivided where a measurement exists to
+     * subdivide it with. Everywhere else the bottom row says "not broken down" in plain
+     * words. That gap in the picture is the gap in the data, and showing it is the point —
+     * a plausible-looking split of public spending would be worse than no split at all.
+     *
+     * Widths are never rounded, so the segments sum to the whole exactly.
+     */
+    function flow(opts) {
+      var parts = opts.parts, total = opts.total;
+      if (!(total > 0) || !parts || !parts.length) return "";
+      var pct = function (t) { return (t / total) * 100; };
+      var TINY = 1e-6;
+
+      var top = [], bottom = [], keys = [];
+      parts.forEach(function (p) {
+        var w = pct(p.t);
+        if (w < TINY) return;
+        top.push('<div class="fl-seg" data-kind="part" data-t="' + p.t + '" style="width:' + w + '%;background:' + p.color +
+          '" title="' + esc(p.label + ": " + p.t.toFixed(2) + " t") + '">' +
+          (w >= 17 ? '<span>' + esc(p.label) + " · " + p.t.toFixed(2) + " t</span>"
+                   : w >= 5 ? "<span>" + p.t.toFixed(2) + " t</span>" : "") + "</div>");
+
+        var kids = p.parts && p.parts.length ? p.parts : null;
+        if (!kids) {
+          // no measurement reaches inside this one — say so rather than inventing a split
+          bottom.push('<div class="fl-seg fl-unknown" data-kind="leaf" data-t="' + p.t + '" style="width:' + w +
+            '%" title="' + esc(p.label + ": not broken down — no measurement to cite") + '">' +
+            (w >= 20 ? "<span>not broken down</span>" : "") + "</div>");
+          keys.push(keyRow(p, false));
+        } else {
+          kids.forEach(function (k) {
+            var kw = pct(k.t);
+            bottom.push('<div class="fl-seg" data-kind="leaf" data-t="' + k.t + '" style="width:' + kw + '%;background:' + k.color +
+              '" title="' + esc(k.label + ": " + k.t.toFixed(2) + " t") + '">' +
+              (kw >= 14 ? "<span>" + esc(k.label) + "</span>" : kw >= 5 ? "<span>" + k.t.toFixed(2) + " t</span>" : "") + "</div>");
+            keys.push(keyRow(k, true));
+          });
+        }
+      });
+
+      function keyRow(n, nested) {
+        return '<li class="flow-key' + (nested ? " nested" : "") + '">' +
+          '<i style="background:' + n.color + '"></i>' +
+          '<div><span class="flow-key-head">' + esc(n.label) + " <b>" + n.t.toFixed(2) + " t</b> " +
+          '<span class="muted">· ' + Math.round(n.share * 100) + "% of everything you cause</span>" +
+          (n.individual ? ' <span class="badge c-yours">inside your own footprint in other countries</span>' : "") + "</span>" +
+          '<span class="flow-key-detail">' + esc(n.detail || "") + "</span></div></li>";
+      }
+
+      return '<div class="fl-wrap">' +
+        '<div class="fl-rowlabel">where it goes</div>' +
+        '<div class="fl-track" role="img" aria-label="' + esc(opts.ariaLabel || "") + '">' + top.join("") + "</div>" +
+        '<div class="fl-rowlabel">how far the measurements reach</div>' +
+        '<div class="fl-track fl-track-sub">' + bottom.join("") + "</div>" +
+        '<ul class="flow-keys">' + keys.join("") + "</ul>" +
+        "</div>";
+    }
+
     function legend(domains) {
       return domains.map(function (d) {
         return '<span class="legend-item"><i style="background:' + d.color + '"></i>' + esc(d.label) + "</span>";
       }).join("");
     }
 
-    return { render: render, horizontal: horizontal, legend: legend };
+    return { render: render, horizontal: horizontal, flow: flow, legend: legend };
   }
 
   var G = (root.GreenApp = root.GreenApp || { sources: {} });

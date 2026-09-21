@@ -14,6 +14,7 @@
  *   7. nothing is negative, NaN or infinite
  *   8. the same factor is drawn ONCE per sample (correlated, not averaged away)
  *   9. the Potential bar's widths are the tonnes (that picture is the arithmetic too)
+ *  10. the benchmark data agrees with itself, and the excluded-share flow is the arithmetic
  */
 require("../data/factors.js");
 require("../data/benchmarks.js");
@@ -405,6 +406,87 @@ console.log("The bar on Pick your changes");
      sum(widths(h2, "pb-seg")) < sum(widths(h1, "pb-seg")));
 }
 report("the bar's widths are the tonnes");
+
+/* ---------- 10. the benchmarks agree with themselves, and the flow is the arithmetic ----------
+ * data/benchmarks.js now carries a national total, a split of it by who did the buying, a
+ * lifestyle average derived from that split, and a breakdown of the part the bars exclude.
+ * Four numbers that must agree, written by hand in four places — exactly the shape of thing
+ * that drifts silently the next time one of them is edited. So: check them against each other,
+ * then check that the drawn diagram is those numbers and not a pleasant approximation of them.
+ */
+console.log("The benchmark data and the excluded-share flow");
+{
+  const B = globalThis.GreenApp.benchmarks, chart = globalThis.GreenApp.chart;
+  const a = B.austria, ps = B.publicShare, fd = a.finalDemand;
+  const sum = (xs) => xs.reduce((x, y) => x + y, 0);
+  const near = (x, y, eps) => Math.abs(x - y) <= eps;
+
+  ok("the final-demand shares are a whole", near(sum(Object.values(fd)), 1, 1e-9),
+     "they sum to " + sum(Object.values(fd)));
+  ok("the lifestyle average is the household share of the national total",
+     near(a.total, a.nationalTotal * fd.households, 0.02),
+     a.total + " vs " + (a.nationalTotal * fd.households).toFixed(3));
+  ok("the Austrian per-area split adds up to the Austrian average",
+     near(sum(Object.values(a.byDomain)), a.total, 0.02),
+     sum(Object.values(a.byDomain)).toFixed(3) + " vs " + a.total);
+  ok("the world average is still its own household share",
+     near(sum(Object.values(B.world.byDomain)), B.world.total, 0.02));
+  ok("the excluded share is everything that is not the household share",
+     near(ps.austria, a.nationalTotal * (1 - fd.households), 0.02),
+     ps.austria + " vs " + (a.nationalTotal * (1 - fd.households)).toFixed(3));
+  ok("the excluded share's parts add up to the excluded share",
+     near(sum(ps.parts.map((p) => p.shareOfNational)) * a.nationalTotal, ps.austria, 0.02));
+  ps.parts.forEach((p) => {
+    if (!p.parts) return;
+    ok("the sub-blocks of " + p.id + " are a whole",
+       near(sum(p.parts.map((k) => k.shareOfParent)), 1, 1e-9));
+  });
+  ps.parts.forEach((p) => {
+    ok(p.id + " carries a source-worthy explanation", typeof p.detail === "string" && p.detail.length > 40);
+    (p.parts || []).forEach((k) =>
+      ok(k.id + " carries a source-worthy explanation", typeof k.detail === "string" && k.detail.length > 40));
+  });
+
+  // ---- the drawn diagram ----
+  const nat = a.nationalTotal;
+  const parts = ps.parts.map((p) => {
+    const t = p.shareOfNational * nat;
+    const out = { id: p.id, label: p.label, t: t, share: p.shareOfNational, color: p.color, detail: p.detail };
+    if (p.parts) out.parts = p.parts.map((k) => ({ id: k.id, label: k.label, t: k.shareOfParent * t,
+      share: k.shareOfParent * p.shareOfNational, color: k.color, detail: k.detail }));
+    return out;
+  });
+  const total = sum(parts.map((p) => p.t));
+  const html = chart.flow({ parts: parts, total: total, base: nat, trunkLabel: "Not in your bar" });
+
+  const segs = [];
+  const re = /data-kind="(part|leaf)" data-t="([0-9.eE+-]+)" style="width:([0-9.eE+-]+)%/g;
+  let m; while ((m = re.exec(html))) segs.push({ kind: m[1], t: parseFloat(m[2]), w: parseFloat(m[3]) });
+
+  const row1 = segs.filter((n) => n.kind === "part"), row2 = segs.filter((n) => n.kind === "leaf");
+  ok("the top row is exactly full", near(sum(row1.map((n) => n.w)), 100, 1e-9),
+     "drew " + sum(row1.map((n) => n.w)).toFixed(9) + "%");
+  ok("the bottom row is exactly full", near(sum(row2.map((n) => n.w)), 100, 1e-9),
+     "drew " + sum(row2.map((n) => n.w)).toFixed(9) + "%");
+  ok("both rows are on the same scale — the bottom row divides the top one, it does not rescale",
+     near(sum(row1.map((n) => n.t)), sum(row2.map((n) => n.t)), 1e-9));
+  ok("every width is its own tonnes", segs.every((n) => near(n.w / 100 * total, n.t, 1e-9)),
+     segs.map((n) => (n.w / 100 * total).toFixed(4) + "/" + n.t.toFixed(4)).join(" "));
+  ok("the top row is one segment per part", row1.length === parts.length);
+  ok("nothing is given a width it has not earned", segs.every((n) => n.w >= 0 && n.t >= 0));
+  parts.forEach((p) => {
+    if (!p.parts) return;
+    ok(p.id + " equals its parts", near(sum(p.parts.map((k) => k.t)), p.t, 1e-9));
+  });
+  // The honest blank: a part with no measured breakdown must be drawn hatched, never coloured.
+  const unknown = (html.match(/fl-unknown/g) || []).length;
+  ok("every part without a measured breakdown is marked as not broken down",
+     unknown === parts.filter((p) => !p.parts).length,
+     unknown + " hatched for " + parts.filter((p) => !p.parts).length + " unmeasured parts");
+  ok("a part WITH a measured breakdown is never hatched",
+     !parts.filter((p) => p.parts).some((p) => html.indexOf('fl-unknown" data-kind="leaf" data-t="' + p.t) >= 0));
+}
+report("the benchmarks agree and the flow is the arithmetic");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

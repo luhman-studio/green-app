@@ -34,7 +34,13 @@ Everything below describes exactly what the code does, with the source of every 
 
 This is a consumption-based lifestyle footprint: the greenhouse gases caused by what one person buys and uses in a year, wherever in the world those gases are released. A T-shirt sewn in Bangladesh counts here, not in Bangladesh's national total. That is the opposite of a territorial inventory, which is what countries report under the Paris Agreement.
 
-The scope is household consumption only. Public services — hospitals, schools, roads, the army, public administration — are about 3 tonnes per person in Austria and are deliberately left out of every bar in the app, because the 1.5 °C lifestyle targets this app compares against are defined the same way. The app says so next to the result rather than hiding it.
+The scope is household consumption only: what you buy. About 3.5 tonnes per person in Austria are caused on your behalf by someone else and are deliberately left out of every bar, because the 1.5 °C lifestyle target is defined the same way — the exclusion is in the numerator AND the denominator, which is what keeps the comparison fair. The Results tab draws where those 3.5 t actually go instead of asserting it, because the common assumption is wrong: two thirds of it is investment — new buildings, roads, railways, machinery, vehicles — and only about a quarter is public services. International shipping and aviation are the small remainder.
+
+Who did the buying is measured for Austria rather than assumed: households 68%, investment 21%, government 8%, global transport 3% (Steininger et al. 2018). The app previously used a global 72/28 rule of thumb, which is a world average applied to one country; the Austrian split moves the national average from 7.9 to 7.4 t.
+
+Inside the public 8%, health and social care is 49% — the one functional number that exists for Austria. It is left as its own block because it carries a point worth making: Eurostat classes health and education as INDIVIDUAL consumption and prefers Actual Individual Consumption to household spending when comparing countries, precisely because a country that provides care publicly moves those emissions out of its citizens' personal footprints, while a country that does not leaves them in. A low household footprint can therefore mean a strong public system rather than a lighter life. The remaining 51% of public services is drawn as one unbroken block: no measurement of Austrian public emissions by function exists that this app could cite, and splitting it by departmental spending would assume a kilometre of motorway and an hour of school carry the same carbon per euro. The gap in the picture is the gap in the data.
+
+The embodied carbon of buildings sits in that investment block, not in your housing figure — housing counts the energy you use, not the concrete you live in. Renovation and furniture you buy yourself are already counted, under Housing and Goods.
 
 All greenhouse gases are included, expressed as CO₂e using 100-year global warming potentials: methane from cattle and rice, nitrous oxide from fertiliser, refrigerants, and for flights the non-CO₂ warming effects.
 
@@ -43,6 +49,9 @@ The unit everywhere is tonnes of CO₂e per person per year. Household quantitie
 **Sources**
 
 - Hot or Cool Institute (2021 and 2025 update) — 1.5 °C-aligned lifestyle footprint targets; household consumption scope, explicitly excluding public spending and investment.
+- Steininger et al. (2018), ‘Austria’s consumption-based greenhouse gas emissions: Identifying sectoral sources and destinations’, Global Environmental Change — GTAP, 2011, 123.6 Mt: households 68%, investments 21%, government 8%, global transport 3%; health and social work 49% of public-sector emissions.
+- Eurostat, Actual Individual Consumption — household purchases plus government services for individual consumption (health and education), preferred over household consumption for comparing countries.
+- Health Care Without Harm / Arup — Austrian health care 0.59 t CO₂e per person, 5.2% of national emissions (2014); Weisz et al. (2020) 6.8 Mt. Cross-check on the health block.
 - IPCC AR6 GWP-100 values for converting gases to CO₂e.
 
 ## How to read the code
@@ -459,10 +468,10 @@ Generated directly from `data/factors.js` and `data/benchmarks.js`, so it cannot
 - **`factors.financedEmissions.high`** — 5.4 t CO2e per €10,000 invested per year — Make My Money Matter / Aviva / Route2 (2021): moving an average £30,000 pension to a sustainable fund ≈ 19 t CO2e a year — a much broader scope and a different attribution; full methodology unpublished
 - **`factors.financedEmissions`** — Attributed, not consumed. Method: PCAF, Global GHG Accounting and Reporting Standard for the Financial Industry, Part A — Financed Emissions.
 - **`factors.offsetTypes`** — Categories follow the Oxford Offsetting Principles (2024 revision): cut emissions first, shift to removals, shift to durable storage. Credit integrity: Probst et al. (2024), Nature Communications.
-- **`benchmarks.austria`** — Derived estimate: Austrian consumption-based emissions ≈ 100 Mt CO2e (2023, Joanneum Research / CCCA) ÷ 9.16 M inhabitants ≈ 10.9 t, × 72% household share (Hot or Cool Institute). Germany in the same report: 8.1 t.
-- **`benchmarks.world`** — Derived estimate: global GHG ≈ 57 Gt CO2e (UNEP Emissions Gap 2024) ÷ 8.05 bn people ≈ 7.1 t, × 72% household share. Illustrative split.
+- **`benchmarks.austria`** — Derived: 10.9 t national consumption-based total (2023) × 68% household share (Steininger et al. 2018, Austria-specific). The share and the total are from different years — the best combination available, and stated rather than hidden.
+- **`benchmarks.world`** — Derived estimate: global GHG ≈ 57 Gt CO2e (UNEP Emissions Gap 2024) ÷ 8.05 bn people ≈ 7.1 t, × 72% household share (Hertwich & Peters 2009, global). Illustrative split.
 - **`benchmarks.targets`** — Hot or Cool Institute, ‘1.5-Degree Lifestyles: Towards A Fair Consumption Space for All’ (2021), Figure C: globally unified lifestyle carbon footprint targets of 2.5 t CO2e per person per year by 2030 and 0.7 t by 2050. The 2025 update (‘A Climate for Sufficiency’) states 1.1 t by 2035 and 0.3 t by 2050 and shows the same trajectory through 2030.
-- **`benchmarks.publicShare`** — ≈ 28% of Austria’s consumption-based total (public services, infrastructure, investment). Not controllable by lifestyle; excluded from the comparison.
+- **`benchmarks.publicShare`** — Shares: Steininger et al. (2018), GTAP 2011, Austria — government 8%, investments 21%, global transport 3% of the national consumption-based total. Health & social work = 49% of public-sector emissions, same paper. Cross-check: Health Care Without Harm / Arup put Austrian health care at 0.59 t CO2e per person (5.2% of national emissions, 2014) and Weisz et al. (2020) at 6.8 Mt — consistent with 0.43 t of government-funded care plus the health spending households pay themselves, which the app already counts under Services.
 
 ---
 

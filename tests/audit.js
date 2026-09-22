@@ -751,6 +751,31 @@ console.log("Rebound");
     ok("the range scales with the amount", fin.high > engine.financed(
        Object.assign(clone(p), { money: { bankType: "conventional", savings: "conventional", amount: 10000 } })).high);
   });
+  /* The path and the stock. Two rules:
+   *   · the trajectory must descend — it is the reason 2.5 t is not a destination;
+   *   · the remaining budget is CO2 ONLY while everything else here is CO2e, so nothing may
+   *     divide one by the other. A personal countdown would be arithmetic across two units.
+   */
+  {
+    const T = globalThis.GreenApp.benchmarks.targets, rem = T.remaining;
+    ok("the trajectory has more than one point", T.trajectory && T.trajectory.length >= 3);
+    for (let i = 1; i < T.trajectory.length; i++) {
+      ok("the path keeps falling (" + T.trajectory[i - 1].year + " → " + T.trajectory[i].year + ")",
+         T.trajectory[i].value < T.trajectory[i - 1].value &&
+         T.trajectory[i].year > T.trajectory[i - 1].year);
+    }
+    ok("the first waypoint is the goal the app compares against",
+       Math.abs(T.trajectory[0].value - T.y2030.value) < 1e-9);
+    ok("the remaining budget is flagged CO2-only", rem.isCO2Only === true);
+    ok("it cites its source", typeof rem.source === "string" && rem.source.length > 80);
+    ok("the per-person share is a plausible order of magnitude",
+       rem.gtCO2 * 1e9 / rem.worldPopulation > 5 && rem.gtCO2 * 1e9 / rem.worldPopulation < 60,
+       (rem.gtCO2 * 1e9 / rem.worldPopulation).toFixed(1) + " t");
+    // the engine must not have learned about any of this
+    const esrc = globalThis.GreenApp.sources["js/engine.js"];
+    ok("the engine never reads the remaining budget",
+       typeof esrc === "string" && esrc.indexOf("remaining") < 0 && esrc.indexOf("trajectory") < 0);
+  }
 report("rebound is stated, never subtracted");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");

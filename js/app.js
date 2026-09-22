@@ -584,6 +584,43 @@
        * country's hospitals and motorways is yours. Saying "an average of" is not hedging,
        * it is the difference between a measured number and an allocated one.
        */
+      /* The path, and the stock behind it.
+       * Showing 2.5 t alone let the app imply it is a destination. It is one point on a steep
+       * descent, and the thing that physically matters is not the yearly rate at all but the
+       * total ever emitted — warming tracks cumulative CO2. So: the waypoints, then the stock.
+       *
+       * The stock is deliberately NOT divided by anyone's footprint. The remaining budget is
+       * CO2 only — non-CO2 warming sits inside the estimate by making it smaller — while this
+       * app measures CO2e. A personal countdown would be arithmetic across two different
+       * units, which is the sort of thing this app exists to not do.
+       */
+      var TR = B.targets.trajectory, rem = B.targets.remaining;
+      var perPerson = rem.gtCO2 * 1e9 / rem.worldPopulation;
+      $("detTraj").innerHTML = TR.map(function (t, i) {
+        var pctOfNow = r.total > 0 ? Math.round(t.value / r.total * 100) : 0;
+        return '<div class="traj-step' + (i === 0 ? " traj-now" : "") + '">' +
+          '<div class="traj-year">' + t.year + "</div>" +
+          '<div class="traj-val">' + t.value.toFixed(1) + " t</div>" +
+          '<div class="traj-rel">' + pctOfNow + "% of your " + r.total.toFixed(1) + " t</div></div>";
+      }).join('<div class="traj-arrow" aria-hidden="true">→</div>');
+
+      $("detTrajNote").innerHTML = "Staying at " + fmtT(B.targets.y2030.value) + " after 2030 would not settle anything: the same work puts the path at " +
+        fmtT(TR[1].value) + " by " + TR[1].year + " and " + fmtT(TR[2].value) + " by " + TR[2].year + ". " +
+        "<strong>What actually matters is not the yearly rate but the total ever emitted</strong> — warming tracks cumulative CO₂, so a yearly figure is only a stand-in for staying inside a stock that is nearly spent. " +
+        "The remaining budget for 1.5 °C is about <strong>" + rem.gtCO2 + " Gt CO₂</strong> from the start of " + rem.fromYear +
+        ", a little over three years of world emissions — roughly <strong>" + perPerson.toFixed(0) + " tonnes per person alive today, in total, not per year</strong>. " +
+        '<span class="muted">That budget counts CO₂ only, while everything else here is CO₂e, so the two cannot be divided into a personal countdown. The order of magnitude is the point: a rich-country footprint spends a lifetime share of it in a couple of years.</span>';
+
+      /* Whether the past should count is a real question with a firm half and a contested
+       * half, and the app should answer the firm half rather than dodge the whole thing.
+       */
+      $("detHistory").innerHTML =
+        "<p><strong>No, and the difference is already enormous — but not in a way this app can measure for you.</strong></p>" +
+        "<p>Lifetime budgets differ by <em>when you were born</em>, before anyone's choices come into it. On a 1.5 °C path, modelled lifetime budgets run at roughly 275 t CO₂ for someone born before 1946, 202 t for a millennial, 118 t for Gen Z and 56 t for someone born after 2012. Someone born in 2017 gets about an eighth of what someone born in 1950 did. That is not a moral allocation — it is what the models leave over once the earlier emissions have happened.</p>" +
+        "<p>So differentiated responsibility is not a proposal here; it is already the arithmetic, between generations rather than between individuals.</p>" +
+        "<p><strong>What this app deliberately does not do is score your past.</strong> It asks about one year, and it should not pretend otherwise. Reconstructing decades of flights, cars and homes from memory would produce a number with an error bar wider than the answer, and a personal carbon debt would do one of two useless things: tell someone already over their lifetime share that nothing they do now matters, or tell a frugal person they have credit to spend. Neither is true. The remaining budget is shared and nearly gone regardless of who spent the earlier part.</p>" +
+        "<p class=\"muted\">Where the past does belong is in the argument about who pays for the change — between countries, and between generations within them. That is a question about policy and money, not about a household's shopping, and this tool does not try to settle it.</p>";
+
       /* The overview. Three quantities that the page already carries on three separate cards,
        * put side by side so the reader does not have to assemble them — and, more to the
        * point, so the number they measured stops being the only one in view.

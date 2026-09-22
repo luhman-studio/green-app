@@ -55,6 +55,35 @@
 
       targets: {
         y2030: { value: 2.5, label: "1.5 °C goal 2030" },
+
+        /* 2.5 t is a WAYPOINT, not a destination, and showing it alone was letting the app
+         * imply otherwise. The same report sets the path: sitting at 2.5 t for the rest of
+         * the century would blow the budget many times over.
+         */
+        trajectory: [
+          { year: 2030, value: 2.5 },
+          { year: 2035, value: 1.1 },
+          { year: 2050, value: 0.3 }
+        ],
+        trajectorySource: "Hot or Cool Institute: 2.5 t CO2e per person per year by 2030 (2021, Figure C); 1.1 t by 2035 and 0.3 t by 2050 (‘A Climate for Sufficiency’, 2025).",
+
+        /* The stock behind the flow. Warming tracks CUMULATIVE CO2, so an annual target is a
+         * proxy for staying inside a total that is nearly spent.
+         *
+         * READ THE UNITS BEFORE USING THIS. The remaining budget is defined for CO2 alone —
+         * non-CO2 warming is already accounted for INSIDE the estimate, by making it smaller.
+         * Everything else in this app is CO2e. Dividing a CO2e footprint by this budget would
+         * be wrong, which is why nothing does, and why the app states the order of magnitude
+         * rather than printing a personal countdown. The audit enforces that.
+         */
+        remaining: {
+          gtCO2: 130,
+          fromYear: 2025,
+          worldPopulation: 8.2e9,
+          isCO2Only: true,
+          source: "Indicators of Global Climate Change (Forster et al., 2025): central estimate of the remaining carbon budget for 1.5 °C is 130 Gt CO2 from the start of 2025 — a little over three years at current emissions. Divided by a world population of about 8.2 billion that is roughly 16 tonnes of CO2 per person alive today, in total, not per year."
+        },
+
         // A GLOBALLY UNIFIED target, not an Austrian one: the remaining budget divided
         // equally across the world population. Austria and Bangladesh get the same 2.5 t;
         // what differs is the distance to it. A target weighted by historical responsibility

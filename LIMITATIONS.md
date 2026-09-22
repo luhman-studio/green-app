@@ -83,20 +83,39 @@ shows its full operational saving with **zero** embodied cost. The asymmetry is
 invisible to a reader and makes housing levers look better than transport ones
 for no defensible reason.
 
-### 1.6 No distinction between a decision and a habit
+### 1.6 A single year, presented as a rate
+
+Everything is measured over one year and reported as though it were a standing
+rate. A year with a new car, a renovation or the trip of a lifetime in it is not
+representative, and the app gives no way to say so. The levers inherit the same
+shape — "a no-buy year", "one flight fewer a year" — which reads oddly for
+someone who flies once in five years.
+
+The deeper version: an annual snapshot cannot see a life. Two people at 9.9 t
+today, one of whom has flown every month for twenty years and one of whom is on
+a first flight, get an identical result and an identical target. Between
+generations the difference in lifetime budgets is already enormous — roughly
+275 t CO₂ for someone born before 1946 against 56 t for someone born after 2012
+— and the app's single 2.5 t line hides all of it.
+
+Partly addressed: the Details tab now shows the path (2.5 → 1.1 → 0.3) and the
+remaining stock, and explains why the app does not score anyone's past. Not
+addressed: nothing marks an unusual year, and nothing adjusts for age or history.
+
+### 1.7 No distinction between a decision and a habit
 
 A heat pump is a twenty-year commitment; a shorter shower is five minutes. Both
 appear as annual tonnes in the same list, ranked by size. Nothing tells a reader
 which changes are durable, which need to be made once, and which have to be
 maintained daily forever.
 
-### 1.7 Austria-only, served worldwide
+### 1.8 Austria-only, served worldwide
 
 Factors, benchmarks, levers and subsidies are Austrian. The header says so; the
 World bar invites everyone else to use it anyway. For a non-Austrian the
 electricity mix alone makes the result wrong by a wide margin.
 
-### 1.8 The lever list cannot contain bad news
+### 1.9 The lever list cannot contain bad news
 
 By construction every lever has a positive saving — the audit enforces it. There
 is no lever that increases emissions, and no representation of a trade-off. A
@@ -136,14 +155,15 @@ that some choices are worse than they look.
 | 2.13 | **The Potential tab is 10.4 screens on a phone.** Shortening it further means hiding levers, which trades the honest full ladder for brevity. Not obviously the right trade. |
 | 2.14 | **No offline or installable version.** The app is fully static and would make a trivial PWA; a service worker brings a cache-invalidation failure mode on a site published by pushing. |
 | 2.15 | **No second language.** An Austrian tool that exists only in English excludes much of its own audience. |
-| 2.16 | **Nothing is ever re-measured.** There is no way to see whether last year's ticked changes actually happened. Saved results support it; nothing in the interface uses them that way. |
+| 2.16 | **Nothing marks an unusual year.** A new car or a one-off renovation inflates a result with no way to flag it (see 1.6). |
+| 2.17 | **Nothing is ever re-measured.** There is no way to see whether last year's ticked changes actually happened. Saved results support it; nothing in the interface uses them that way. |
 
 ### Process
 
 | # | Issue |
 |---|---|
-| 2.17 | **Documentation drifts from the data.** On 22 September the method text still said "Austria 7.9 t ... times the ~72%" a day after both numbers changed. Fixed, but nothing prevents a recurrence: the prose in `data/docs.js` is not checked against `data/benchmarks.js` by anything. |
-| 2.18 | **Two audit checks written in one session were tautological** (`x - x < 1e-12`, and a `\|\| true`). Both removed. A check that cannot fail reads as coverage, which is worse than an absent check. |
+| 2.18 | **Documentation drifts from the data.** On 22 September the method text still said "Austria 7.9 t ... times the ~72%" a day after both numbers changed. Fixed, but nothing prevents a recurrence: the prose in `data/docs.js` is not checked against `data/benchmarks.js` by anything. |
+| 2.19 | **Two audit checks written in one session were tautological** (`x - x < 1e-12`, and a `\|\| true`). Both removed. A check that cannot fail reads as coverage, which is worse than an absent check. |
 
 ---
 

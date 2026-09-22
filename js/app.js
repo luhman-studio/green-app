@@ -978,9 +978,12 @@
     function drawChart(which, chartId, wrapId, tipId, liveId, opts, redraw) {
       var hadFocus = $(chartId).contains(doc.activeElement);
       opts.labelScale = splitMode() ? 1.3 : 1;   // drawn narrower beside the panel: bigger type
-      // Same rows, same arithmetic, turned a quarter: on a phone the four columns become
-      // three stages read top to bottom, because 390 px cannot hold four columns of labels.
-      $(chartId).innerHTML = portraitMode() ? G.sankey.renderVertical(opts) : G.sankey.render(opts);
+      /* One diagram, every screen. A phone gets the same four columns at a readable size
+       * inside a container that scrolls sideways — shrinking it to fit 390 px rendered every
+       * label about four pixels tall, and turning it a quarter traded that for blocks only as
+       * wide as their tonnes. Neither beat simply not shrinking it.
+       */
+      $(chartId).innerHTML = G.sankey.render(opts);
       chartModel[which] = G.sankey.model();
       G.sankey.attach($(wrapId), $(tipId), {
         selected: pinned[which],
@@ -998,8 +1001,6 @@
     }
 
     function splitMode() { return !!(root.matchMedia && root.matchMedia("(min-width: 1240px)").matches); }
-    // Below this the diagram is turned: overview on top, causes at the bottom, read by scrolling.
-    function portraitMode() { return !!(root.matchMedia && root.matchMedia("(max-width: 700px)").matches); }
 
     // Clicking a band asks a question whose answer is in the column beside the diagram. If
     // that column starts above the window — you clicked while deep in it — bring its top
@@ -1542,12 +1543,11 @@
           if (!$("panelPotential").hidden) renderPotential();
           if (!$("panelDetails").hidden) renderDetails();
         };
-        // two crossings matter: into the side-by-side layout, and into the turned diagram
-        ["(min-width: 1240px)", "(max-width: 700px)"].forEach(function (q) {
-          var mq = root.matchMedia(q);
-          if (mq.addEventListener) mq.addEventListener("change", onCross);
-          else if (mq.addListener) mq.addListener(onCross);
-        });
+        // one crossing matters now: into and out of the side-by-side layout, which changes
+        // how small the diagram is drawn and so how big its labels have to be
+        var mq = root.matchMedia("(min-width: 1240px)");
+        if (mq.addEventListener) mq.addEventListener("change", onCross);
+        else if (mq.addListener) mq.addListener(onCross);
       }
       $("saveForm").onsubmit = function (ev) {
         ev.preventDefault();

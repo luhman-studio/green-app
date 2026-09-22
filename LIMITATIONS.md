@@ -83,7 +83,24 @@ shows its full operational saving with **zero** embodied cost. The asymmetry is
 invisible to a reader and makes housing levers look better than transport ones
 for no defensible reason.
 
-### 1.6 A single year, presented as a rate
+### 1.6 A single target, presented as an end state
+
+For most of this project the app drew one line — 2.5 t — and let it read as the
+finish. It is a 2030 waypoint on a path that continues to 1.1 t by 2035 and
+0.3 t by 2050, and the yearly rate is itself only a stand-in: warming tracks
+cumulative CO₂, and the remaining 1.5 °C budget is about 130 Gt CO₂ from the
+start of 2025, or roughly 16 tonnes per person alive today **in total**.
+
+A single annual line is the most flattering possible framing of that. Someone
+reaching 2.5 t saw "goal reached" with nothing to say that holding it for a
+decade still overspends the stock.
+
+Fixed on 22 September: the Details tab shows the path and the stock. Worth
+recording anyway, because the bias survived eleven commits of careful work on
+everything around it — the number was right, the sources were right, and the
+framing was still wrong.
+
+### 1.7 A single year, presented as a rate
 
 Everything is measured over one year and reported as though it were a standing
 rate. A year with a new car, a renovation or the trip of a lifetime in it is not
@@ -102,20 +119,20 @@ Partly addressed: the Details tab now shows the path (2.5 → 1.1 → 0.3) and t
 remaining stock, and explains why the app does not score anyone's past. Not
 addressed: nothing marks an unusual year, and nothing adjusts for age or history.
 
-### 1.7 No distinction between a decision and a habit
+### 1.8 No distinction between a decision and a habit
 
 A heat pump is a twenty-year commitment; a shorter shower is five minutes. Both
 appear as annual tonnes in the same list, ranked by size. Nothing tells a reader
 which changes are durable, which need to be made once, and which have to be
 maintained daily forever.
 
-### 1.8 Austria-only, served worldwide
+### 1.9 Austria-only, served worldwide
 
 Factors, benchmarks, levers and subsidies are Austrian. The header says so; the
 World bar invites everyone else to use it anyway. For a non-Austrian the
 electricity mix alone makes the result wrong by a wide margin.
 
-### 1.9 The lever list cannot contain bad news
+### 1.10 The lever list cannot contain bad news
 
 By construction every lever has a positive saving — the audit enforces it. There
 is no lever that increases emissions, and no representation of a trade-off. A
@@ -155,7 +172,7 @@ that some choices are worse than they look.
 | 2.13 | **The Potential tab is 10.4 screens on a phone.** Shortening it further means hiding levers, which trades the honest full ladder for brevity. Not obviously the right trade. |
 | 2.14 | **No offline or installable version.** The app is fully static and would make a trivial PWA; a service worker brings a cache-invalidation failure mode on a site published by pushing. |
 | 2.15 | **No second language.** An Austrian tool that exists only in English excludes much of its own audience. |
-| 2.16 | **Nothing marks an unusual year.** A new car or a one-off renovation inflates a result with no way to flag it (see 1.6). |
+| 2.16 | **Nothing marks an unusual year.** A new car or a one-off renovation inflates a result with no way to flag it (see 1.7). |
 | 2.17 | **Nothing is ever re-measured.** There is no way to see whether last year's ticked changes actually happened. Saved results support it; nothing in the interface uses them that way. |
 
 ### Process

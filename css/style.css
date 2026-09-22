@@ -564,56 +564,41 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
   .say-touch { display: inline; }
 }
 
-/* ---------- the turned diagram (phones) ---------- */
-.sankey-v { width: 100%; height: auto; display: block; }
-/* One weight for everything. The blocks were outlined at 1.6 while the ribbons between them
-   had no outline at all, so the diagram read as boxes with colour spilling between them
-   rather than as one flow. Thinner, and the ribbons carry the same line. fill-opacity rather
-   than opacity, so making the ribbon translucent does not also fade its outline. */
-.sankey-v .v-node { stroke: var(--ink); stroke-width: 1; }
-.sankey-v .v-cause { fill: #EDE3CE; }
-.sankey-v .v-band { fill-opacity: .45; stroke: var(--ink); stroke-width: 1; stroke-opacity: .5; }
-/* Labels sit ON the blocks here, so they must not eat the tap — without this, tapping the
-   middle of a named area (the most obvious target there is) hits the text and does nothing. */
-.sankey-v text { pointer-events: none; }
-/* the stage titles cross the ribbons, so they carry a cream casing to stay readable */
-/* No text-transform here: it would render the unit as "9.9 T". The strings are already caps. */
-.sankey-v .v-stage { font-size: 11px; font-weight: 700; letter-spacing: .07em;
-  fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 3.5px; stroke-linejoin: round; }
-.sankey-v .v-lab-on, .sankey-v .v-lab-off { font-size: 11px; font-weight: 700; text-anchor: middle;
-  dominant-baseline: central; letter-spacing: .01em; }
-.sankey-v .v-lab-on { fill: #fff; paint-order: stroke; stroke: rgba(20,20,20,.6); stroke-width: 2.6px; stroke-linejoin: round; }
-.sankey-v .v-lab-off { fill: var(--ink); }
-.sankey-v .foot-note { font-size: 9.5px; fill: var(--muted); }
-.sankey-v .hi { opacity: 1; }
-.sankey-v .v-band.hi { fill-opacity: .85; stroke-opacity: .9; }
-.sankey-v .sel { stroke-width: 2.4; stroke-opacity: 1; }
+.scroll-hint { display: none; font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 0 0 6px; }
 
-/* the upper-bound warning: present, not shouty — it is a caveat, not an error */
-.rebound-note { margin: 10px 0 0; border-left: 3px solid var(--yellow); padding-left: 11px; }
-
-/* ---------- the path: 2.5 t is one point on it ---------- */
-.traj { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; margin: 4px 0 12px; }
-.traj-step { flex: 1 1 0; min-width: 120px; border: 2.5px solid var(--ink); border-radius: 14px; padding: 10px 12px; background: #fff; }
-.traj-now { background: #f1f8f3; }
-.traj-year { font-size: 12px; font-weight: 700; letter-spacing: .07em; color: var(--muted); }
-.traj-val { font-size: clamp(20px, 2.2vw, 27px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
-.traj-rel { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-.traj-arrow { align-self: center; font-weight: 700; color: var(--muted); }
-@media (max-width: 700px) { .traj-arrow { display: none; } .traj-step { min-width: 0; } }
-
-/* ---------- the overview: three numbers, three different things ---------- */
-.overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 4px 0 2px; }
-.ov-tile { border: 2.5px solid var(--ink); border-radius: 14px; padding: 12px 13px; background: #fff; }
-.ov-num { font-size: clamp(22px, 2.4vw, 30px); font-weight: 700; letter-spacing: -.02em; line-height: 1.05; }
-.ov-lab { font-weight: 700; font-size: 14.5px; margin-top: 2px; }
-/* the flag is the point of the tile: two of these add, one never does */
-.ov-flag { display: inline-block; margin-top: 7px; font-size: 11.5px; font-weight: 700; letter-spacing: .03em;
-  border-radius: 999px; padding: 2px 9px; border: 1.5px solid var(--ink); background: var(--soft); }
-.ov-money .ov-flag { background: #f3d8cc; }
-.ov-buy .ov-flag, .ov-public .ov-flag { background: #cfe8d9; }
-.ov-note { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
-@media (max-width: 860px) { .overview { grid-template-columns: 1fr; } }
+/* ---------- the Sankey on a phone: scrolled, not shrunk ----------
+ * Fitting four columns of labels into 390 px rendered every word about four pixels tall.
+ * The diagram is drawn at its natural size instead and the container scrolls sideways, which
+ * is the one option that costs the picture nothing: same renderer, same arithmetic, same
+ * labels, same tap targets as a desktop.
+ *
+ * overscroll-behavior-x: contain stops a sideways flick at the end of the diagram from
+ * turning into a browser back-navigation, which is the way this pattern usually breaks.
+ */
+@media (max-width: 700px) {
+  /* width AND max-width are both needed: without them the scroller sizes to its 1080 px
+     content, the card grows with it and the whole PAGE scrolls sideways instead of the
+     diagram. min-width: 0 on the wrapper stops the same thing happening one level up. */
+  /* Grid items default to min-width: auto, so .pot-left was sizing to the 1080 px diagram
+     and dragging the card — and the page — wide with it. This is the fix; the scroller's own
+     max-width could never bind while its parent was already too wide. */
+  .pot-left, .pot-right { min-width: 0; }
+  .sankey-wrap { min-width: 0; }
+  .sankey-scroll {
+    width: 100%; max-width: 100%; min-width: 0;
+    overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain; touch-action: pan-x pan-y;
+    scrollbar-width: thin; padding-bottom: 4px;
+  }
+  .sankey-scroll .sankey { width: 1080px; max-width: none; }
+  /* a fade at the right edge, so it is obvious there is more diagram off-screen */
+  .sankey-wrap::after {
+    content: ""; position: absolute; top: 0; right: -1px; bottom: 10px; width: 26px;
+    pointer-events: none; border-radius: 0 10px 10px 0;
+    background: linear-gradient(to right, rgba(255,253,248,0), var(--paper) 82%);
+  }
+  .scroll-hint { display: block; }
+}
 
 /* ---------- insights panel under the Sankey ---------- */
 .ins-try { margin-top: 12px; width: 100%; }

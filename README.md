@@ -18,6 +18,7 @@ Double-click `index.html`. That's it: no install, no server, no internet needed.
 | `tests/audit.js` | Independent audit: 3,000 random profiles, ~186,000 property checks in 11 sections |
 | `tools/make-method.js` | Regenerates `METHOD.md` from `data/docs.js` |
 | `METHOD.md` | The full method and sources — **start here if you want to check the numbers** |
+| `LIMITATIONS.md` | What is still wrong: systemic biases, open issues, and the things that look like bugs but are deliberate |
 
 The app has no AI. The chat fills a fixed profile object, and `engine.js` calculates from it, so the same answers always give the same result. A future AI chat would only need to fill the same profile.
 

@@ -357,7 +357,7 @@ The streaming and AI line is small — usually 30 to 60 kg a year — and that i
 
 Your devices are in "Stuff you buy", not in the digital line. Making a smartphone is roughly 55–70 kg CO₂e and a laptop 150–300 kg, and for both, around 80% of the lifetime footprint is manufacturing, not use. Someone spending €500 a year on electronics is carrying about 150 kg in the goods section. That is three to four times their streaming.
 
-So a realistic full digital footprint for one person in Austria is roughly 0.2 tonnes: about 0.15 t of devices, sitting in goods, and about 0.05 t of use, sitting in the digital line. Against a 7.9 t Austrian average that is about 2–3%, which is exactly what the sector-level research finds: the ITU and World Bank put the whole ICT sector at 1.5–4% of global emissions.
+So a realistic full digital footprint for one person in Austria is roughly 0.2 tonnes: about 0.15 t of devices, sitting in goods, and about 0.05 t of use, sitting in the digital line. Against a 7.4 t Austrian average that is about 2–3%, which is exactly what the sector-level research finds: the ITU and World Bank put the whole ICT sector at 1.5–4% of global emissions.
 
 Two things make it feel bigger. Absolute numbers sound enormous — data centres burn terawatt-hours — but divided by billions of users they are small per person. And an early estimate of streaming, about 3.2 kg per hour, circulated very widely before being corrected to roughly 0.055 kg; the retraction never travelled as far as the original.
 
@@ -416,7 +416,7 @@ Taken together the deliberate exclusions and the gaps mean a real lifestyle foot
 
 ## The three comparisons
 
-Austria 7.9 t per person is a derived estimate: roughly 100 Mt of consumption-based emissions divided by 9.16 million people, times the ~72% that is household rather than public consumption. The world average of 5.1 t is derived the same way. Both are estimates, and both are flagged as such in the code.
+Austria 7.4 t per person is a derived estimate: roughly 100 Mt of consumption-based emissions divided by 9.16 million people, times the 68% that is household rather than public or investment demand — a share measured for Austria (Steininger et al. 2018) rather than a global rule of thumb. The world average of 5.1 t keeps the global 72% share on purpose, because 68% describes Austria and not the planet. Both are estimates, and both are flagged as such in the code.
 
 The split of the Austrian average across the six areas is illustrative: it is scaled to be consistent with the bottom-up food model rather than measured independently. Use it to see roughly where you sit, not as a precise per-area benchmark.
 

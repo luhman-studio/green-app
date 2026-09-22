@@ -584,6 +584,45 @@
        * country's hospitals and motorways is yours. Saying "an average of" is not hedging,
        * it is the difference between a measured number and an allocated one.
        */
+      /* The overview. Three quantities that the page already carries on three separate cards,
+       * put side by side so the reader does not have to assemble them — and, more to the
+       * point, so the number they measured stops being the only one in view.
+       *
+       * They are NOT interchangeable, and the tiles say which is which:
+       *   · what you buy — measured from the answers, and the only one that is yours alone;
+       *   · decided for you — an average, because nothing here can allocate a country's
+       *     hospitals to one person. It adds to the first: different final demand, no overlap;
+       *   · what your money finances — a different KIND of number. Attributed, not consumed,
+       *     already inside somebody's footprint, and published estimates disagree sixfold.
+       *     It must never be added, and the tile says so rather than leaving it to a caption.
+       */
+      var fin0 = E.financed(p);
+      var tiles = [
+        { k: "buy", n: r.total.toFixed(1) + " t", lab: "What you buy",
+          note: "Measured from your answers. The part that is yours alone — and the only one any change on the Potential tab can move.",
+          add: true },
+        { k: "public", n: flowTotal.toFixed(1) + " t", lab: "Decided for you",
+          note: "An average, not your figure. Hospitals, schools, roads, things built once and used for decades. Moves through what a country builds, not through what you buy.",
+          add: true }
+      ];
+      tiles.push(fin0
+        ? { k: "money", n: fin0.low.toFixed(1) + "–" + fin0.high.toFixed(1) + " t", lab: "What your money finances",
+            note: "A different kind of number: attributed, not consumed, and already counted in the footprint of whoever buys what those companies make. Published estimates disagree sixfold.",
+            add: false }
+        : { k: "money", n: "—", lab: "What your money finances",
+            note: "Not known: you have not said how much is invested. It is a different kind of number either way — attributed rather than consumed, and never added to the two on the left.",
+            add: false });
+
+      $("detOverview").innerHTML = tiles.map(function (t) {
+        return '<div class="ov-tile ov-' + t.k + '"><div class="ov-num">' + esc(t.n) + "</div>" +
+          '<div class="ov-lab">' + esc(t.lab) + "</div>" +
+          '<div class="ov-flag">' + (t.add ? "adds to your total" : "never added") + "</div>" +
+          '<p class="ov-note">' + esc(t.note) + "</p></div>";
+      }).join("");
+      $("detOverviewNote").innerHTML = "The first two add up: they are different parts of what gets bought, with no overlap, so together they come to about <strong>" +
+        (r.total + flowTotal).toFixed(1) + " t</strong> a year. The third does not add to anything — adding it would count the same tonnes twice. " +
+        "Only the first responds to the Potential tab; the second moves through public decisions and the third through where you keep your money.";
+
       var withPublic = r.total + flowTotal;
       $("resPublic").innerHTML = "Your <strong>" + r.total.toFixed(1) + " t</strong> bar is what <em>you</em> buy. " +
         "On top of it, an average of <strong>" + flowTotal.toFixed(1) + " t</strong> per person is caused on your behalf by the state " +
@@ -648,13 +687,17 @@
       var single = chosen.reduce(function (sum, l) { return sum + l.saved; }, 0);
       $("potCompare").innerHTML = chosen.length
         ? "<strong>−" + saved.toFixed(1) + " t (−" + pct + "%)</strong> compared with your " + now.total.toFixed(1) + " t — " +
-          (after.total <= target.value ? "that reaches the 2030 Paris goal of " + fmtT(target.value) + "." : (after.total / target.value).toFixed(1) + "× the 2030 Paris goal of " + fmtT(target.value) + ".")
+          (after.total <= target.value
+            ? "that reaches the 2030 Paris goal of " + fmtT(target.value) +
+              (saved >= 0.3 ? " <span class=\"muted\">on paper — before any of it comes back as re-spending.</span>" : ".")
+            : (after.total / target.value).toFixed(1) + "× the 2030 Paris goal of " + fmtT(target.value) + ".")
         : "Nothing ticked yet — your footprint today is " + now.total.toFixed(1) + " t.";
       var gap = after.total - target.value;
       $("potGap").innerHTML = gap > 0.05
         ? "Still <strong>" + gap.toFixed(1) + " t</strong> above the 1.5 °C budget of " + fmtT(target.value) + "." +
           (all.some(function (l) { return !picked[l.id]; }) ? " Try “Reach the 1.5 °C goal” to see one way there." : " Even all the changes together don’t close the gap — the rest sits in things this calculator can’t change for you.")
-        : "<strong>Within the 1.5 °C budget</strong> of " + fmtT(target.value) + " for 2030.";
+        : "<strong>Within the 1.5 °C budget</strong> of " + fmtT(target.value) + " for 2030" +
+          (saved >= 0.3 ? ", as an upper bound." : ".");
       $("potSum").innerHTML = chosen.length
         ? chosen.length + (chosen.length === 1 ? " change ticked" : " changes ticked") + " · saves <strong>" + saved.toFixed(1) + " t</strong> of " + now.total.toFixed(1) + " t = <strong>" + pct + "%</strong>" +
           // Ticked changes are recalculated together, never added up. They can overlap
@@ -1436,7 +1479,12 @@
         path.levers.forEach(function (l) { picked[l.id] = true; });
         renderPotential();
         if (!path.reached) $("potHint").textContent = "Even every change together stops at " + path.total.toFixed(1) + " t. The rest would need a smaller home, fewer people’s worth of stuff, or changes outside this list.";
-        else $("potHint").textContent = "This is the shortest way there: the biggest changes first, until you are under " + fmtT(B.targets.y2030.value) + ".";
+        else $("potHint").innerHTML = "This is the shortest way there: the biggest changes first, until you are under " +
+            fmtT(B.targets.y2030.value) + ". <strong>It closes the part of the gap that is yours to close.</strong> " +
+            "The " + fmtT(B.publicShare.austria) + " decided collectively — hospitals, schools, roads, the things built once and used for decades — " +
+            "is untouched by every change on this list, and has to fall by about " +
+            Math.round((1 - B.publicShare.target.value / B.publicShare.austria) * 100) + "% too. " +
+            "That part moves through what a country builds and buys, not through what you tick here.";
       };
       Array.prototype.forEach.call(doc.querySelectorAll(".filter .seg-btn"), function (b) {
         b.onclick = function () {

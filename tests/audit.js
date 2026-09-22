@@ -726,6 +726,31 @@ console.log("Rebound");
     });
   });
 }
+  /* The overview puts three quantities side by side, and only two of them may ever be
+   * added. Financed emissions are attributed rather than consumed — already inside the
+   * footprint of whoever buys what those companies make — so summing all three would count
+   * the same tonnes twice. The arithmetic the card prints is checked here.
+   */
+  profiles.slice(0, 80).forEach((p) => {
+    const lifestyle = engine.calculate(p).total;
+    const B2 = globalThis.GreenApp.benchmarks;
+    const publicShare = B2.publicShare.parts.reduce((a, x) => a + x.shareOfNational * B2.austria.nationalTotal, 0);
+    ok("the excluded share is a real quantity", publicShare > 0);
+    ok("it is not the lifestyle figure wearing a different label",
+       Math.abs(publicShare - lifestyle) > 1e-6 || lifestyle === 0);
+
+    // The one that matters: money must sit OUTSIDE the footprint. Give the profile a large
+    // investment and the measured footprint must not move by a gram.
+    const rich = clone(p);
+    rich.money = { bankType: "conventional", savings: "conventional", amount: 250000 };
+    ok("financed emissions are outside the footprint, not inside it",
+       Math.abs(engine.calculate(rich).total - lifestyle) < 1e-9,
+       lifestyle.toFixed(9) + " → " + engine.calculate(rich).total.toFixed(9));
+    const fin = engine.financed(rich);
+    ok("and they are reported as a range, never a single number", fin && fin.high > fin.low);
+    ok("the range scales with the amount", fin.high > engine.financed(
+       Object.assign(clone(p), { money: { bankType: "conventional", savings: "conventional", amount: 10000 } })).high);
+  });
 report("rebound is stated, never subtracted");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");

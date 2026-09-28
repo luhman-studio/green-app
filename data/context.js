@@ -38,25 +38,29 @@
           year: 1977, at: "1977", track: "obstruction",
           label: "Exxon's own scientists brief management",
           detail: "Internal projections made between 1977 and 2003 put warming at 0.20 °C per decade, ±0.04. Reassessed in 2023, they scored an average of 72% against what actually happened — better than the projections James Hansen put before the US Congress in 1988.",
-          source: "Supran, Rahmstorf & Oreskes, ‘Assessing ExxonMobil’s global warming projections’, Science 379 (2023)."
+          source: "Supran, Rahmstorf & Oreskes, ‘Assessing ExxonMobil’s global warming projections’, Science 379 (2023).",
+          url: "https://www.science.org/doi/10.1126/science.abk0063"
         },
         {
           year: 1988, at: "1988", track: "landmark",
           label: "The IPCC is founded",
           detail: "The same year Hansen tells the US Senate that warming is detectable. From here on, nobody making a public argument about this can claim the science did not exist.",
-          source: "IPCC, history. Hansen testimony to the US Senate Committee on Energy and Natural Resources, 23 June 1988."
+          source: "IPCC, history. Hansen testimony to the US Senate Committee on Energy and Natural Resources, 23 June 1988.",
+          url: "https://www.ipcc.ch/about/history/"
         },
         {
           year: 1989, at: "1989", track: "obstruction",
           label: "The Global Climate Coalition",
           detail: "Exxon, Mobil, Chevron, BP, Shell and others form a body to resist limits on emissions.",
-          source: "Union of Concerned Scientists, ‘The Climate Deception Dossiers’ / deception timeline."
+          source: "Union of Concerned Scientists, ‘The Climate Deception Dossiers’ / deception timeline.",
+          url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
           year: 1991, at: "1991", track: "obstruction", delay: "denial",
           label: "“Reposition global warming as theory (not fact)”",
           detail: "The stated goal of the Information Council for the Environment, funded by the National Coal Association, the Western Fuels Association and the Edison Electric Institute. The campaign ran from February to August 1991 and collapsed when its own memos leaked.",
-          source: "Leaked ICE strategy documents, 1991; summarised by the Union of Concerned Scientists and DeSmog."
+          source: "Leaked ICE strategy documents, 1991; summarised by the Union of Concerned Scientists and DeSmog.",
+          url: "https://en.wikipedia.org/wiki/Information_Council_for_the_Environment"
         },
         {
           year: 1997, at: "1997", track: "landmark",
@@ -68,19 +72,22 @@
           year: 1998, at: "1998", track: "obstruction", delay: "denial",
           label: "“Victory will be achieved when average citizens ‘understand’ uncertainties”",
           detail: "From the American Petroleum Institute's Global Climate Science Communications plan. The target is not the science. The target is how sure you feel.",
-          source: "American Petroleum Institute, ‘Global Climate Science Communications Action Plan’, 1998; leaked and widely reproduced."
+          source: "American Petroleum Institute, ‘Global Climate Science Communications Action Plan’, 1998; leaked and widely reproduced.",
+          url: "https://www.climatefiles.com/trade-group/american-petroleum-institute/1998-global-climate-science-communications-team-action-plan/"
         },
         {
           year: 2000, at: "2000-07", track: "obstruction",
           label: "BP becomes “Beyond Petroleum”",
           detail: "A rebrand of roughly $200 million under chief executive John Browne, with the agency Ogilvy & Mather. The creative team pitches the idea of a personal carbon calculator.",
-          source: "OpenMind Magazine, ‘Are You a Climate Culprit?’, on the origin of the personal carbon footprint; BP campaign launched July 2000."
+          source: "OpenMind Magazine, ‘Are You a Climate Culprit?’, on the origin of the personal carbon footprint; BP campaign launched July 2000.",
+          url: "https://www.openmindmag.org/articles/deconstructing-the-carbon-footprint"
         },
         {
           year: 2004, at: "2004", track: "obstruction", delay: "individualism",
           label: "BP puts a personal carbon footprint calculator at the centre of its advertising",
           detail: "BP did not invent the phrase. It descends from the ecological footprint of William Rees and Mathis Wackernagel in the early 1990s, and Wackernagel has said he was “shocked about how they (craftily) slightly twisted our work”. What the money bought was not the word. It was the idea that the unit of the problem is one person.",
-          source: "OpenMind Magazine, ‘Are You a Climate Culprit?’; Conservation Law Foundation, ‘The Truth About Carbon Footprints’. Ecological footprint: Rees & Wackernagel, early 1990s."
+          source: "OpenMind Magazine, ‘Are You a Climate Culprit?’; Conservation Law Foundation, ‘The Truth About Carbon Footprints’. Ecological footprint: Rees & Wackernagel, early 1990s.",
+          url: "https://www.openmindmag.org/articles/deconstructing-the-carbon-footprint"
         },
         {
           year: 2006, at: "2006", track: "movement",
@@ -92,13 +99,15 @@
           year: 2007, at: "2007-a", track: "movement",
           label: "The Nobel Peace Prize goes to the IPCC and Al Gore",
           detail: "In the same year as the IPCC's Fourth Assessment Report. This is the high-water mark of the argument being settled in public by evidence.",
-          source: "Norwegian Nobel Committee, Peace Prize 2007; IPCC Fourth Assessment Report, 2007."
+          source: "Norwegian Nobel Committee, Peace Prize 2007; IPCC Fourth Assessment Report, 2007.",
+          url: "https://www.nobelprize.org/prizes/peace/2007/press-release/"
         },
         {
           year: 2007, at: "2007-b", track: "obstruction", delay: "denial",
           label: "Nearly $16 million to 43 groups",
           detail: "ExxonMobil's funding of organisations producing public confusion about the science, documented while the prize was being awarded.",
-          source: "Union of Concerned Scientists, ‘Smoke, Mirrors & Hot Air’ (2007)."
+          source: "Union of Concerned Scientists, ‘Smoke, Mirrors & Hot Air’ (2007).",
+          url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
           year: 2008, at: "2008", track: "movement",
@@ -109,7 +118,7 @@
         {
           year: 2009, at: "2009", track: "movement",
           label: "Copenhagen ends without a binding agreement",
-          detail: "Three weeks before it opens, stolen emails from the University of East Anglia are published as “Climategate”. Eight subsequent inquiries find no scientific misconduct. The story dominates the summit anyway.",
+          detail: "Three weeks before it opens, stolen emails from the University of East Anglia are published as “Climategate”. Multiple independent inquiries afterwards find no evidence of scientific misconduct. The story dominates the summit anyway.",
           source: "COP15, December 2009. Independent reviews 2010, including the Muir Russell and Oxburgh inquiries, found no evidence of scientific misconduct."
         },
         {
@@ -122,97 +131,113 @@
           year: 2015, at: "2015-b", track: "obstruction", delay: "denial",
           label: "“The models simply are not that good”",
           detail: "ExxonMobil's chief executive, on the predictive reliability of climate models, thirty-eight years after his own company's scientists produced projections that would later score 72%.",
-          source: "Rex Tillerson, ExxonMobil annual meeting, 2015; cited in the Union of Concerned Scientists deception timeline."
+          source: "Rex Tillerson, ExxonMobil annual meeting, 2015; cited in the Union of Concerned Scientists deception timeline.",
+          url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
           year: 2018, at: "2018-08", track: "movement",
           label: "One schoolgirl, one sign, outside a parliament",
           detail: "Greta Thunberg begins striking outside the Swedish parliament on 20 August 2018, and keeps going on Fridays.",
-          source: "Fridays for Future; first strike 20 August 2018."
+          source: "Fridays for Future; first strike 20 August 2018.",
+          url: "https://en.wikipedia.org/wiki/Fridays_for_Future"
         },
         {
           year: 2018, at: "2018-10a", track: "landmark",
           label: "The IPCC's 1.5 °C report",
           detail: "Published 8 October 2018. It is the document that turns a distant target into a deadline, and it is what most of what follows is arguing about.",
-          source: "IPCC, Special Report on Global Warming of 1.5 °C, 8 October 2018."
+          source: "IPCC, Special Report on Global Warming of 1.5 °C, 8 October 2018.",
+          url: "https://www.ipcc.ch/sr15/"
         },
         {
           year: 2018, at: "2018-10b", track: "movement",
           label: "Extinction Rebellion declares",
           detail: "Founded in May 2018, XR reads its Declaration of Rebellion outside the UK parliament on 31 October. Its first demand is not a policy. It is “tell the truth”.",
-          source: "Extinction Rebellion, Declaration of Rebellion, 31 October 2018."
+          source: "Extinction Rebellion, Declaration of Rebellion, 31 October 2018.",
+          url: "https://en.wikipedia.org/wiki/Extinction_Rebellion"
         },
         {
           year: 2019, at: "2019-03", track: "movement",
           label: "1.4 million people, 125 countries",
           detail: "The first global school strike, 15 March 2019: about 2,200 events. By 20 September the figure is over four million people in 4,500 places across 150 countries.",
-          source: "Fridays for Future participation figures, 15 March and 20 September 2019."
+          source: "Fridays for Future participation figures, 15 March and 20 September 2019.",
+          url: "https://en.wikipedia.org/wiki/Fridays_for_Future"
         },
         {
           year: 2019, at: "2019-04", track: "movement",
           label: "1,130 arrests in central London",
           detail: "XR occupies Piccadilly Circus, Oxford Circus, Marble Arch, Waterloo Bridge and Parliament Square for eleven days in April 2019.",
-          source: "Extinction Rebellion April 2019 protests; Metropolitan Police arrest figures."
+          source: "Extinction Rebellion April 2019 protests; Metropolitan Police arrest figures.",
+          url: "https://en.wikipedia.org/wiki/Extinction_Rebellion"
         },
         {
           year: 2019, at: "2019-12", track: "movement",
           label: "A supreme court orders a government to cut emissions",
           detail: "The Dutch Supreme Court upholds the Urgenda ruling on 20 December 2019 — the first time a court anywhere ordered a state to reduce emissions faster on human-rights grounds.",
-          source: "State of the Netherlands v Stichting Urgenda, Supreme Court of the Netherlands, 20 December 2019 (19/00135)."
+          source: "State of the Netherlands v Stichting Urgenda, Supreme Court of the Netherlands, 20 December 2019 (19/00135).",
+          url: "https://en.wikipedia.org/wiki/Urgenda_Foundation_v_State_of_the_Netherlands"
         },
         {
           year: 2020, at: "2020-06", track: "movement",
           label: "Austria: 380,590 signatures",
           detail: "The Klimavolksbegehren, 22–29 June 2020: 5.96% of the electorate, the 21st-largest of all Austrian Volksbegehren. Parliament responds in March 2021 by setting up a citizens' climate council.",
-          source: "Klimavolksbegehren, Eintragungswoche 22–29 June 2020: 380,590 signatures, 5.96% of eligible voters; Nationalrat resolution, March 2021."
+          source: "Klimavolksbegehren, Eintragungswoche 22–29 June 2020: 380,590 signatures, 5.96% of eligible voters; Nationalrat resolution, March 2021.",
+          url: "https://de.wikipedia.org/wiki/Klimavolksbegehren"
         },
         {
           year: 2021, at: "2021-08", track: "movement",
           label: "Austria: Lobau bleibt",
           detail: "Occupations of motorway construction sites in Vienna from 27 August 2021. On 1 December the transport minister cancels the S1 Lobau motorway. The camps are cleared on 1 February and 5 April 2022; the approval and expropriation proceedings continue.",
-          source: "partizipation.at case study, ‘Lobau bleibt!’; ministerial decision on the S1 Lobau-Autobahn, 1 December 2021."
+          source: "partizipation.at case study, ‘Lobau bleibt!’; ministerial decision on the S1 Lobau-Autobahn, 1 December 2021.",
+          url: "https://partizipation.at/praxisbeispiele/lobau-bleibt/"
         },
         {
           year: 2021, at: "2021-b", track: "obstruction", delay: "individualism",
           label: "Denial becomes deflection, measured",
           detail: "A computational analysis of 180 ExxonMobil documents across fifty years finds the company using “fossil fuel” internally and “consumers”, “demand” and “energy efficiency” publicly — an individualised framing of both who caused this and who has to fix it.",
-          source: "Supran & Oreskes, ‘Rhetoric and frame analysis of ExxonMobil’s climate change communications’, One Earth 4 (2021)."
+          source: "Supran & Oreskes, ‘Rhetoric and frame analysis of ExxonMobil’s climate change communications’, One Earth 4 (2021).",
+          url: "https://www.cell.com/one-earth/fulltext/S2590-3322(21)00233-5"
         },
         {
           year: 2023, at: "2023-12", track: "obstruction", delay: "fossilSolutionism",
           label: "COP28 is chaired by an oil chief executive",
           detail: "The summit is presided over by the head of the United Arab Emirates' state oil company. Analyses of industry and OPEC messaging around it describe an argument that has moved off the science entirely and onto pace, cost and who else should go first.",
-          source: "COP28, Dubai, 30 November – 13 December 2023. Climate Action Against Disinformation, analysis of fossil fuel industry and OPEC messaging at COP28."
+          source: "COP28, Dubai, 30 November – 13 December 2023. Climate Action Against Disinformation, analysis of fossil fuel industry and OPEC messaging at COP28.",
+          url: "https://caad.info/analysis/briefings/analysis-of-fossil-fuel-industry-opec-disinformation-strategy-at-cop28/"
         },
         {
           year: 2024, at: "2024-04", track: "movement",
           label: "A human-rights court rules on climate",
           detail: "In KlimaSeniorinnen v Switzerland, 9 April 2024, the European Court of Human Rights finds that inadequate climate policy can breach the Convention. Brought by a group of older Swiss women.",
-          source: "Verein KlimaSeniorinnen Schweiz and Others v Switzerland, ECtHR Grand Chamber, 9 April 2024."
+          source: "Verein KlimaSeniorinnen Schweiz and Others v Switzerland, ECtHR Grand Chamber, 9 April 2024.",
+          url: "https://en.wikipedia.org/wiki/Verein_KlimaSeniorinnen_Schweiz_v._Switzerland"
         },
         {
           year: 2024, at: "2024-05", track: "movement",
           label: "Austria: a complaint against OMV",
           detail: "Greenpeace in Central and Eastern Europe and Fridays for Future Österreich file an OECD Guidelines complaint against OMV on 21 May 2024 over gas expansion and environmental due diligence. OMV's lobbying is separately tracked on InfluenceMap's LobbyMap.",
-          source: "OECD Watch: Greenpeace CEE and Fridays for Future Austria vs OMV Aktiengesellschaft, filed 21 May 2024; InfluenceMap LobbyMap entry for OMV."
+          source: "OECD Watch: Greenpeace CEE and Fridays for Future Austria vs OMV Aktiengesellschaft, filed 21 May 2024; InfluenceMap LobbyMap entry for OMV.",
+          url: "https://www.oecdwatch.org/complaint/greenpeace-in-zentral-und-osteuropa-and-fridays-for-future-austria-vs-omv-aktiengesellschaft/"
         },
         {
           year: 2024, at: "2024-08", track: "movement",
           label: "Austria: Letzte Generation stops",
           detail: "After road blockades from 2022, the Austrian group ends its protests on 6 August 2024, saying it sees “keine Perspektive für Erfolg” — no prospect of success. Movements are not a ratchet. They can also stop.",
-          source: "ORF, 6 August 2024: Letzte Generation Österreich beendet Klimaproteste."
+          source: "ORF, 6 August 2024: Letzte Generation Österreich beendet Klimaproteste.",
+          url: "https://orf.at/stories/3365771/"
         },
         {
           year: 2024, at: "2024-04b", track: "obstruction",
           label: "Two newspapers withdraw sponsored oil content",
           detail: "The Financial Times and Reuters pull Saudi Aramco-sponsored climate material. The argument has moved into the space where journalism is paid for.",
-          source: "DeSmog, 23 April 2024: ‘Financial Times, Reuters Pull Saudi Aramco-sponsored Climate Content’."
+          source: "DeSmog, 23 April 2024: ‘Financial Times, Reuters Pull Saudi Aramco-sponsored Climate Content’.",
+          url: "https://www.desmog.com/2024/04/23/financial-times-reuters-pull-saudi-aramco-sponsored-climate-content/"
         },
         {
           year: 2025, at: "2025-07", track: "landmark",
           label: "The World Court answers",
           detail: "On 23 July 2025 the International Court of Justice issues a unanimous advisory opinion — the fifth unanimous opinion in its 88-year history — finding that states have binding obligations to limit warming to 1.5 °C and can be liable for climate harm. It began as a campaign by Pacific Island students, taken up by Vanuatu.",
-          source: "ICJ, Obligations of States in respect of Climate Change, advisory opinion, 23 July 2025; requested by UN General Assembly resolution of 29 March 2023 with 105 co-sponsors."
+          source: "ICJ, Obligations of States in respect of Climate Change, advisory opinion, 23 July 2025; requested by UN General Assembly resolution of 29 March 2023 with 105 co-sponsors.",
+          url: "https://www.carbonbrief.org/icj-what-the-world-courts-landmark-opinion-means-for-climate-change"
         }
       ],
 
@@ -223,6 +248,10 @@
        */
       delay: {
         source: "Lamb, W.F., Mattioli, G., Levi, S., Roberts, J.T., Capstick, S., Creutzig, F., Minx, J.C., Müller-Hansen, F., Culhane, T. & Steinberger, J.K. (2020). ‘Discourses of climate delay’. Global Sustainability 3, e17.",
+        url: "https://www.cambridge.org/core/journals/global-sustainability/article/discourses-of-climate-delay/7B11B722E3E3454BB6212378E32985A7",
+        why: "Why a taxonomy and not a chronology: technique-based inoculation generalises to claims a reader has never seen, and fact-by-fact debunking does not.",
+        whySource: "Roozenbeek, van der Linden et al., ‘Psychological inoculation improves resilience against misinformation on social media’, Science Advances 8 (2022).",
+        whyUrl: "https://www.science.org/doi/10.1126/sciadv.abo6254",
         note: "Every one of these can be said in good faith, and often is. The taxonomy is not a way of deciding who is lying. It is a way of noticing what a sentence is doing.",
         groups: [
           {
@@ -311,17 +340,33 @@
           rest: "That is paid back after roughly 17,000 km — one to two years of normal driving. Over the whole life of a car registered in the EU in 2025, battery electric comes out 73% lower than petrol: 63 against 235 g CO₂e per km, or 78% lower on renewable electricity. Hybrids manage 20% and plug-in hybrids 30%.",
           move: "techOptimism",
           moveNote: "It is not a lie, which is what makes it effective. It is a true fact about manufacturing, delivered as though it were the conclusion.",
-          source: "International Council on Clean Transportation, ‘Life-cycle greenhouse gas emissions from passenger cars in the European Union: a 2025 update’, July 2025."
+          sources: [
+            { text: "International Council on Clean Transportation, ‘Life-cycle greenhouse gas emissions from passenger cars in the European Union: a 2025 update’, July 2025 — the source of every figure in the paragraph above.",
+              url: "https://theicct.org/publication/electric-cars-life-cycle-analysis-emissions-europe-jul25/" },
+            { text: "The same report as published, if you want the method rather than the summary (PDF).",
+              url: "https://theicct.org/wp-content/uploads/2025/07/ID-392-%E2%80%93-Life-cycle-GHG_report_final.pdf" },
+            { text: "Carbon Brief, ‘Factcheck: 21 misleading myths about electric vehicles’ — for the claim that this is a recurring argument rather than a one-off.",
+              url: "https://www.carbonbrief.org/factcheck-21-misleading-myths-about-electric-vehicles" }
+          ]
         },
         {
           id: "hundred",
           claim: "“100 companies are responsible for 71% of emissions.”",
           status: "half", statusLabel: "true as published, usually read wrong",
           truth: "The Carbon Majors work is real: 100 fossil fuel producers are linked to 71% of global industrial greenhouse gas emissions since 1988.",
-          rest: "Those are overwhelmingly the emissions from burning the products those companies sold — the petrol in your car, the gas in your boiler. They are the same molecules this app counts in your 9.9 t. Read as “so it is not us”, the number quietly double-counts, which is exactly why this app refuses to add the emissions your money finances to your footprint. What the figure does establish is concentration: a hundred decision-makers, not eight billion.",
+          rest: "Those are overwhelmingly the emissions from burning the products those companies sold — the petrol in your car, the gas in your boiler. They are the same molecules this app counts in your footprint. Read as “so it is not us”, the number quietly double-counts, which is exactly why this app refuses to add the emissions your money finances to your footprint. What the figure does establish is concentration: a hundred decision-makers, not eight billion.",
           move: "whataboutism",
           moveNote: "This one comes from the climate side, and it is on this page for that reason. The test of a taxonomy is whether you are willing to apply it to your own arguments.",
-          source: "CDP / Climate Accountability Institute, Carbon Majors Report, July 2017: 100 producers linked to 71% of global industrial GHG emissions, 1988–2015."
+          sources: [
+            { text: "CDP and the Climate Accountability Institute, Carbon Majors Report, 10 July 2017 — the original, which says “linked to”, counts 1988–2015, and is about industrial emissions, not all emissions.",
+              url: "https://climateaccountability.org/pdf/CarbonMajorsUpdate%20CAI%20PR%2010Jul17.pdf" },
+            { text: "CDP's own press release, which is where the headline version of the number comes from.",
+              url: "https://www.cdp.net/en/press-releases/new-report-shows-just-100-companies-are-source-of-over-70-of-emissions" },
+            { text: "PolitiFact, ‘No, 100 corporations do not produce 70% of total greenhouse gases’, 22 July 2022 — the source for the second half of what is written above, not just the first.",
+              url: "https://www.politifact.com/factchecks/2022/jul/22/instagram-posts/no-100-corporations-do-not-produce-70-total-greenh/" },
+            { text: "Bon Pote, ‘Are 100 companies responsible for 71% of global emissions?’ — a longer walk through the scope-1/scope-3 arithmetic.",
+              url: "https://bonpote.com/en/are-100-companies-responsible-for-71-of-global-emissions/" }
+          ]
         },
         {
           id: "toolate",
@@ -331,7 +376,14 @@
           rest: "The remaining budget for 1.5 °C being nearly spent is an argument for speed, not for stopping. Doomism is the one discourse on this page with no funder behind it: it spreads among people who accept the science completely, and it produces the same result as denial did.",
           move: "doomism",
           moveNote: "Worth knowing that this is a category in the peer-reviewed taxonomy, sitting in the same box as “change is impossible”.",
-          source: "Lamb et al. (2020), ‘Discourses of climate delay’, category 4: Surrender. Cumulative-budget physics: see the trajectory card on the Details tab."
+          sources: [
+            { text: "Lamb et al. (2020), ‘Discourses of climate delay’ — doomism is category 4, Surrender, alongside ‘change is impossible’.",
+              url: "https://www.cambridge.org/core/journals/global-sustainability/article/discourses-of-climate-delay/7B11B722E3E3454BB6212378E32985A7" },
+            { text: "Indicators of Global Climate Change — the annual update behind the 130 Gt remaining-budget figure this app uses, and the source for ‘nearly spent’ rather than ‘spent’.",
+              url: "https://indicators.climate.copernicus.eu/" },
+            { text: "IPCC, Special Report on Global Warming of 1.5 °C (2018) — for the cumulative-budget framing: warming is proportional to total CO₂ emitted, with no step change at any particular level.",
+              url: "https://www.ipcc.ch/sr15/" }
+          ]
         }
       ],
 
@@ -350,7 +402,8 @@
             source: "Marshall (2014), chapter 17." },
           { label: "The silence is organised, not accidental",
             text: "Kari Norgaard spent a year in a Norwegian town where the winter had visibly changed, where people knew the science and where nobody talked about it. She called it socially organised denial: not ignorance, but a shared set of habits for keeping something known out of conversation.",
-            source: "Kari Marie Norgaard, Living in Denial: Climate Change, Emotions, and Everyday Life (MIT Press, 2011)." },
+            source: "Kari Marie Norgaard, Living in Denial: Climate Change, Emotions, and Everyday Life (MIT Press, 2011).",
+            url: "https://mitpress.mit.edu/9780262515856/living-in-denial/" },
           { label: "There is a name for the thing itself",
             text: "The sociologist Eviatar Zerubavel calls it socially constructed silence — where you would expect a conversation, there is instead an agreement not to have one.",
             source: "Eviatar Zerubavel, The Elephant in the Room: Silence and Denial in Everyday Life (2006)." },

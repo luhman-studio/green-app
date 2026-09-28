@@ -38,9 +38,16 @@ h1 { margin: 2px 0 0; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; lette
 .page { max-width: 1180px; margin: 0 auto; padding: 48px 16px 48px; }
 .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .results-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; margin: 20px 0; }
+/* Gaps between top-level cards are listed per panel, not written once as
+   `.card + .card`, because a card inside `.notes` or `.results-grid` gets its gap from
+   the grid and would be pushed down twice. The cost of that is this list: a new panel
+   has no spacing at all until it is added here, which is exactly what happened to
+   #panelContext — every card on it sat flush against the next one. If a sixth panel
+   ever appears, this is the line it has to join. */
 #panelResults > .card + .card,
 #panelPotential > .card + .card,
 #panelDetails > .card + .card,
+#panelContext > .card + .card,
 #panelDetails > .pot-split + .card,
 /* the cards that follow the sticky bar's spacer, and the diagram that follows them */
 #panelDetails > #detBarSpacer + .card,
@@ -772,3 +779,16 @@ select.period { border: 2.5px solid var(--ink); border-radius: 999px; padding: 8
   .tl-yearmark { text-align: left; margin: 16px 0 5px; }
   .tab-aside { margin-left: 0; }
 }
+
+/* A citation you can click. Underlined rather than coloured, because the page is already
+   using colour to mean "which track is this" and a second meaning would collide. */
+.src-link { color: inherit; text-decoration: underline; text-underline-offset: 2px;
+  text-decoration-color: #b9ae92; text-decoration-thickness: 1px; }
+.src-link:hover, .src-link:focus-visible { text-decoration-color: var(--ink); background: #fdf3d8; }
+.src-ext { font-size: .85em; margin-left: 3px; opacity: .6; }
+.ctx-move-note { margin: 9px 0 0; font-size: 13.5px; color: var(--muted); max-width: 72ch; }
+.ctx-sources { list-style: none; margin: 8px 0 2px; padding: 9px 12px; background: var(--cream);
+  border-radius: 12px; max-width: 78ch; }
+.ctx-sources li { font-size: 12.5px; color: var(--muted); padding: 3px 0 3px 14px; text-indent: -14px; }
+.ctx-sources-h { font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  font-size: 11px; color: #3b3320; padding-left: 0 !important; text-indent: 0 !important; }

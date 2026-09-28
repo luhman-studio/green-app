@@ -794,13 +794,39 @@ report("rebound is stated, never subtracted");
   // The worked examples, including the one aimed at this app's own side.
   ok("there are at least three claims", C.claims.length >= 3);
   C.claims.forEach((c) => {
-    ok("claim cites a source · " + c.id, typeof c.source === "string" && c.source.length > 20);
+    // A claim on a page about checking claims has to be checkable, so here the citation
+    // is not enough on its own: each one needs somewhere to click. (This check fired the
+    // moment `source` became `sources` — which is the only reason the change was noticed.)
+    ok("claim cites sources · " + c.id, Array.isArray(c.sources) && c.sources.length >= 2);
+    c.sources.forEach((x, i) => {
+      ok("claim source " + i + " has text · " + c.id, typeof x.text === "string" && x.text.length > 20);
+      ok("claim source " + i + " is clickable · " + c.id, typeof x.url === "string" && /^https:\/\/[^\s"]+\.[^\s"]+/.test(x.url));
+    });
+    // Both halves of a half-true claim need support, not just the half that is true.
+    ok("the correction half is sourced too · " + c.id, c.sources.length >= 3 || c.status === "false");
     ok("claim names the move it is · " + c.id,
        C.delay.groups.some((g) => g.moves.some((m) => m.id === c.move)));
     ok("claim states what is true in it · " + c.id, typeof c.truth === "string" && c.truth.length > 20);
   });
   ok("at least one worked example is a claim from the climate side",
      C.claims.some((c) => /climate side|our own arguments|own side/.test(c.moveNote || "")));
+
+  // Every URL anywhere in the file is https and looks like a URL. A page whose argument is
+  // "you can check this" cannot afford a dead or malformed link.
+  const urls = [];
+  C.timeline.forEach((e) => { if (e.url) urls.push(["timeline " + e.year, e.url]); });
+  C.claims.forEach((c) => c.sources.forEach((x) => urls.push(["claim " + c.id, x.url])));
+  C.silence.points.forEach((p) => { if (p.url) urls.push(["silence", p.url]); });
+  if (C.delay.url) urls.push(["taxonomy", C.delay.url]);
+  if (C.delay.whyUrl) urls.push(["inoculation", C.delay.whyUrl]);
+  urls.forEach(([where, u]) => {
+    ok("https and well formed · " + where, /^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\//i.test(u), u);
+    ok("not a bare homepage standing in for a citation · " + where,
+       u.replace(/^https:\/\/[^/]+\//, "").length > 0 || /indicators\.climate/.test(u), u);
+  });
+  ok("most of the timeline is clickable", C.timeline.filter((e) => e.url).length >= C.timeline.length * 0.7,
+     C.timeline.filter((e) => e.url).length + " of " + C.timeline.length);
+  ok("the taxonomy links the paper it is taken from", /cambridge\.org|doi/.test(C.delay.url || ""));
 
   // The silence section, and the app's own admission.
   ok("the silence section quotes its source", C.silence.attribution.indexOf("Marshall") >= 0);

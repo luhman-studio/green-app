@@ -73,6 +73,14 @@
     function fold(question, html) {
       return '<details class="fold"><summary>' + esc(question) + "</summary>" + html + "</details>";
     }
+    /* A citation, linked when there is a link and plain when there is not — a book has no
+     * URL and pretending otherwise would be worse than the gap. rel="noreferrer" because
+     * this page is served from a static host and has no business leaking referrers. */
+    function cite(text, url) {
+      var t = esc(text);
+      return url ? '<a class="src-link" href="' + esc(url) + '" target="_blank" rel="noreferrer noopener">' + t +
+        '<span class="src-ext" aria-hidden="true">↗</span></a>' : t;
+    }
     function val(x) { return typeof x === "function" ? x(state.profile) : x; }
     function button(label, cls, onclick, aria) {
       var b = el("button", cls || "chip", esc(label));
@@ -1610,9 +1618,14 @@
         "between the first two rows and then crush 2018 and 2019 into a smear, which would cost the dense part its legibility " +
         "to buy an accuracy nobody reads off a picture.";
 
-      $("ctxSources").innerHTML = "<ul class=\"ctx-srclist\">" + C.timeline.map(function (e) {
-        return "<li><b>" + e.year + "</b> · " + esc(e.label) + "<br><span class=\"muted\">" + esc(e.source) + "</span></li>";
-      }).join("") + "</ul>";
+      var linked = C.timeline.filter(function (e) { return e.url; }).length;
+      $("ctxSources").innerHTML =
+        '<p class="muted small">Every entry is cited. <strong>' + linked + " of " + C.timeline.length +
+        "</strong> of those citations have somewhere to click; the rest are treaties, books and films, " +
+        "where the citation is the whole reference.</p>" +
+        '<ul class="ctx-srclist">' + C.timeline.map(function (e) {
+          return "<li><b>" + e.year + "</b> · " + esc(e.label) + '<br><span class="muted">' + cite(e.source, e.url) + "</span></li>";
+        }).join("") + "</ul>";
 
       // --- the taxonomy. The four questions are the thing worth remembering, so they are
       // the only part that is always on screen; the twelve moves are one tap under each.
@@ -1630,17 +1643,27 @@
               '<p class="ctx-does">' + esc(m.does) + "</p></div>";
           }).join("") + "</details></div>";
       }).join("");
-      $("ctxDelayNote").innerHTML = esc(C.delay.note) + " <span class=\"muted\">" + esc(C.delay.source) + "</span>";
+      $("ctxDelayNote").innerHTML = esc(C.delay.note) +
+        ' <span class="muted">' + cite(C.delay.source, C.delay.url) + "</span>" +
+        '<br><span class="muted">' + esc(C.delay.why) + " " + cite(C.delay.whySource, C.delay.whyUrl) + "</span>";
 
       // --- the three claims
+      function moveLabel(id) {
+        var found = "";
+        C.delay.groups.forEach(function (g) {
+          g.moves.forEach(function (m) { if (m.id === id) found = m.label + " (" + g.label.toLowerCase() + ")"; });
+        });
+        return found || id;
+      }
       $("ctxClaims").innerHTML = C.claims.map(function (c) {
         return '<div class="ctx-claim">' +
           '<div class="ctx-claim-head">' + esc(c.claim) +
           '<span class="flag ' + (c.status === "false" ? "flag-warn" : "flag-derived") + '">' + esc(c.statusLabel) + "</span></div>" +
           '<p class="ctx-true"><b>True:</b> ' + esc(c.truth) + "</p>" +
           '<p class="ctx-rest"><b>' + (c.status === "false" ? "And:" : "And then the sentence stops:") + "</b> " + esc(c.rest) + "</p>" +
-          fold("Which move this is, and where the figures come from",
-            "<p>" + esc(c.moveNote) + "</p><p class=\"muted\">" + esc(c.source) + "</p>") +
+          '<p class="ctx-move-note"><b>The move:</b> ' + esc(moveLabel(c.move)) + " — " + esc(c.moveNote) + "</p>" +
+          '<ul class="ctx-sources"><li class="ctx-sources-h">Check it:</li>' +
+          c.sources.map(function (x) { return "<li>" + cite(x.text, x.url) + "</li>"; }).join("") + "</ul>" +
           "</div>";
       }).join("");
 
@@ -1650,7 +1673,7 @@
       $("ctxSilenceQuote").innerHTML = "“" + esc(S.quote) + "”<cite>" + esc(S.attribution) + "</cite>";
       $("ctxSilence").innerHTML = S.points.map(function (p) {
         return '<div class="ctx-point"><div class="ctx-point-n">' + esc(p.label) + "</div>" +
-          "<p>" + esc(p.text) + '</p><p class="muted small ctx-src">' + esc(p.source) + "</p></div>";
+          "<p>" + esc(p.text) + '</p><p class="muted small ctx-src">' + cite(p.source, p.url) + "</p></div>";
       }).join("") + '<p class="ctx-caveat">' + esc(S.caveat) + "</p>";
 
       // --- and the part about this app

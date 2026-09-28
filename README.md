@@ -9,11 +9,12 @@ Double-click `index.html`. That's it: no install, no server, no internet needed.
 | `data/factors.js` | Every emission factor, with its uncertainty and source. **Update these numbers yearly.** |
 | `data/benchmarks.js` | Austria / world averages, Austria's final-demand split and the excluded share, the 1.5 °C target, domain colours |
 | `data/docs.js` | The method in prose, with every source. Shown in the app and used to generate `METHOD.md` |
+| `data/context.js` | The Context tab's evidence base: the two-track timeline, the delay taxonomy, the worked claims, the silence material. **Every entry carries a `source`, and the audit refuses to pass without one** |
 | `js/engine.js` | The maths: central result, Monte Carlo uncertainty range, biggest-uncertainty finder |
 | `js/questions.js` | The guided chat script (questions → profile) |
 | `js/chart.js` | Four pictures, all plain SVG or CSS: the comparison chart, the what's-left bar (Potential), the excluded-share bar and the compensation ladder (Details) |
 | `js/sankey.js` | The four-column Sankey, drawn on both the Details and Potential tabs (plain SVG) |
-| `js/app.js` | UI only: chat, answer list, the four tabs, the analysis panel, save/load and the code viewer |
+| `js/app.js` | UI only: chat, answer list, the five tabs, the analysis panel, save/load and the code viewer |
 | `tests/engine.test.js` | Hand-calculated test cases (59) |
 | `tests/audit.js` | Independent audit: 3,000 random profiles, ~186,000 property checks in 11 sections |
 | `tools/make-method.js` | Regenerates `METHOD.md` from `data/docs.js` |
@@ -57,11 +58,14 @@ a recalculation from scratch, that ticking changes in a different order gives th
 that the uncertainty range brackets the central value, and that a shared factor keeps one value
 within a simulation sample. It found four real bugs — see “What the audit found”.
 
-## The four tabs
+## The five tabs
 1. **Measure** — the guided chat plus your answer list (newest on top, tap to change, ← to go back).
 2. **Results** — your footprint, the comparison chart with its uncertainty bracket, and the table by area.
 3. **Details** — the Sankey of where your emissions come from, with an analysis panel: click any band to hold it open and see where it physically happens, what is inside it, how it compares with the Austrian average, and which changes would shrink it. Each of those lists ends with a button that opens the Potential tab already narrowed to the same selection. Also on this tab: compensation drawn as the Oxford ladder, what your money finances, and what the bars leave out.
 4. **Potential** — tick the changes you could make. A bar whose full width is your footprint today shows what is left and what you removed; the Sankey redraws; savings overlap, so ticking several is recalculated together, never added up.
+5. **Context** — the argument about all of this, and how it was shaped. A two-track timeline (obstruction on one side, movements on the other, and the things that happened to everybody on the rail between); the four discourses of climate delay from Lamb et al. (2020); three claims taken apart, one of them from the climate side; George Marshall's meta-silence and what the movements actually broke; and what this app is, given that it is built on the personal-footprint frame BP paid to popularise. **The only tab that never locks** — it does not need a finished measurement, and someone who will not answer 37 questions can still read it.
+
+Three rules govern that tab, all three enforced by audit §14: every entry cites a source; nothing is attributed to a company the source does not name; and **doomism is never pinned on an organisation**, because no source supports that and the page's own argument is that it spreads without a funder.
 
 ## Method in short
 - **Flights are counted one-way.** Each leg is asked separately, so a trip out by plane and back by train counts as one flight. The "skip a trip" lever removes 2 legs.

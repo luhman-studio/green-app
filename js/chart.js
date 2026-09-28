@@ -307,7 +307,61 @@
       return out.join("");
     }
 
-    return { render: render, horizontal: horizontal, flow: flow, ladder: ladder, legend: legend };
+    /* ---------- The two-track timeline ----------
+     * Obstruction on one side, movements on the other, and the things that happened to
+     * everybody on the rail between them.
+     *
+     * Deliberately NOT to scale. Real calendar spacing would put eleven empty years between
+     * 1977 and 1988 and then pile six entries into 2018–2019, which makes the dense part
+     * unreadable to buy an accuracy nobody is reading off the picture. One row per entry,
+     * grouped under the year it happened, and the caption says so — a timeline that quietly
+     * implies even spacing is the sort of thing this app exists to not do.
+     *
+     * Each row is a <details>: year and headline visible, the substance one tap away. Thirty
+     * entries with their detail open is a wall nobody reads to the end of; thirty headlines
+     * is a shape you can take in, which is the only thing a chronology is better at than the
+     * taxonomy underneath it.
+     */
+    function timeline(opts) {
+      var rows = opts.events.slice(), years = [], byYear = {};
+      rows.forEach(function (e) {
+        if (!byYear[e.year]) { byYear[e.year] = []; years.push(e.year); }
+        byYear[e.year].push(e);
+      });
+      years.sort(function (a, b) { return a - b; });
+      var TRACK = {
+        obstruction: ["tl-ob", "obstruction"],
+        movement: ["tl-mv", "movement"],
+        landmark: ["tl-lm", "everyone"]
+      };
+      /* One <li> per YEAR, with its entries in a nested grid.
+       * The first version put the year pills and the entries in one flat grid and let
+       * auto-placement sort it out. It does not: an item with an explicit column lands in
+       * the next row where that column is free, so every pill drifted away from the rows
+       * it labelled and 1988 ended up beside the 1977 entry. Nesting removes the question.
+       */
+      var out = [];
+      years.forEach(function (y) {
+        var list = byYear[y].slice().sort(function (a, b) {
+          return String(a.at || "").localeCompare(String(b.at || ""));
+        });
+        out.push('<li class="tl-year"><div class="tl-yearmark"><span>' + y + "</span></div>" +
+          '<div class="tl-group">' + list.map(function (e) {
+            var t = TRACK[e.track] || TRACK.landmark;
+            return '<div class="tl-row ' + t[0] + '" data-track="' + esc(e.track) + '" data-year="' + y + '">' +
+              '<details class="tl-item">' +
+              '<summary><span class="tl-side">' + esc(t[1]) + "</span>" +
+              '<span class="tl-label">' + esc(e.label) + "</span></summary>" +
+              '<p class="tl-detail">' + esc(e.detail) + "</p>" +
+              "</details></div>";
+          }).join("") + "</div></li>");
+      });
+      return '<div class="tl">' +
+        '<ol class="tl-list" aria-label="' + esc(opts.ariaLabel || "timeline") + '">' + out.join("") + "</ol></div>";
+    }
+
+    return { render: render, horizontal: horizontal, flow: flow, ladder: ladder,
+             timeline: timeline, legend: legend };
   }
 
   var G = (root.GreenApp = root.GreenApp || { sources: {} });

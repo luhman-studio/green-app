@@ -4,7 +4,7 @@
  */
 (function (root) {
   function defineApp(G, doc) {
-    var F = G.factors, B = G.benchmarks, Q = G.questions, E = G.engine;
+    var F = G.factors, B = G.benchmarks, Q = G.questions, E = G.engine, C = G.context;
     var STORE_KEY = "greenapp.v3"; // bump when the profile structure changes
     var $ = function (id) { return doc.getElementById(id); };
 
@@ -92,7 +92,8 @@
 
     // ---------- tabs ----------
     var TABS = { measure: ["panelMeasure", "tabMeasure"], results: ["panelResults", "tabResults"],
-                 details: ["panelDetails", "tabDetails"], potential: ["panelPotential", "tabPotential"] };
+                 details: ["panelDetails", "tabDetails"], potential: ["panelPotential", "tabPotential"],
+                 context: ["panelContext", "tabContext"] };
     function showTab(name) {
       Object.keys(TABS).forEach(function (k) {
         var on = k === name;
@@ -101,6 +102,7 @@
       });
       if (name === "potential") renderPotential();
       if (name === "details") renderDetails();
+      if (name === "context") renderContext();
       root.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -1572,6 +1574,94 @@
       $("codeDialog").showModal();
     }
 
+    /* ---------- the Context tab ----------
+     * The only page here that is not about the reader's own number, and the only one that
+     * does not need a finished measurement — so it renders whether or not anything has been
+     * answered, and it is drawn once rather than on every visit.
+     *
+     * Every string comes from data/context.js, including every source line. Nothing about
+     * who did what is typed in here, for the same reason no tonne is: if it cannot be cited
+     * it should not survive a code review, and putting it in the data file is what makes
+     * that checkable. The audit reads the sources back out of this markup.
+     */
+    var contextDrawn = false;
+    function renderContext() {
+      if (contextDrawn) return;
+      contextDrawn = true;
+
+      $("ctxFlags").innerHTML = flagRow([
+        ["every entry is sourced", "flag-ok"],
+        ["a taxonomy, not a list of villains", "flag-derived"],
+        ["includes a claim from the climate side", "flag-warn"]
+      ]);
+      $("ctxLead").innerHTML = "The physics stopped being argued about in <strong>1988</strong>. Everything since has been an argument about " +
+        "whose problem it is — and the people running that argument changed tactics twice, each time because the previous tactic stopped working.";
+
+      // --- the timeline
+      $("ctxTimeline").innerHTML = G.chart.timeline({
+        events: C.timeline,
+        ariaLabel: "Fifty years of climate obstruction and climate movements, as two tracks"
+      });
+      var nOb = C.timeline.filter(function (e) { return e.track === "obstruction"; }).length,
+          nMv = C.timeline.filter(function (e) { return e.track === "movement"; }).length;
+      $("ctxTimelineNote").innerHTML = "<strong>" + nOb + "</strong> entries on the obstruction side, <strong>" + nMv +
+        "</strong> on the movement side, and the rest are things that happened to everybody. " +
+        "<strong>Not drawn to scale</strong> — one row per entry, grouped under its year. Real spacing would leave eleven blank years " +
+        "between the first two rows and then crush 2018 and 2019 into a smear, which would cost the dense part its legibility " +
+        "to buy an accuracy nobody reads off a picture.";
+
+      $("ctxSources").innerHTML = "<ul class=\"ctx-srclist\">" + C.timeline.map(function (e) {
+        return "<li><b>" + e.year + "</b> · " + esc(e.label) + "<br><span class=\"muted\">" + esc(e.source) + "</span></li>";
+      }).join("") + "</ul>";
+
+      // --- the taxonomy. The four questions are the thing worth remembering, so they are
+      // the only part that is always on screen; the twelve moves are one tap under each.
+      $("ctxDelayLead").innerHTML = "Outright denial is over, and it is over because it lost. What replaced it is better: " +
+        "four ways of answering “no” that never have to contradict a single measurement. " +
+        "The classification below is from a peer-reviewed paper, not from this app.";
+      $("ctxDelay").innerHTML = C.delay.groups.map(function (g) {
+        return '<div class="ctx-group" style="--g:' + g.color + '">' +
+          '<div class="ctx-group-head"><span class="ctx-group-n">' + esc(g.label) + "</span>" +
+          '<span class="ctx-group-q">' + esc(g.question) + "</span></div>" +
+          '<details class="fold"><summary>' + g.moves.length + " ways it is said</summary>" +
+          g.moves.map(function (m) {
+            return '<div class="ctx-move"><div class="ctx-move-n">' + esc(m.label) + "</div>" +
+              '<p class="ctx-says">“' + esc(m.says) + '”</p>' +
+              '<p class="ctx-does">' + esc(m.does) + "</p></div>";
+          }).join("") + "</details></div>";
+      }).join("");
+      $("ctxDelayNote").innerHTML = esc(C.delay.note) + " <span class=\"muted\">" + esc(C.delay.source) + "</span>";
+
+      // --- the three claims
+      $("ctxClaims").innerHTML = C.claims.map(function (c) {
+        return '<div class="ctx-claim">' +
+          '<div class="ctx-claim-head">' + esc(c.claim) +
+          '<span class="flag ' + (c.status === "false" ? "flag-warn" : "flag-derived") + '">' + esc(c.statusLabel) + "</span></div>" +
+          '<p class="ctx-true"><b>True:</b> ' + esc(c.truth) + "</p>" +
+          '<p class="ctx-rest"><b>' + (c.status === "false" ? "And:" : "And then the sentence stops:") + "</b> " + esc(c.rest) + "</p>" +
+          fold("Which move this is, and where the figures come from",
+            "<p>" + esc(c.moveNote) + "</p><p class=\"muted\">" + esc(c.source) + "</p>") +
+          "</div>";
+      }).join("");
+
+      // --- the silence
+      var S = C.silence;
+      $("ctxSilenceFlags").innerHTML = flagRow([[esc(S.term), "flag-derived"]]);
+      $("ctxSilenceQuote").innerHTML = "“" + esc(S.quote) + "”<cite>" + esc(S.attribution) + "</cite>";
+      $("ctxSilence").innerHTML = S.points.map(function (p) {
+        return '<div class="ctx-point"><div class="ctx-point-n">' + esc(p.label) + "</div>" +
+          "<p>" + esc(p.text) + '</p><p class="muted small ctx-src">' + esc(p.source) + "</p></div>";
+      }).join("") + '<p class="ctx-caveat">' + esc(S.caveat) + "</p>";
+
+      // --- and the part about this app
+      var O = C.ourselves;
+      $("ctxSelf").innerHTML =
+        '<p class="layer2"><strong>' + esc(O.admission) + "</strong></p>" +
+        "<p>" + esc(O.text) + "</p>" +
+        "<ul class=\"ctx-defences\">" + O.defences.map(function (d) { return "<li>" + esc(d) + "</li>"; }).join("") + "</ul>" +
+        '<p class="ctx-caveat">' + esc(O.unresolved) + "</p>";
+    }
+
     // ---------- start ----------
     function start() {
       $("codeBtn").onclick = openCode;
@@ -1580,6 +1670,8 @@
       $("tabResults").onclick = function () { if (state.finished) showTab("results"); };
       $("tabDetails").onclick = function () { if (state.finished) showTab("details"); };
       $("tabPotential").onclick = function () { if (state.finished) showTab("potential"); };
+      // Never gated on a finished measurement: this tab is worth reading on its own.
+      $("tabContext").onclick = function () { showTab("context"); };
       $("toPotential").onclick = function () { showTab("potential"); };
       $("selectMine").onclick = function () {
         E.levers(state.profile).forEach(function (l) { if (l.control === "yours") picked[l.id] = true; });

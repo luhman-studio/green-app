@@ -27,6 +27,9 @@
       <button class="tab" id="tabResults" role="tab" type="button" aria-selected="false" aria-controls="panelResults" disabled><span class="tab-n">2 · </span>Results</button>
       <button class="tab" id="tabDetails" role="tab" type="button" aria-selected="false" aria-controls="panelDetails" disabled><span class="tab-n">3 · </span>Details</button>
       <button class="tab" id="tabPotential" role="tab" type="button" aria-selected="false" aria-controls="panelPotential" disabled><span class="tab-n">4 · </span>Potential</button>
+      <!-- The only tab that is not about your own number, and the only one that never locks:
+           someone who does not want to answer 37 questions can still read it. -->
+      <button class="tab tab-aside" id="tabContext" role="tab" type="button" aria-selected="false" aria-controls="panelContext"><span class="tab-n">5 · </span>Context</button>
     </nav>
     <svg class="wave" viewBox="0 0 1440 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,0 L1440,0 L1440,18 C1080,44 720,6 360,26 C220,34 100,30 0,22 Z"/></svg>
   </header>
@@ -252,6 +255,52 @@
       <p class="sr-only" id="chartLive" role="status" aria-live="polite"></p>
     </section>
 
+    <!-- TAB 5: CONTEXT — the argument about all of this, and how it was shaped.
+         Nothing here is about the reader's own number. It is the one tab that would
+         still be worth reading by someone who never answers a question. -->
+    <section id="panelContext" role="tabpanel" aria-labelledby="tabContext" hidden>
+      <div class="card ctx-intro">
+        <div class="eyebrow">Context</div>
+        <h2 class="ctx-h">Why this took fifty years to become sayable</h2>
+        <p class="layer2" id="ctxLead"></p>
+        <ul class="flags" id="ctxFlags"></ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Two things happening at once</div>
+        <p class="layer2">On one side, an argument being managed. On the other, people trying to make it impossible to ignore. Tap any line.</p>
+        <div id="ctxTimeline"></div>
+        <p class="muted small" id="ctxTimelineNote"></p>
+        <details class="fold"><summary>Where every one of these comes from</summary>
+          <div id="ctxSources"></div>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Four ways to say no without saying no</div>
+        <p class="layer2" id="ctxDelayLead"></p>
+        <div class="ctx-delay" id="ctxDelay"></div>
+        <p class="muted small" id="ctxDelayNote"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Three claims, taken apart</div>
+        <div id="ctxClaims"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">The quieter half: what the movements actually broke</div>
+        <ul class="flags" id="ctxSilenceFlags"></ul>
+        <blockquote class="ctx-quote" id="ctxSilenceQuote"></blockquote>
+        <div id="ctxSilence"></div>
+      </div>
+
+      <div class="card ctx-self">
+        <div class="card-title">This page is about this app too</div>
+        <div id="ctxSelf"></div>
+      </div>
+    </section>
+
   <!-- SAVE & LOAD -->
   <dialog id="saveDialog" class="code-dialog save-dialog">
     <div class="code-head">
@@ -304,6 +353,7 @@
   <script src="data/factors.js?v=4"></script>
   <script src="data/benchmarks.js?v=4"></script>
   <script src="data/docs.js?v=4"></script>
+  <script src="data/context.js?v=4"></script>
   <script src="js/engine.js?v=4"></script>
   <script src="js/questions.js?v=4"></script>
   <script src="js/chart.js?v=4"></script>

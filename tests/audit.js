@@ -18,6 +18,8 @@
  *  11. compensation is described, never subtracted, and its ladder is the mix
  *  12. there is ONE Sankey renderer — a phone scrolls the same diagram, it does not get its own
  *  13. rebound is stated, never subtracted — the savings stay upper bounds
+ *  14. every claim on the Context tab is sourced, and nothing is attributed to a
+ *      company that the source does not attribute to that company
  */
 require("../data/factors.js");
 require("../data/benchmarks.js");
@@ -25,6 +27,7 @@ require("../js/engine.js");
 require("../js/questions.js");
 require("../js/chart.js");
 require("../js/sankey.js");
+require("../data/context.js");
 const { engine, factors: F } = globalThis.GreenApp;
 // The goal is read from the data, never repeated here — a target the audit hard-codes
 // is a target the audit stops checking the moment the app changes it.
@@ -714,6 +717,109 @@ console.log("Rebound");
        typeof esrc === "string" && esrc.indexOf("remaining") < 0 && esrc.indexOf("trajectory") < 0);
   }
 report("rebound is stated, never subtracted");
+
+/* 14. The Context tab ------------------------------------------------------------
+ * The tab makes claims about what named companies did. That is exactly the kind of
+ * content that decays into received wisdom, so it gets the same treatment as a tonne:
+ * it has to come from the data file, and the data file has to cite it.
+ *
+ * The third check is the one that matters most. The tab's own argument is that
+ * doomism has no funder — it spreads among people who accept the science. It would be
+ * very easy for a later edit to make that page tidier by pinning doomism on an oil
+ * company, and there is no source for that. So the audit forbids it.
+ */
+{
+  const C = globalThis.GreenApp.context;
+  const THIS_YEAR = new Date().getFullYear();
+  ok("the context data exists", !!C && Array.isArray(C.timeline) && C.timeline.length > 10);
+
+  const seenAt = new Set();
+  C.timeline.forEach((e) => {
+    const where = e.year + " " + (e.label || "?").slice(0, 40);
+    ok("has a plausible year · " + where, Number.isInteger(e.year) && e.year >= 1950 && e.year <= THIS_YEAR);
+    ok("has a label · " + where, typeof e.label === "string" && e.label.length > 3);
+    ok("has a detail · " + where, typeof e.detail === "string" && e.detail.length > 20);
+    // the whole point: no event is here because it is well known
+    ok("cites a source · " + where, typeof e.source === "string" && e.source.length > 15);
+    ok("is on a known track · " + where, ["obstruction", "movement", "landmark"].indexOf(e.track) >= 0);
+    ok("has a unique sort key · " + where, typeof e.at === "string" && !seenAt.has(e.at));
+    seenAt.add(e.at);
+    if (e.delay) {
+      const known = C.delay.groups.some((g) => g.moves.some((m) => m.id === e.delay)) || e.delay === C.delay.denial.id;
+      ok("names a discourse that exists · " + where, known, e.delay);
+    }
+  });
+
+  // Nothing is attributed to a company that the source does not name.
+  const ORGS = ["Exxon", "BP", "Shell", "Aramco", "OMV", "Chevron", "Mobil", "Peabody", "OPEC"];
+  C.timeline.forEach((e) => {
+    const said = e.label + " " + e.detail;
+    ORGS.forEach((org) => {
+      if (said.indexOf(org) >= 0) {
+        ok("the source names " + org + " too · " + e.year,
+           e.source.indexOf(org) >= 0 || e.source.indexOf("Union of Concerned Scientists") >= 0 ||
+           e.source.indexOf("OECD Watch") >= 0 || e.source.indexOf("DeSmog") >= 0 ||
+           e.source.indexOf("Climate Action Against Disinformation") >= 0 ||
+           e.source.indexOf("OpenMind") >= 0 || e.source.indexOf("Conservation Law Foundation") >= 0);
+      }
+    });
+  });
+
+  // Doomism has no funder. No named organisation may be put on it.
+  C.timeline.forEach((e) => {
+    if (e.delay === "doomism") {
+      ok("doomism is not pinned on a named organisation · " + e.year,
+         !ORGS.some((o) => (e.label + " " + e.detail).indexOf(o) >= 0), e.label);
+    }
+  });
+  ok("doomism appears in the taxonomy with no organisation attached",
+     C.delay.groups.some((g) => g.moves.some((m) => m.id === "doomism")) &&
+     !C.timeline.some((e) => e.delay === "doomism"));
+
+  // The taxonomy is complete and attributed.
+  ok("the taxonomy has four groups", C.delay.groups.length === 4);
+  ok("the taxonomy cites Lamb et al.", C.delay.source.indexOf("Lamb") >= 0 && C.delay.source.indexOf("2020") >= 0);
+  let moveCount = 0;
+  C.delay.groups.forEach((g) => {
+    ok("group has a question · " + g.label, typeof g.question === "string" && g.question.indexOf("?") > 0);
+    ok("group has moves · " + g.label, g.moves.length >= 2);
+    g.moves.forEach((m) => {
+      moveCount++;
+      ok("move says something · " + m.label, typeof m.says === "string" && m.says.length > 10);
+      ok("move explains what it does · " + m.label, typeof m.does === "string" && m.does.length > 20);
+    });
+  });
+  ok("all twelve discourses are present", moveCount === 12, moveCount + " found");
+
+  // The worked examples, including the one aimed at this app's own side.
+  ok("there are at least three claims", C.claims.length >= 3);
+  C.claims.forEach((c) => {
+    ok("claim cites a source · " + c.id, typeof c.source === "string" && c.source.length > 20);
+    ok("claim names the move it is · " + c.id,
+       C.delay.groups.some((g) => g.moves.some((m) => m.id === c.move)));
+    ok("claim states what is true in it · " + c.id, typeof c.truth === "string" && c.truth.length > 20);
+  });
+  ok("at least one worked example is a claim from the climate side",
+     C.claims.some((c) => /climate side|our own arguments|own side/.test(c.moveNote || "")));
+
+  // The silence section, and the app's own admission.
+  ok("the silence section quotes its source", C.silence.attribution.indexOf("Marshall") >= 0);
+  ok("every point in it is sourced", C.silence.points.every((p) => typeof p.source === "string" && p.source.length > 10));
+  ok("the app admits its own frame", /BP/.test(C.ourselves.admission));
+  ok("and does not claim to have fixed it", /1\.1/.test(C.ourselves.unresolved));
+
+  // Finally: the renderer draws every event exactly once, and one pill per distinct year.
+  const html = globalThis.GreenApp.chart.timeline({ events: C.timeline, ariaLabel: "x" });
+  const rows = (html.match(/class="tl-row /g) || []).length;
+  const pills = (html.match(/class="tl-yearmark"/g) || []).length;
+  ok("every event is drawn exactly once", rows === C.timeline.length, rows + " of " + C.timeline.length);
+  ok("one year marker per distinct year", pills === new Set(C.timeline.map((e) => e.year)).size);
+  const drawnYears = (html.match(/<span>(\d{4})<\/span>/g) || []).map((m) => +m.replace(/\D/g, ""));
+  let ascending = true;
+  for (let i = 1; i < drawnYears.length; i++) if (drawnYears[i] < drawnYears[i - 1]) ascending = false;
+  ok("the years come out in order", ascending, drawnYears.join(","));
+}
+report("the Context tab is sourced, and doomism has no owner");
 
 console.log("\n" + passed + " checks passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

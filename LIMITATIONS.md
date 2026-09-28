@@ -1,6 +1,6 @@
 # What is still wrong with this tool
 
-Last reviewed: 22 September 2026.
+Last reviewed: 28 September 2026.
 
 This is the register of what the app gets wrong, what it cannot see, and what it
 quietly implies that is not true. It is kept in the repository rather than in a
@@ -182,6 +182,35 @@ that some choices are worse than they look.
 | 2.18 | **Documentation drifts from the data.** On 22 September the method text still said "Austria 7.9 t ... times the ~72%" a day after both numbers changed. Fixed, but nothing prevents a recurrence: the prose in `data/docs.js` is not checked against `data/benchmarks.js` by anything. |
 | 2.19 | **Two audit checks written in one session were tautological** (`x - x < 1e-12`, and a `\|\| true`). Both removed. A check that cannot fail reads as coverage, which is worse than an absent check. |
 | 2.20 | **The "why this works" text on every change was invisible on desktop.** It was written as a `<details>` that CSS forced open above 700 px. Chromium does not let author CSS re-open a closed `<details>`: the element had zero height and its contents were never painted, so 26 explanations — about 500 words — were reachable only on a phone. Found by measuring the rendered page, not by reading the code; the audit passed all 187,011 checks throughout. It now folds at every width with a summary that can actually be clicked. The general point stands: **nothing in the test suite can see whether text is on the screen.** |
+
+### Parked — identified, costed, waiting on a decision
+
+Found in the content review of 28 September 2026. These are not unknowns; each one
+has a known shape and a known cost, and each was deliberately deferred rather than
+forgotten. **They are listed here so that deferring them stays a choice and does not
+quietly become the design.**
+
+| # | Decision | Where it stands |
+|---|---|---|
+| 2.21 | **Say where individual action stops.** Ticking every change marked *in my hands* — 19 of them, nothing waiting on a replacement cycle or on where you live — takes the seed profile from 9.9 t to **4.8 t**, still 1.9× the 2.5 t line. The app computes this and never says it. The Results card stops one sentence earlier, at "Everything in your own hands together: −5.1 t". | Two sentences, no new data, verified numerically. The reason to pause is tone, not cost: it changes what the whole app is saying, so it is the user's call. Closes the visible half of **1.1**. |
+| 2.22 | **Give collective action the same treatment individual action gets.** 26 levers, every badge ending in "yours" or "your hands"; the 3.5 t decided collectively gets prose, a diagram and nothing to touch. The asymmetry is not in the wording — the wording is careful — it is in **what the interface lets a reader do**. The shape that would not betray the rest of the app: name the specific decisions that move those tonnes (building standard, heat-pump programme, grid, rail), with published magnitudes where they exist and hatching where they do not, exactly as `chart.flow` already does. Never a second scoreboard. | Real work, needs sourcing. This is also where the planned handprint section belongs — see the note at the end of this file. Closes the structural half of **1.1**. |
+| 2.23 | **Reorder the lever list by horizon rather than by size.** 26 rows from −2.6 t to −24 kg in one column; eight save under 100 kg, under 1% of a 9.9 t footprint each. "Make your next car electric — when you replace it" (a decade) sits between two things that could be done tonight. The `control` field already carries the distinction (`yours` / `partly` / `later` / `big`) and the ordering ignores it. The claimed savings also sum to **16.0 t against a 9.9 t footprint**, so the list is only readable one tick at a time. | Medium. Grouping by horizon would also fix **2.13**, which the text pass of 28 September could not touch. Related to **1.2**. |
+
+### Ready to run, not yet run
+
+Smaller findings from the same review. Each is a string or a fold; none needs a decision,
+they were simply not done in that session.
+
+| # | Fix |
+|---|---|
+| 2.24 | **The Results headline calls a think-tank figure a treaty.** "4.0× the 2030 Paris goal of 2.5 t". The 2.5 t is Hot or Cool Institute (2021, Fig. C), a modelled globally unified lifestyle target; the Paris Agreement sets no per-person figure. Everywhere else the app says "1.5 °C-aligned lifestyle footprint". The most-read sentence carries the loosest claim. |
+| 2.25 | **Seven names for one line.** Counted across the source: "1.5 °C budget" ×16, "1.5 °C goal" ×10, "2030 Paris goal" ×4, "2030 budget" ×3, "lifestyle goal" ×2, "2.5 t goal" ×2, "1.5 °C-aligned lifestyle footprint" ×2. Worse, **"budget" also names the 130 Gt cumulative stock** — the trajectory card's whole argument is that the yearly rate is a stand-in and the stock is what matters, and it uses one word for both. Pick one name for the line; reserve "budget" for the stock. |
+| 2.26 | **The same interval is described two ways.** Results: "80% likely between 9.0 and 11.1 t". Details: "Most likely between 9.0 and 11.1 t". "Most likely" is wrong for an 80% interval. |
+| 2.27 | **The world bar makes a point the text never makes.** World average 5.1 t against the 2.5 t line: the global average is already twice the target. That answers both "it is only rich countries" and "I am near average, so I am fine", and no caption says it. |
+| 2.28 | **Results spends 90 words on 2.6% of the footprint.** The streaming / AI / devices paragraph sits beside the area table at full weight. It exists because people over-estimate digital — a good reason to answer the question, a bad reason to lead with it. Belongs behind a fold titled with the question it answers. |
+| 2.29 | **The progress counter counts up on both sides.** "0 of 26" becomes "33 of 33": answering a question can open more, so the denominator grows and it reads as going backwards. The opening promise of "about 5 minutes" for 33 steps including two grids has never been timed. |
+| 2.30 | **The numbered tabs and the actual path disagree.** The main button on Results jumps to tab 4, skipping tab 3; Details then ends on the public-share card — the most "not your problem" content in the app — with no route onward. |
+| 2.31 | **A saved file with unexpected values renders `undefined`.** A stale scratch seed with three out-of-date enum values printed "undefined" five times in the answer list. Not reachable through the interface today, but a result saved by an older version would do it. |
 
 ---
 

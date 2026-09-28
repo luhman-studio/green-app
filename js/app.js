@@ -22,6 +22,11 @@
     var state = freshState();
     var leverFilter = "all";
     var picked = {}; // lever ids ticked in the Potential tab
+    /* The "why this works" fold is now closed at every width, and the whole list is rebuilt
+     * from innerHTML on every tick — so without this, opening one fold and then ticking any
+     * change would slam it shut again. Remembering it per lever is what makes the fold a
+     * place to read rather than a thing that keeps collapsing. */
+    var whyOpen = {};
     // Two diagrams now exist — one per tab — so everything about "which band is held open"
     // is per page. On Details the pin opens the analysis; on Potential it narrows the list of
     // changes to the ones that shrink that band.
@@ -53,6 +58,21 @@
     function activeSteps() { return Q.steps.filter(function (s) { return !isSkipped(s); }); }
     function nextStep() { return activeSteps().filter(function (s) { return !state.answered[s.id]; })[0]; }
     function fmtT(v) { return v.toFixed(1) + " t"; }
+    /* ---------- the three layers ----------
+     * Everything on a card is one of three things, and the markup says which:
+     *   1 the answer      — a number and a label, or a chip carrying a caveat (flagRow)
+     *   2 the meaning     — one sentence, <p class="layer2">, and only one
+     *   3 the reasoning   — a <details class="fold"> with a question for a summary (fold)
+     * Nothing here deletes text. A caveat that used to be a clause is a chip in layer 1 and
+     * the clause itself is still in layer 3, next to the number it qualifies rather than
+     * moved to the method page, where a reader who wanted it would never find it.
+     */
+    function flagRow(list) {
+      return list.map(function (f) { return '<li class="flag ' + (f[1] || "") + '">' + esc(f[0]) + "</li>"; }).join("");
+    }
+    function fold(question, html) {
+      return '<details class="fold"><summary>' + esc(question) + "</summary>" + html + "</details>";
+    }
     function val(x) { return typeof x === "function" ? x(state.profile) : x; }
     function button(label, cls, onclick, aria) {
       var b = el("button", cls || "chip", esc(label));
@@ -503,19 +523,21 @@
        * app has never subtracted them. Every rung, colour and share comes from
        * data/factors.js and engine.compensation(); nothing is typed in here.
        */
-      var o = E.compensation(p), oh = [];
+      var o = E.compensation(p), oh = [], oflags = [["never subtracted", "flag-warn"]];
       var rungs = o.byType.map(function (x) {
         return { rank: x.info.rank, short: x.info.short, label: x.info.label, color: x.info.color,
                  examples: x.info.examples, storage: x.info.storage, risk: x.info.risk, t: x.tonnes };
       });
       if (!o.tonnes && !o.contributionEur) {
-        oh.push("<p>You don’t buy compensation. That’s fine — reducing emissions counts first, and nothing bought here would be subtracted from your footprint anyway. Worth knowing the ladder before you ever spend on it:</p>");
+        oh.push('<p class="layer2">You don’t buy compensation. Nothing bought here would come off your footprint anyway — this is the ladder, weakest to strongest.</p>');
       } else if (!o.tonnes) {
-        oh.push("<p>You fund climate action without claiming any tonnes against your own footprint — under the Oxford Offsetting Principles that is the most honest form of the claim. The ladder below is what buying credits would mean:</p>");
+        oflags.push(["no tonnes claimed", "flag-ok"]);
+        oh.push('<p class="layer2">You fund climate action without claiming any tonnes against your own footprint — the most honest form of the claim.</p>');
       } else {
-        oh.push("<p><strong>Shown separately, never subtracted.</strong> The bar is the mix you buy, not a dent in your " +
-          E.calculate(p).total.toFixed(1) + " t — a tonne of avoidance credit and a tonne of direct air capture are not the same tonne, which is the whole reason the ladder exists. Many avoidance credits deliver far less than they claim (Probst et al. 2024).</p>");
+        oflags.push(["avoidance ≠ removal", "flag-derived"]);
+        oh.push('<p class="layer2">The bar is the mix you buy, not a dent in your <strong>' + r.total.toFixed(1) + " t</strong>.</p>");
       }
+      $("resOffsetsFlags").innerHTML = flagRow(oflags);
       // With nothing bought, the same ladder is drawn faint and evenly spaced: an explainer.
       var emptyLadder = !o.tonnes;
       var allRungs = Object.keys(F.offsetTypes).filter(function (k) { return k !== "source"; })
@@ -533,32 +555,46 @@
       }));
       if (o.tonnes) {
         oh.push('<p class="muted small">Total bought: <strong>' + o.tonnes.toFixed(2) + " t</strong> a year" +
-          (o.certification ? ", certified " + esc(o.certification) : "") +
-          ". It is not taken off anything above — the Oxford Offsetting Principles put cutting emissions first, then removals, then durable storage.</p>");
+          (o.certification ? ", certified " + esc(o.certification) : "") + ".</p>");
       }
       if (o.contributionEur) {
         oh.push('<p class="muted small"><strong>€' + Math.round(o.contributionEur).toLocaleString("en-US") +
-          "/yr</strong> as a climate contribution: funding climate action without claiming it cancels your emissions. No tonnes are claimed, so none are drawn.</p>");
+          "/yr</strong> as a climate contribution. No tonnes are claimed, so none are drawn.</p>");
       }
+      /* Layer 3. This is the argument that used to run across the top of the card, before
+       * anyone had seen the ladder it is about. It reads better after the picture, and the
+       * two chips above already carry its conclusion. */
+      oh.push(fold("Why a tonne bought is not a tonne cut",
+        "<p>A tonne of avoidance credit and a tonne of direct air capture are not the same tonne, which is the whole reason the ladder exists. Many avoidance credits deliver far less than they claim (Probst et al. 2024).</p>" +
+        "<p>So nothing here is taken off anything above. The Oxford Offsetting Principles put cutting emissions first, then removals, then storage that lasts — the ladder is that order, drawn. Funding climate action without claiming the tonnes is the most honest form of the claim.</p>"));
       $("resOffsets").innerHTML = oh.join("");
 
       var m = p.money, mt = [];
       var bankTxt = { ethical: "You bank with an ethical/sustainability bank — the strongest choice here.", greenProduct: "You use sustainable products at a normal bank — worth asking what the bank finances overall, not just your product.", conventional: "You have a normal bank account: your deposits help fund whatever the bank lends to, which can include fossil fuels.", unknown: "Bank type unknown." }[m.bankType];
-      mt.push(bankTxt);
+      mt.push("<p>" + bankTxt + "</p>");
       var savTxt = { none: "", labelled: "Your investments carry a sustainability label — good. The Austrian Umweltzeichen UZ 49 excludes e.g. coal and oil companies.", conventional: "Your savings/pension are invested conventionally. Switching to labelled funds (e.g. Umweltzeichen UZ 49) is a lever many people overlook.", unknown: "Worth checking how your savings and pension are invested." }[m.savings];
-      if (savTxt) mt.push(savTxt);
+      if (savTxt) mt.push("<p>" + savTxt + "</p>");
       // A real number for financed emissions — deliberately beside the footprint, never in it.
       var fin = E.financed(p);
+      /* The two reasons this sits outside the bar are a chip each, because they are exactly
+       * the kind of thing a reader needs before the number and not after two hundred words:
+       * it is never added, and the published estimates for it disagree sixfold. The reasoning
+       * behind both is unchanged, one fold down. */
+      var mflags = [["never added", "flag-warn"], ["estimates disagree 6×", "flag-derived"]];
       if (fin) {
         mt.push('<p class="money-figure">Your €' + Math.round(fin.eur).toLocaleString("en-US") + ' finances somewhere between <strong>' +
           fin.low.toFixed(1) + " and " + fin.high.toFixed(1) + " t CO₂e a year</strong>" +
           (fin.high > r.total ? " — the top of that range is more than everything else on this page put together." : ".") +
           (fin.labelled ? " A sustainability label pushes you towards the lower end, though labels vary." : "") + "</p>");
-        mt.push('<p class="muted small">Why a range that wide, and why not in the bar: the two published reference points for the same idea disagree by a factor of six (ECB 2025: 0.8 t per €10,000 · Make My Money Matter 2021: 5.4 t). A number that moves 6× with the method has no business inside a bar claiming ±20%. And it is a different kind of number — the emissions of a company you part-own are already counted in the footprint of whoever buys what it makes, so adding it here would count the same tonnes twice. Where your money sits is leverage, not consumption: it moves capital, which is exactly why it is worth doing and why it is not measured in the same currency as your heating bill.</p>');
       } else {
-        mt.push('<p class="muted small">Not in the footprint, and not because it is small. The emissions your money finances are attributed, not consumed — the companies you part-own are already counted in the footprint of whoever buys what they make, so adding them here would count the same tonnes twice. Published estimates also disagree by a factor of six for the same amount of money. Tell the app roughly how much you have invested and it will show the range, next to your footprint rather than inside it. Bank and insurance admin, separately, is roughly 0.1 t per person and nearly the same for everyone.</p>');
+        mt.push('<p class="layer2">Not in the footprint, and not because it is small. Tell the app roughly how much you have invested and the range appears here.</p>');
       }
-      $("resMoney").innerHTML = mt.join(" ");
+      mt.push(fold("Why this is beside your footprint and not in it",
+        "<p>The two published reference points for the same idea disagree by a factor of six (ECB 2025: 0.8 t per €10,000 · Make My Money Matter 2021: 5.4 t). A number that moves 6× with the method has no business inside a bar claiming ±20%.</p>" +
+        "<p>And it is a different kind of number. The emissions of a company you part-own are already counted in the footprint of whoever buys what it makes, so adding it here would count the same tonnes twice. Where your money sits is leverage, not consumption: it moves capital, which is exactly why it is worth doing and why it is not measured in the same currency as your heating bill.</p>" +
+        "<p>Bank and insurance admin, separately, is roughly 0.1 t per person and nearly the same for everyone.</p>"));
+      $("resMoneyFlags").innerHTML = flagRow(mflags);
+      $("resMoney").innerHTML = mt.join("");
 
       /* What the bars leave out, drawn rather than asserted.
        * Every tonne below is a share from data/benchmarks.js multiplied by Austria's
@@ -604,12 +640,25 @@
           '<div class="traj-rel">' + pctOfNow + "% of your " + r.total.toFixed(1) + " t</div></div>";
       }).join('<div class="traj-arrow" aria-hidden="true">→</div>');
 
-      $("detTrajNote").innerHTML = "Staying at " + fmtT(B.targets.y2030.value) + " after 2030 would not settle anything: the same work puts the path at " +
-        fmtT(TR[1].value) + " by " + TR[1].year + " and " + fmtT(TR[2].value) + " by " + TR[2].year + ". " +
-        "<strong>What actually matters is not the yearly rate but the total ever emitted</strong> — warming tracks cumulative CO₂, so a yearly figure is only a stand-in for staying inside a stock that is nearly spent. " +
-        "The remaining budget for 1.5 °C is about <strong>" + rem.gtCO2 + " Gt CO₂</strong> from the start of " + rem.fromYear +
-        ", a little over three years of world emissions — roughly <strong>" + perPerson.toFixed(0) + " tonnes per person alive today, in total, not per year</strong>. " +
-        '<span class="muted">That budget counts CO₂ only, while everything else here is CO₂e, so the two cannot be divided into a personal countdown. The order of magnitude is the point: a rich-country footprint spends a lifetime share of it in a couple of years.</span>';
+      /* The same three layers. The tiles above are the answer; this is the one sentence that
+       * says what they mean, and the stock behind them — the part a reader has to want — is
+       * the fold. The two chips are the qualifications that must survive skimming: the thing
+       * that matters is a total rather than a yearly rate, and the budget below is CO₂ only.
+       */
+      $("detTrajFlags").innerHTML = flagRow([
+        ["a stock, not a yearly rate", "flag-derived"],
+        ["budget is CO₂ only, not CO₂e", "flag-warn"]
+      ]);
+      $("detTrajNote").innerHTML =
+        '<p class="layer2">Staying at ' + fmtT(B.targets.y2030.value) + " after 2030 would not settle anything: the same work puts the path at " +
+        fmtT(TR[1].value) + " by " + TR[1].year + " and " + fmtT(TR[2].value) + " by " + TR[2].year + ".</p>" +
+        fold("Why the total ever emitted matters more than any yearly figure",
+          "<p>Warming tracks cumulative CO₂, so a yearly figure is only a stand-in for staying inside a stock that is nearly spent. " +
+          "The remaining budget for 1.5 °C is about <strong>" + rem.gtCO2 + " Gt CO₂</strong> from the start of " + rem.fromYear +
+          ", a little over three years of world emissions — roughly <strong>" + perPerson.toFixed(0) +
+          " tonnes per person alive today, in total, not per year</strong>.</p>" +
+          "<p>That budget counts CO₂ only, while everything else here is CO₂e, so the two cannot be divided into a personal countdown. " +
+          "The order of magnitude is the point: a rich-country footprint spends a lifetime share of it in a couple of years.</p>");
 
       /* Whether the past should count is a real question with a firm half and a contested
        * half, and the app should answer the firm half rather than dodge the whole thing.
@@ -660,14 +709,27 @@
         (r.total + flowTotal).toFixed(1) + " t</strong> a year. The third does not add to anything — adding it would count the same tonnes twice. " +
         "Only the first responds to the Potential tab; the second moves through public decisions and the third through where you keep your money.";
 
-      var withPublic = r.total + flowTotal;
-      $("resPublic").innerHTML = "Your <strong>" + r.total.toFixed(1) + " t</strong> bar is what <em>you</em> buy. " +
-        "On top of it, an average of <strong>" + flowTotal.toFixed(1) + " t</strong> per person is caused on your behalf by the state " +
-        "and by the firms that build things — that is " + Math.round((1 - B.austria.finalDemand.households) * 100) +
-        "% of what an average Austrian causes, and it brings your own total to roughly <strong>" + withPublic.toFixed(1) + " t</strong>. " +
-        "It is an average rather than your own figure: nothing you answered can say how much of a country's hospitals and motorways is yours. " +
-        "It sits outside every bar here <em>and</em> outside the " + fmtT(B.targets.y2030.value) +
-        " goal, which is defined the same way — so the comparison stays fair. Where it actually goes is usually guessed wrong:";
+      /* Layer 1 and 2. What this card used to open with — your bar is what you buy, the
+       * share adds to it, together they come to N — is now the card two above it, tile for
+       * tile. Saying it twice cost 60 words and taught nothing the second time, so this card
+       * now starts where it is the only one that can: at the number and where it goes.
+       * The two qualifications it must not lose are chips, and their reasoning is the first
+       * fold under the diagram.
+       */
+      $("resPublicFlags").innerHTML = flagRow([
+        ["average, not your figure", "flag-warn"],
+        ["outside every bar here", "flag-derived"],
+        ["outside the " + fmtT(B.targets.y2030.value) + " goal too", "flag-derived"]
+      ]);
+      $("resPublic").innerHTML = "An average of <strong>" + flowTotal.toFixed(1) + " t</strong> a person is caused on your behalf by the state " +
+        "and by the firms that build things — <strong>" + Math.round((1 - B.austria.finalDemand.households) * 100) +
+        "%</strong> of what an average Austrian causes. Where it goes is usually guessed wrong:";
+      /* Layer 3 for the chips above, directly under the sentence they qualify — a fold only
+       * reads as an answer when it sits below the thing it is an answer about. */
+      $("resPublicWhy").innerHTML = fold("Why it is an average, and why the goal leaves it out too",
+        "<p>It is an average rather than your own figure: nothing you answered can say how much of a country's hospitals and motorways is yours.</p>" +
+        "<p>It sits outside every bar here <em>and</em> outside the " + fmtT(B.targets.y2030.value) +
+        " goal, which is defined the same way — so the comparison stays fair.</p>");
 
       $("resPublicFlow").innerHTML = G.chart.flow({
         parts: flowParts, total: flowTotal, base: nat,
@@ -676,32 +738,42 @@
         ariaLabel: "Where the " + flowTotal.toFixed(1) + " t left out of your footprint goes"
       });
 
-      // The keys above already carry the detail; this says only what they cannot —
-      // what the picture means for comparing one country with another.
-      // The dashed mark needs saying in words as well as drawn, because "derived" is doing
-      // real work there: it is arithmetic from one report, not a target anyone publishes.
+      // The keys in the diagram already carry the detail. What is left to say is what they
+      // cannot: what the picture means for comparing one country with another, and what the
+      // dashed mark is — "derived" is doing real work there, it is arithmetic from one
+      // report and not a target anyone publishes. One sentence each, reasoning folded.
       var pt = ps.target, cutPublic = Math.round((1 - pt.value / flowTotal) * 100),
           cutLife = Math.round((1 - B.targets.y2030.value / B.austria.total) * 100);
-      $("resPublicTarget").innerHTML = "<strong>Is there a target for this part?</strong> Not a published one — " +
-        "no body sets a figure for the share of a footprint nobody buys as a household, and the " +
-        fmtT(B.targets.y2030.value) + " lifestyle goal deliberately excludes it. " +
-        "The dashed mark is <strong>derived</strong>, and it is a share of the <em>global</em> budget rather than an Austrian figure — " +
-        "the same way the " + fmtT(B.targets.y2030.value) + " goal is. From the arithmetic of the same report: if lifestyles are 72% of emissions " +
-        "and their share of the budget is " + fmtT(B.targets.y2030.value) + ", the whole budget is about 3.5 t a person and what is left " +
-        "for everything bought on your behalf is about <strong>" + fmtT(pt.value) + "</strong>. " +
-        "Austria is at " + fmtT(flowTotal) + ", so it would have to fall by roughly <strong>" + cutPublic + "%</strong> — " +
-        "almost exactly the " + cutLife + "% the lifestyle half has to fall. This is not somebody else's problem that lifestyle change will not touch, " +
-        "and it is not disproportionately worse either. " +
-        '<span class="muted">Austria\u2019s own commitments do cover it, measured differently: climate neutrality by 2040, and −48% by 2030 against 2005 ' +
-        "for the sectors under the EU Effort Sharing Regulation. Those are territorial, economy-wide targets rather than consumption-based per-person ones, " +
-        "so they cannot be drawn on this bar.</span>";
+      $("resPublicTarget").innerHTML =
+        /* Layer 2 for the dashed mark: the answer, the number, and the one comparison that
+         * stops a reader concluding this is somebody else's problem. The derivation is the
+         * fold below it, because "derived" is already a chip and a word in this sentence. */
+        '<p class="layer2"><strong>Is there a target for this part?</strong> Not a published one. The dashed mark is <strong>derived</strong>: about ' +
+        fmtT(pt.value) + ", and Austria would have to cut this part by <strong>" + cutPublic + "%</strong> — almost exactly the " +
+        cutLife + "% the lifestyle half has to cut.</p>" +
+        fold("Where the " + fmtT(pt.value) + " comes from, and what Austria has actually committed to",
+          "<p>No body sets a figure for the share of a footprint nobody buys as a household, and the " +
+          fmtT(B.targets.y2030.value) + " lifestyle goal deliberately excludes it. " +
+          "The mark is a share of the <em>global</em> budget rather than an Austrian figure \u2014 the same way the " +
+          fmtT(B.targets.y2030.value) + " goal is.</p>" +
+          "<p>From the arithmetic of the same report: if lifestyles are 72% of emissions " +
+          "and their share of the budget is " + fmtT(B.targets.y2030.value) + ", the whole budget is about 3.5 t a person and what is left " +
+          "for everything bought on your behalf is about <strong>" + fmtT(pt.value) + "</strong>. " +
+          "Austria is at " + fmtT(flowTotal) + ". So this is not somebody else\u2019s problem that lifestyle change will not touch, " +
+          "and it is not disproportionately worse either.</p>" +
+          "<p>Austria\u2019s own commitments do cover it, measured differently: climate neutrality by 2040, and \u221248% by 2030 against 2005 " +
+          "for the sectors under the EU Effort Sharing Regulation. Those are territorial, economy-wide targets rather than consumption-based per-person ones, " +
+          "so they cannot be drawn on this bar.</p>");
 
-      $("resPublicNote").innerHTML = "Why this is worth seeing rather than being told: the usual guess is hospitals and schools, and investment is two and a half times " +
-        "the whole of public services — most of what the bars leave out is concrete, steel and machinery bought once and used for decades. " +
-        "And the health block is the reason a household footprint is a poor way to rank countries: " +
-        "Eurostat uses <em>Actual Individual Consumption</em> instead, precisely because a country that provides care publicly moves those emissions " +
-        "off its citizens' personal accounts while a country that leaves people to pay for their own keeps them on. " +
-        "A low household figure can mean a strong public system rather than a lighter life.";
+      /* The one surprise in the picture, said once — then the argument it leads to, folded. */
+      $("resPublicNote").innerHTML =
+        '<p class="layer2">The usual guess is hospitals and schools. Investment is <strong>two and a half times</strong> the whole of public services — ' +
+        "concrete, steel and machinery, bought once and used for decades.</p>" +
+        fold("Why a low household footprint can mean a strong public system",
+          "<p>The health block is the reason a household footprint is a poor way to rank countries. " +
+          "Eurostat uses <em>Actual Individual Consumption</em> instead, precisely because a country that provides care publicly moves those emissions " +
+          "off its citizens' personal accounts while a country that leaves people to pay for their own keeps them on. " +
+          "A low household figure can mean a strong public system rather than a lighter life.</p>");
     }
 
     // ---------- Potential tab: tick changes, watch the bar move ----------
@@ -892,15 +964,18 @@
           '<label for="' + id + '" class="lever-main"><span class="lever-title">' + esc(l.label) + (c[0] ? ' <span class="badge ' + c[1] + '">' + c[0] + "</span>" : "") + "</span>" +
           '<span class="lever-do">' + esc(l.detail) + "</span>" +
           /* The mechanism is the most valuable text on this card and the longest: 26 of them
-           * is most of a 12-screen page on a phone. It is folded here and forced open by CSS
-           * on a wide screen, so the desktop reading is unchanged and the phone gets a list
-           * it can actually scroll. It is a <details> inside a <label>, so the summary is a
-           * sibling of the checkbox's label text, not part of it — tapping it must not tick.
+           * open at once is most of the words on the tab, on any screen, and none of it is
+           * the answer to the question the tab asks. Folded at every width now, not just on
+           * phones, with the open state remembered below. It is a <details> inside a
+           * <label>, so the summary is a sibling of the checkbox's label text, not part of
+           * it — tapping it must not tick.
            */
-          (l.why ? '<details class="lever-why-fold"><summary>why this works</summary>' +
+          (l.why ? '<details class="lever-why-fold"' + (whyOpen[l.id] ? " open" : "") + "><summary>why this works</summary>" +
                    '<span class="lever-why">' + esc(l.why) + "</span></details>" : "") + note + "</label>" +
           '<div class="lever-save"><div class="save-num">−' + fmtSave(l.saved) + '</div><div class="save-bar"><span style="width:' + Math.max(4, Math.round(l.saved / max * 100)) + '%"></span></div></div>';
         li.querySelector("input").onchange = function () { picked[l.id] = this.checked; renderPotential(); };
+        var whyFold = li.querySelector(".lever-why-fold");
+        if (whyFold) whyFold.addEventListener("toggle", function () { whyOpen[l.id] = whyFold.open; });
         ul.appendChild(li);
       });
 

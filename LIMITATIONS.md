@@ -181,6 +181,7 @@ that some choices are worse than they look.
 |---|---|
 | 2.18 | **Documentation drifts from the data.** On 22 September the method text still said "Austria 7.9 t ... times the ~72%" a day after both numbers changed. Fixed, but nothing prevents a recurrence: the prose in `data/docs.js` is not checked against `data/benchmarks.js` by anything. |
 | 2.19 | **Two audit checks written in one session were tautological** (`x - x < 1e-12`, and a `\|\| true`). Both removed. A check that cannot fail reads as coverage, which is worse than an absent check. |
+| 2.20 | **The "why this works" text on every change was invisible on desktop.** It was written as a `<details>` that CSS forced open above 700 px. Chromium does not let author CSS re-open a closed `<details>`: the element had zero height and its contents were never painted, so 26 explanations — about 500 words — were reachable only on a phone. Found by measuring the rendered page, not by reading the code; the audit passed all 187,011 checks throughout. It now folds at every width with a summary that can actually be clicked. The general point stands: **nothing in the test suite can see whether text is on the screen.** |
 
 ---
 

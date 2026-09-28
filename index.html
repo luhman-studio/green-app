@@ -120,8 +120,9 @@
 
       <div class="card">
         <div class="card-title">2.5 t is a waypoint, not a destination</div>
+        <ul class="flags" id="detTrajFlags"></ul>
         <div class="traj" id="detTraj"></div>
-        <p class="small" id="detTrajNote"></p>
+        <div id="detTrajNote"></div>
         <details class="fold">
           <summary>Does everyone reducing to 2.5 t settle it — and does the past count?</summary>
           <div id="detHistory"></div>
@@ -163,20 +164,24 @@
       <div class="card notes">
         <div>
           <div class="card-title">Compensation</div>
+          <ul class="flags" id="resOffsetsFlags"></ul>
           <div id="resOffsets"></div>
         </div>
         <div>
           <div class="card-title">Your money</div>
-          <p id="resMoney"></p>
+          <ul class="flags" id="resMoneyFlags"></ul>
+          <div id="resMoney"></div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title">Not included: public share</div>
-        <p id="resPublic"></p>
+        <ul class="flags" id="resPublicFlags"></ul>
+        <p class="layer2" id="resPublic"></p>
+        <div id="resPublicWhy"></div>
         <div id="resPublicFlow" class="flow-wrap"></div>
-        <p class="small" id="resPublicTarget"></p>
-        <p class="muted small" id="resPublicNote"></p>
+        <div id="resPublicTarget"></div>
+        <div id="resPublicNote"></div>
       </div>
       <p class="sr-only" id="detLive" role="status" aria-live="polite"></p>
       <p class="sr-only" id="detChartLive" role="status" aria-live="polite"></p>

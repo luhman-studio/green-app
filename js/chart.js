@@ -367,7 +367,15 @@
               '<details class="tl-item">' +
               '<summary><span class="tl-side">' + esc(side) + "</span>" +
               '<span class="tl-label">' + esc(e.label) + "</span></summary>" +
-              '<p class="tl-detail">' + esc(e.detail) + "</p>" +
+              // "Why it matters" is the half a reader is actually here for, and buried at the
+              // end of a 90-word block it is unreadable on a phone. Split into two paragraphs
+              // and labelled, so the card can be skimmed for the point.
+              (function () {
+                var parts = String(e.detail).split(/\s*Why it matters:\s*/);
+                var out = '<p class="tl-detail">' + esc(parts[0]) + "</p>";
+                if (parts[1]) out += '<p class="tl-why"><span>why it matters</span> ' + esc(parts[1]) + "</p>";
+                return out;
+              })() +
               (tech ? '<p class="tl-tech"><span>technique</span> ' + esc(tech) + "</p>" : "") +
               // The citation sits with the claim it supports. There is still a full list
               // under the timeline, but a reader who opens one card should not have to go

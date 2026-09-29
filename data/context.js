@@ -210,6 +210,13 @@
           url: "https://en.wikipedia.org/wiki/Extinction_Rebellion"
         },
         {
+          year: 2019, at: "2019-05", track: "movement", technique: "framing",
+          label: "The Guardian rewrites its style guide so that “climate change” becomes “climate emergency”, and the wider language follows",
+          detail: "On 17 May 2019 the paper told its journalists to prefer “climate emergency, crisis or breakdown” to “climate change”, “global heating” to “global warming”, and “climate science denier” to “climate sceptic”. Editor-in-chief Katharine Viner's stated reason: “The phrase ‘climate change’ … sounds rather passive and gentle when what scientists are talking about is a catastrophe for humanity.” The vocabulary spread quickly — Oxford Dictionaries made “climate emergency” its word of the year for 2019, reporting that the phrase was about a hundred times as common in September 2019 as a year earlier, and other newsrooms and institutions moved the same way. Why it matters: this is a framing decision, the same kind of act that fills the column on the left — made in the open, by a newspaper, for a stated reason. Words do decide what a reader is left holding; that is the argument of this entire page, and it does not stop being true when the words are chosen by people you agree with. Whether this counts as precision or as advocacy is a judgement, and the honest thing is to put it on the timeline rather than only naming framing when the other side does it.",
+          source: "Nieman Lab, 17 May 2019, on the Guardian's style guide change and Katharine Viner's stated reasons; Oxford Dictionaries, word of the year 2019.",
+          url: "https://www.niemanlab.org/2019/05/from-climate-change-to-climate-emergency-crisis-or-breakdown-the-guardian-is-changing-the-environmental-language-it-uses/"
+        },
+        {
           year: 2019, at: "2019-12", track: "movement",
           label: "The Dutch Supreme Court orders its own government to cut emissions faster",
           detail: "The Urgenda judgment of 20 December 2019 upheld an order requiring the Netherlands to cut emissions by at least 25% by 2020 against 1990. Why it matters: it is the first time a court anywhere required a state to raise its climate ambition, and it did so on human-rights grounds — the route the 2024 and 2025 entries below then take.",
@@ -368,6 +375,8 @@
         other: [
           { id: "placement", label: "Paid placement",
             note: "Buying space inside a publication so the argument is read with that publication's credibility rather than as an advertisement." },
+          { id: "framing", label: "Reframing",
+            note: "Choosing the words that decide what a reader is left holding. Used on both sides of this timeline, and by this page. Naming it only when the other side does it would be one of the moves in the taxonomy above." },
           { id: "thirdParty", label: "Third-party messengers",
             note: "Funding institutes and coalitions to make the argument, so that it does not arrive with the producer's name on it." }
         ],

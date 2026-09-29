@@ -1597,6 +1597,18 @@
       if (contextDrawn) return;
       contextDrawn = true;
 
+      /* Names a technique from the taxonomy, used by both the timeline and the claims, so
+       * neither of them repeats a label that lives in the data file. */
+      function moveLabel(id) {
+        var found = "";
+        C.delay.groups.forEach(function (g) {
+          g.moves.forEach(function (m) { if (m.id === id) found = m.label + " (" + g.label.toLowerCase() + ")"; });
+        });
+        if (!found && C.delay.denial && C.delay.denial.id === id) found = C.delay.denial.label;
+        (C.delay.other || []).forEach(function (o) { if (o.id === id) found = o.label; });
+        return found || id;
+      }
+
       $("ctxFlags").innerHTML = flagRow([
         ["every entry is sourced", "flag-ok"],
         ["a taxonomy, not a list of villains", "flag-derived"],
@@ -1608,15 +1620,22 @@
       // --- the timeline
       $("ctxTimeline").innerHTML = G.chart.timeline({
         events: C.timeline,
-        ariaLabel: "Fifty years of climate obstruction and climate movements, as two tracks"
+        moveLabel: moveLabel,
+        ariaLabel: "Fifty years of fossil fuel propaganda and the climate movement, as two tracks"
       });
-      var nOb = C.timeline.filter(function (e) { return e.track === "obstruction"; }).length,
+      var nOb = C.timeline.filter(function (e) { return e.track === "propaganda"; }).length,
           nMv = C.timeline.filter(function (e) { return e.track === "movement"; }).length;
-      $("ctxTimelineNote").innerHTML = "<strong>" + nOb + "</strong> entries on the obstruction side, <strong>" + nMv +
+      $("ctxTimelineNote").innerHTML = "<strong>" + nOb + "</strong> entries on the propaganda side, <strong>" + nMv +
         "</strong> on the movement side, and the rest are things that happened to everybody. " +
         "<strong>Not drawn to scale</strong> — one row per entry, grouped under its year. Real spacing would leave eleven blank years " +
         "between the first two rows and then crush 2018 and 2019 into a smear, which would cost the dense part its legibility " +
-        "to buy an accuracy nobody reads off a picture.";
+        "to buy an accuracy nobody reads off a picture." +
+        '<br><span class="muted">Calling that column <em>fossil fuel propaganda</em> is a judgement, and the app is making it rather than ' +
+        "hiding behind a softer word. What backs it: every entry there is either a paid campaign, a funded messenger or a company's own " +
+        "public statement, each with a technique named and a source attached — and the one entry that is a research finding rather than " +
+        "an act of persuasion is marked <em>what they knew</em> instead. Where a lobby chose its own name, that name is in the detail so " +
+        "you can look it up, never in the headline: a group calling itself a climate coalition to fight climate policy is the technique, " +
+        "not a label to repeat.</span>";
 
       var linked = C.timeline.filter(function (e) { return e.url; }).length;
       $("ctxSources").innerHTML =
@@ -1648,13 +1667,6 @@
         '<br><span class="muted">' + esc(C.delay.why) + " " + cite(C.delay.whySource, C.delay.whyUrl) + "</span>";
 
       // --- the three claims
-      function moveLabel(id) {
-        var found = "";
-        C.delay.groups.forEach(function (g) {
-          g.moves.forEach(function (m) { if (m.id === id) found = m.label + " (" + g.label.toLowerCase() + ")"; });
-        });
-        return found || id;
-      }
       $("ctxClaims").innerHTML = C.claims.map(function (c) {
         return '<div class="ctx-claim">' +
           '<div class="ctx-claim-head">' + esc(c.claim) +

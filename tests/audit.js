@@ -741,12 +741,20 @@ report("rebound is stated, never subtracted");
     ok("has a detail · " + where, typeof e.detail === "string" && e.detail.length > 20);
     // the whole point: no event is here because it is well known
     ok("cites a source · " + where, typeof e.source === "string" && e.source.length > 15);
-    ok("is on a known track · " + where, ["obstruction", "movement", "landmark"].indexOf(e.track) >= 0);
+    ok("is on a known track · " + where, ["propaganda", "movement", "landmark"].indexOf(e.track) >= 0);
+    // A column headed "fossil fuel propaganda" must not quietly relabel evidence about the
+    // industry as an act of persuasion by it. The one entry that is a research finding is
+    // marked, and the renderer gives it a different chip.
+    if (e.kind) ok("the only marked kind is evidence · " + where, e.kind === "knew", e.kind);
     ok("has a unique sort key · " + where, typeof e.at === "string" && !seenAt.has(e.at));
     seenAt.add(e.at);
     if (e.delay) {
       const known = C.delay.groups.some((g) => g.moves.some((m) => m.id === e.delay)) || e.delay === C.delay.denial.id;
       ok("names a discourse that exists · " + where, known, e.delay);
+    }
+    if (e.technique) {
+      ok("names a technique that exists · " + where,
+         (C.delay.other || []).some((o) => o.id === e.technique), e.technique);
     }
   });
 
@@ -827,6 +835,26 @@ report("rebound is stated, never subtracted");
   ok("most of the timeline is clickable", C.timeline.filter((e) => e.url).length >= C.timeline.length * 0.7,
      C.timeline.filter((e) => e.url).length + " of " + C.timeline.length);
   ok("the taxonomy links the paper it is taken from", /cambridge\.org|doi/.test(C.delay.url || ""));
+
+  /* The propaganda column, named. Two rules follow from calling it that:
+   * every entry on it has to be either an act of persuasion with a technique named, or
+   * explicitly marked as evidence — and no row headline may repeat a lobby's own name for
+   * itself, because a headline is where a name gets laundered. */
+  const prop = C.timeline.filter((e) => e.track === "propaganda");
+  ok("the propaganda column is not empty", prop.length >= 8, prop.length + " entries");
+  prop.forEach((e) => {
+    ok("names a technique, or is marked as evidence · " + e.year,
+       !!e.delay || !!e.technique || e.kind === "knew", e.label.slice(0, 40));
+  });
+  // Self-chosen names that read as their own opposite. They may appear in a detail, where
+  // there is room to say what the thing actually was; never as the headline of a row.
+  const LAUNDERED = ["Global Climate Coalition", "Beyond Petroleum", "Information Council for the Environment"];
+  C.timeline.forEach((e) => {
+    LAUNDERED.forEach((name) => {
+      ok("a lobby's own name for itself is not the headline · " + e.year,
+         e.label.indexOf(name) < 0, name + " in: " + e.label);
+    });
+  });
 
   // The silence section, and the app's own admission.
   ok("the silence section quotes its source", C.silence.attribution.indexOf("Marshall") >= 0);

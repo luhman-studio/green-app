@@ -308,8 +308,17 @@
     }
 
     /* ---------- The two-track timeline ----------
-     * Obstruction on one side, movements on the other, and the things that happened to
-     * everybody on the rail between them.
+     * Fossil fuel propaganda on one side, the climate movement on the other, and the things
+     * that happened to everybody on the rail between them.
+     *
+     * The left column is called what it is. An earlier version headed one row "The Global
+     * Climate Coalition" — which is the name an oil and coal lobby gave itself precisely so
+     * that anyone repeating it would sound like they were citing a climate body. Repeating a
+     * campaign's own framing is not neutrality, it is distribution. The name still appears,
+     * in the detail, because a reader has to be able to look it up; it is just no longer the
+     * headline. `kind: "knew"` marks the one entry that is evidence about the industry
+     * rather than persuasion by it, because a column titled "propaganda" must not quietly
+     * relabel a research finding as a campaign.
      *
      * Deliberately NOT to scale. Real calendar spacing would put eleven empty years between
      * 1977 and 1988 and then pile six entries into 2018–2019, which makes the dense part
@@ -330,8 +339,8 @@
       });
       years.sort(function (a, b) { return a - b; });
       var TRACK = {
-        obstruction: ["tl-ob", "obstruction"],
-        movement: ["tl-mv", "movement"],
+        propaganda: ["tl-fp", "fossil fuel propaganda"],
+        movement: ["tl-mv", "climate movement"],
         landmark: ["tl-lm", "everyone"]
       };
       /* One <li> per YEAR, with its entries in a nested grid.
@@ -348,11 +357,18 @@
         out.push('<li class="tl-year"><div class="tl-yearmark"><span>' + y + "</span></div>" +
           '<div class="tl-group">' + list.map(function (e) {
             var t = TRACK[e.track] || TRACK.landmark;
-            return '<div class="tl-row ' + t[0] + '" data-track="' + esc(e.track) + '" data-year="' + y + '">' +
+            var side = e.kind === "knew" ? "what they knew" : t[1];
+            // The technique is named on the row itself, so the chronology and the taxonomy
+            // below it are one argument rather than two lists that happen to share a page.
+            var tech = opts.moveLabel
+              ? [e.delay, e.technique].filter(Boolean).map(opts.moveLabel).join(" · ") : "";
+            return '<div class="tl-row ' + t[0] + (e.kind ? " tl-knew" : "") +
+              '" data-track="' + esc(e.track) + '" data-year="' + y + '">' +
               '<details class="tl-item">' +
-              '<summary><span class="tl-side">' + esc(t[1]) + "</span>" +
+              '<summary><span class="tl-side">' + esc(side) + "</span>" +
               '<span class="tl-label">' + esc(e.label) + "</span></summary>" +
               '<p class="tl-detail">' + esc(e.detail) + "</p>" +
+              (tech ? '<p class="tl-tech"><span>technique</span> ' + esc(tech) + "</p>" : "") +
               "</details></div>";
           }).join("") + "</div></li>");
       });

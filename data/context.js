@@ -27,7 +27,10 @@
       version: "2026-09-v1",
 
       /* ---------- the two tracks ----------
-       * track: "obstruction" above the axis, "movement" below it, "landmark" on it.
+       * track: "propaganda" above the axis, "movement" below it, "landmark" on it.
+       * kind:  optional. "knew" marks an entry that is evidence about the industry rather
+       *        than an act of persuasion by it — a column called propaganda must not quietly
+       *        relabel a research finding as a campaign.
        * delay: which discourse in `delay` below this is an instance of, where the
        *        source supports saying so. Absent where it would be a guess.
        * at:    a sort key. Events inside a year are ordered by it, so a year with
@@ -35,8 +38,8 @@
        */
       timeline: [
         {
-          year: 1977, at: "1977", track: "obstruction",
-          label: "Exxon's own scientists brief management",
+          year: 1977, at: "1977", track: "propaganda", kind: "knew",
+          label: "Exxon's own scientists tell management the warming is real",
           detail: "Internal projections made between 1977 and 2003 put warming at 0.20 °C per decade, ±0.04. Reassessed in 2023, they scored an average of 72% against what actually happened — better than the projections James Hansen put before the US Congress in 1988.",
           source: "Supran, Rahmstorf & Oreskes, ‘Assessing ExxonMobil’s global warming projections’, Science 379 (2023).",
           url: "https://www.science.org/doi/10.1126/science.abk0063"
@@ -49,14 +52,14 @@
           url: "https://www.ipcc.ch/about/history/"
         },
         {
-          year: 1989, at: "1989", track: "obstruction",
-          label: "The Global Climate Coalition",
-          detail: "Exxon, Mobil, Chevron, BP, Shell and others form a body to resist limits on emissions.",
+          year: 1989, at: "1989", track: "propaganda", delay: "denial",
+          label: "Oil and coal companies set up a lobby and name it after the thing it fights",
+          detail: "Exxon, Mobil, Chevron, BP, Shell, car makers and coal and utility trade bodies fund a joint operation to block limits on emissions, and call it the “Global Climate Coalition”. The name is the first product: a lobby against climate policy, titled so that a headline quoting it reads like a climate body. It runs advertising and briefings against the treaty process until its members start leaving in the late 1990s.",
           source: "Union of Concerned Scientists, ‘The Climate Deception Dossiers’ / deception timeline.",
           url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
-          year: 1991, at: "1991", track: "obstruction", delay: "denial",
+          year: 1991, at: "1991", track: "propaganda", delay: "denial", technique: "thirdParty",
           label: "“Reposition global warming as theory (not fact)”",
           detail: "The stated goal of the Information Council for the Environment, funded by the National Coal Association, the Western Fuels Association and the Edison Electric Institute. The campaign ran from February to August 1991 and collapsed when its own memos leaked.",
           source: "Leaked ICE strategy documents, 1991; summarised by the Union of Concerned Scientists and DeSmog.",
@@ -69,23 +72,23 @@
           source: "UNFCCC, Kyoto Protocol, adopted 11 December 1997."
         },
         {
-          year: 1998, at: "1998", track: "obstruction", delay: "denial",
+          year: 1998, at: "1998", track: "propaganda", delay: "denial",
           label: "“Victory will be achieved when average citizens ‘understand’ uncertainties”",
           detail: "From the American Petroleum Institute's Global Climate Science Communications plan. The target is not the science. The target is how sure you feel.",
           source: "American Petroleum Institute, ‘Global Climate Science Communications Action Plan’, 1998; leaked and widely reproduced.",
           url: "https://www.climatefiles.com/trade-group/american-petroleum-institute/1998-global-climate-science-communications-team-action-plan/"
         },
         {
-          year: 2000, at: "2000-07", track: "obstruction",
-          label: "BP becomes “Beyond Petroleum”",
-          detail: "A rebrand of roughly $200 million under chief executive John Browne, with the agency Ogilvy & Mather. The creative team pitches the idea of a personal carbon calculator.",
+          year: 2000, at: "2000-07", track: "propaganda", delay: "fossilSolutionism",
+          label: "BP spends about $200 million rebranding itself away from oil",
+          detail: "Under chief executive John Browne, with the agency Ogilvy & Mather: a new sun logo, a green-and-yellow palette, and the line “Beyond Petroleum” — for a company whose business stayed oil and gas. The slogan is an advertising claim, not a description, and it is repeated here in quotation marks for that reason. Inside the same campaign, the creative team pitches the idea of a personal carbon calculator.",
           source: "OpenMind Magazine, ‘Are You a Climate Culprit?’, on the origin of the personal carbon footprint; BP campaign launched July 2000.",
           url: "https://www.openmindmag.org/articles/deconstructing-the-carbon-footprint"
         },
         {
-          year: 2004, at: "2004", track: "obstruction", delay: "individualism",
-          label: "BP puts a personal carbon footprint calculator at the centre of its advertising",
-          detail: "BP did not invent the phrase. It descends from the ecological footprint of William Rees and Mathis Wackernagel in the early 1990s, and Wackernagel has said he was “shocked about how they (craftily) slightly twisted our work”. What the money bought was not the word. It was the idea that the unit of the problem is one person.",
+          year: 2004, at: "2004", track: "propaganda", delay: "individualism",
+          label: "The responsibility is moved onto you: BP makes the footprint personal",
+          detail: "An oil company puts a personal carbon calculator at the centre of its advertising, and the question a reader is left holding changes from “who is producing this?” to “how much is mine?”. That substitution is the technique — redirect responsibility, in the taxonomy below — and it worked well enough that it is now the default way the whole subject is discussed, including on this page. BP did not invent the phrase: it descends from the ecological footprint of William Rees and Mathis Wackernagel in the early 1990s, and Wackernagel has said he was “shocked about how they (craftily) slightly twisted our work”. What the money bought was not the word. It was the idea that the unit of the problem is one person.",
           source: "OpenMind Magazine, ‘Are You a Climate Culprit?’; Conservation Law Foundation, ‘The Truth About Carbon Footprints’. Ecological footprint: Rees & Wackernagel, early 1990s.",
           url: "https://www.openmindmag.org/articles/deconstructing-the-carbon-footprint"
         },
@@ -103,7 +106,7 @@
           url: "https://www.nobelprize.org/prizes/peace/2007/press-release/"
         },
         {
-          year: 2007, at: "2007-b", track: "obstruction", delay: "denial",
+          year: 2007, at: "2007-b", track: "propaganda", delay: "denial", technique: "thirdParty",
           label: "Nearly $16 million to 43 groups",
           detail: "ExxonMobil's funding of organisations producing public confusion about the science, documented while the prize was being awarded.",
           source: "Union of Concerned Scientists, ‘Smoke, Mirrors & Hot Air’ (2007).",
@@ -128,7 +131,7 @@
           source: "UNFCCC, Paris Agreement, adopted 12 December 2015."
         },
         {
-          year: 2015, at: "2015-b", track: "obstruction", delay: "denial",
+          year: 2015, at: "2015-b", track: "propaganda", delay: "denial",
           label: "“The models simply are not that good”",
           detail: "ExxonMobil's chief executive, on the predictive reliability of climate models, thirty-eight years after his own company's scientists produced projections that would later score 72%.",
           source: "Rex Tillerson, ExxonMobil annual meeting, 2015; cited in the Union of Concerned Scientists deception timeline.",
@@ -191,14 +194,14 @@
           url: "https://partizipation.at/praxisbeispiele/lobau-bleibt/"
         },
         {
-          year: 2021, at: "2021-b", track: "obstruction", delay: "individualism",
+          year: 2021, at: "2021-b", track: "propaganda", delay: "individualism",
           label: "Denial becomes deflection, measured",
           detail: "A computational analysis of 180 ExxonMobil documents across fifty years finds the company using “fossil fuel” internally and “consumers”, “demand” and “energy efficiency” publicly — an individualised framing of both who caused this and who has to fix it.",
           source: "Supran & Oreskes, ‘Rhetoric and frame analysis of ExxonMobil’s climate change communications’, One Earth 4 (2021).",
           url: "https://www.cell.com/one-earth/fulltext/S2590-3322(21)00233-5"
         },
         {
-          year: 2023, at: "2023-12", track: "obstruction", delay: "fossilSolutionism",
+          year: 2023, at: "2023-12", track: "propaganda", delay: "fossilSolutionism",
           label: "COP28 is chaired by an oil chief executive",
           detail: "The summit is presided over by the head of the United Arab Emirates' state oil company. Analyses of industry and OPEC messaging around it describe an argument that has moved off the science entirely and onto pace, cost and who else should go first.",
           source: "COP28, Dubai, 30 November – 13 December 2023. Climate Action Against Disinformation, analysis of fossil fuel industry and OPEC messaging at COP28.",
@@ -226,9 +229,10 @@
           url: "https://orf.at/stories/3365771/"
         },
         {
-          year: 2024, at: "2024-04b", track: "obstruction",
-          label: "Two newspapers withdraw sponsored oil content",
-          detail: "The Financial Times and Reuters pull Saudi Aramco-sponsored climate material. The argument has moved into the space where journalism is paid for.",
+          year: 2024, at: "2024-04b", track: "propaganda",
+          technique: "placement",
+          label: "Oil money buys space inside the newspapers that cover it",
+          detail: "Saudi Aramco-sponsored climate material runs in the Financial Times and Reuters until both pull it in April 2024. Sponsored content is designed to be read with the credibility of the publication it sits in, which is what distinguishes it from an advertisement; that it had to be withdrawn is the reason this entry can be cited at all.",
           source: "DeSmog, 23 April 2024: ‘Financial Times, Reuters Pull Saudi Aramco-sponsored Climate Content’.",
           url: "https://www.desmog.com/2024/04/23/financial-times-reuters-pull-saudi-aramco-sponsored-climate-content/"
         },
@@ -322,6 +326,15 @@
         // Used by the timeline for the pre-delay era, which the taxonomy does not cover:
         // outright denial of the science is not a delay discourse, it is the thing that
         // came before them and stopped working.
+        /* Techniques the taxonomy does not cover, because it classifies what is said and
+         * these are about where it is said and who appears to be saying it. Kept separate
+         * rather than folded into the nearest discourse, which would be a guess. */
+        other: [
+          { id: "placement", label: "Paid placement",
+            note: "Buying space inside a publication so the argument is read with that publication's credibility rather than as an advertisement." },
+          { id: "thirdParty", label: "Third-party messengers",
+            note: "Funding institutes and coalitions to make the argument, so that it does not arrive with the producer's name on it." }
+        ],
         denial: { id: "denial", label: "Denial", color: "#8B5E3C",
           note: "Not one of the four — the taxonomy describes what replaced it. Outright denial of the science is the era from roughly 1989 to the mid-2000s, and it is over because it lost." }
       },

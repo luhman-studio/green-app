@@ -369,6 +369,11 @@
               '<span class="tl-label">' + esc(e.label) + "</span></summary>" +
               '<p class="tl-detail">' + esc(e.detail) + "</p>" +
               (tech ? '<p class="tl-tech"><span>technique</span> ' + esc(tech) + "</p>" : "") +
+              // The citation sits with the claim it supports. There is still a full list
+              // under the timeline, but a reader who opens one card should not have to go
+              // looking for the one line that tells them where it came from.
+              '<p class="tl-src"><span>source</span> ' +
+              (opts.cite ? opts.cite(e.source, e.url) : esc(e.source)) + "</p>" +
               "</details></div>";
           }).join("") + "</div></li>");
       });

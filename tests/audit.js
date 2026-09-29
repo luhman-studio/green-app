@@ -739,6 +739,13 @@ report("rebound is stated, never subtracted");
     ok("has a plausible year · " + where, Number.isInteger(e.year) && e.year >= 1950 && e.year <= THIS_YEAR);
     ok("has a label · " + where, typeof e.label === "string" && e.label.length > 3);
     ok("has a detail · " + where, typeof e.detail === "string" && e.detail.length > 20);
+    /* One standard for every card, because three of them used to fail it and a reader
+     * could not tell from the headline what had happened. */
+    ok("the headline is a clause, not a bare label · " + where, e.label.split(" ").length >= 6,
+       e.label);
+    ok("the detail says why it matters · " + where, /why it matters/i.test(e.detail),
+       e.detail.slice(0, 50));
+    ok("has somewhere to click · " + where, typeof e.url === "string" && e.url.indexOf("https://") === 0);
     // the whole point: no event is here because it is well known
     ok("cites a source · " + where, typeof e.source === "string" && e.source.length > 15);
     ok("is on a known track · " + where, ["propaganda", "movement", "landmark"].indexOf(e.track) >= 0);
@@ -832,8 +839,8 @@ report("rebound is stated, never subtracted");
     ok("not a bare homepage standing in for a citation · " + where,
        u.replace(/^https:\/\/[^/]+\//, "").length > 0 || /indicators\.climate/.test(u), u);
   });
-  ok("most of the timeline is clickable", C.timeline.filter((e) => e.url).length >= C.timeline.length * 0.7,
-     C.timeline.filter((e) => e.url).length + " of " + C.timeline.length);
+  ok("the whole timeline is clickable", C.timeline.every((e) => !!e.url),
+     C.timeline.filter((e) => !e.url).length + " without a link");
   ok("the taxonomy links the paper it is taken from", /cambridge\.org|doi/.test(C.delay.url || ""));
 
   /* The propaganda column, named. Two rules follow from calling it that:
@@ -846,13 +853,24 @@ report("rebound is stated, never subtracted");
     ok("names a technique, or is marked as evidence · " + e.year,
        !!e.delay || !!e.technique || e.kind === "knew", e.label.slice(0, 40));
   });
-  // Self-chosen names that read as their own opposite. They may appear in a detail, where
-  // there is room to say what the thing actually was; never as the headline of a row.
+  /* Self-chosen names that read as their own opposite. The earlier rule banned them from
+   * headlines outright, which was too blunt: "Oil and coal companies set up a lobby called
+   * 'Global Climate Coalition' that fights against climate policy" names the thing AND says
+   * what it did, and is clearer than hiding the name in the detail. The laundering happens
+   * when the name stands alone as a label. So the rule is now: if one of these appears in a
+   * headline, the headline must also say what the thing actually did.
+   */
   const LAUNDERED = ["Global Climate Coalition", "Beyond Petroleum", "Information Council for the Environment"];
+  const SAYS_WHAT_IT_DID = /fights?\b|fight\b|against|block|oppos|lobby|advertis|campaign|rebrand|reposition|doubt|deny|denial/i;
   C.timeline.forEach((e) => {
     LAUNDERED.forEach((name) => {
-      ok("a lobby's own name for itself is not the headline · " + e.year,
-         e.label.indexOf(name) < 0, name + " in: " + e.label);
+      if (e.label.indexOf(name) >= 0) {
+        ok("a lobby's own name is qualified where it is used · " + e.year,
+           SAYS_WHAT_IT_DID.test(e.label), e.label);
+        // and it appears as a name being reported, in quotation marks, not as plain prose
+        ok("the name is quoted, not asserted · " + e.year,
+           e.label.indexOf("\u201c" + name + "\u201d") >= 0, e.label);
+      }
     });
   });
 
@@ -862,8 +880,29 @@ report("rebound is stated, never subtracted");
   ok("the app admits its own frame", /BP/.test(C.ourselves.admission));
   ok("and does not claim to have fixed it", /1\.1/.test(C.ourselves.unresolved));
 
+  /* Villach is the starting line of the whole page, so it has to be on it. A timeline of
+   * climate propaganda that begins at the propaganda rather than at the science it was
+   * written against would be telling half the story. */
+  ok("the 1985 Villach conference is on the timeline",
+     C.timeline.some((e) => e.year === 1985 && /Villach/.test(e.label)));
+  ok("and the meta-silence has a place in the chronology, not only a card below it",
+     C.timeline.some((e) => /meta-silence/i.test(e.label)));
+  // Both tracks are sourced to the same standard. The movement side was the weaker half.
+  ["propaganda", "movement", "landmark"].forEach((track) => {
+    const rows = C.timeline.filter((e) => e.track === track);
+    ok("every " + track + " entry has a link", rows.every((e) => !!e.url),
+       rows.filter((e) => !e.url).map((e) => e.year).join(","));
+  });
+
   // Finally: the renderer draws every event exactly once, and one pill per distinct year.
-  const html = globalThis.GreenApp.chart.timeline({ events: C.timeline, ariaLabel: "x" });
+  const html = globalThis.GreenApp.chart.timeline({
+    events: C.timeline, ariaLabel: "x",
+    cite: (t, u) => (u ? '<a href="' + u + '">' + t + "</a>" : t)
+  });
+  // The citation is rendered inside the card, not only in the list underneath it.
+  ok("every card carries its own source line",
+     (html.match(/class="tl-src"/g) || []).length === C.timeline.length,
+     (html.match(/class="tl-src"/g) || []).length + " of " + C.timeline.length);
   const rows = (html.match(/class="tl-row /g) || []).length;
   const pills = (html.match(/class="tl-yearmark"/g) || []).length;
   ok("every event is drawn exactly once", rows === C.timeline.length, rows + " of " + C.timeline.length);

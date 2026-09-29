@@ -36,211 +36,247 @@
        * at:    a sort key. Events inside a year are ordered by it, so a year with
        *        several entries does not depend on array order to read correctly.
        */
+      /* ---------- the two tracks ----------
+       * track: "propaganda" above the axis, "movement" below it, "landmark" on it.
+       * kind:  optional. "knew" marks an entry that is evidence about the industry rather
+       *        than an act of persuasion by it — a column called propaganda must not quietly
+       *        relabel a research finding as a campaign.
+       * at:    a sort key. Events inside a year are ordered by it, so a year with
+       *        several entries does not depend on array order to read correctly.
+       *
+       * ONE STANDARD FOR EVERY ENTRY, and the audit checks it:
+       *   label  — who did what. A full clause that means something read on its own.
+       *            Not a bare name ("The Global Climate Coalition"), not a slogan
+       *            ("Beyond Petroleum"), not a figure with no subject ("Nearly $16 million
+       *            to 43 groups"). Each of those three was here, and each told a reader
+       *            nothing unless they already knew the story.
+       *   detail — what it consisted of, and then why it matters. Never only the first.
+       *   source — plus a url wherever one exists, shown inside the card, not only in a
+       *            list at the bottom, so the citation sits with the claim it supports.
+       */
       timeline: [
         {
           year: 1977, at: "1977", track: "propaganda", kind: "knew",
-          label: "Exxon's own scientists tell management the warming is real",
-          detail: "Internal projections made between 1977 and 2003 put warming at 0.20 °C per decade, ±0.04. Reassessed in 2023, they scored an average of 72% against what actually happened — better than the projections James Hansen put before the US Congress in 1988.",
+          label: "Exxon's own scientists tell management that burning fossil fuels will warm the planet",
+          detail: "Internal projections made between 1977 and 2003 put the warming at 0.20 °C per decade, give or take 0.04. Researchers scored them in 2023 against what actually happened: they averaged 72%, which is better than the projections James Hansen put before the US Congress in 1988. Why it matters: the company had this in-house, at this accuracy, before every campaign below it. Nothing that follows can be explained as an honest mistake.",
           source: "Supran, Rahmstorf & Oreskes, ‘Assessing ExxonMobil’s global warming projections’, Science 379 (2023).",
           url: "https://www.science.org/doi/10.1126/science.abk0063"
         },
         {
+          year: 1985, at: "1985", track: "landmark",
+          label: "Scientists meeting in Villach, Austria agree for the first time that greenhouse gases will warm the planet",
+          detail: "October 1985, convened by the UN Environment Programme, the World Meteorological Organization and the International Council of Scientific Unions. They concluded that the warming could be greater than any in human history, and that treating the climate as stable was “no longer a good assumption”. They also asked, for the first time, that scientists and policymakers work together on what to do about it. Why it matters: this is the starting line. It produced the Advisory Group on Greenhouse Gases, which the IPCC replaced in 1988 — and it happened in Austria, four years before the lobby in the next entry was founded.",
+          source: "International Science Council, ‘The origins of the IPCC: how the world woke up to climate change’, on the 1985 Villach conference and the Advisory Group on Greenhouse Gases.",
+          url: "https://council.science/blog/the-origins-of-the-ipcc-how-the-world-woke-up-to-climate-change/"
+        },
+        {
           year: 1988, at: "1988", track: "landmark",
-          label: "The IPCC is founded",
-          detail: "The same year Hansen tells the US Senate that warming is detectable. From here on, nobody making a public argument about this can claim the science did not exist.",
-          source: "IPCC, history. Hansen testimony to the US Senate Committee on Energy and Natural Resources, 23 June 1988.",
+          label: "The IPCC is founded, and a NASA scientist tells the US Senate the warming is already detectable",
+          detail: "James Hansen's testimony in June 1988 put it on the front pages; the World Meteorological Organization and UNEP set up the Intergovernmental Panel on Climate Change the same year. Why it matters: from this point on, nobody making a public argument about climate can claim the science was not available to them.",
+          source: "IPCC, history of the organisation; Hansen testimony to the US Senate Committee on Energy and Natural Resources, 23 June 1988.",
           url: "https://www.ipcc.ch/about/history/"
         },
         {
           year: 1989, at: "1989", track: "propaganda", delay: "denial",
-          label: "Oil and coal companies set up a lobby and name it after the thing it fights",
-          detail: "Exxon, Mobil, Chevron, BP, Shell, car makers and coal and utility trade bodies fund a joint operation to block limits on emissions, and call it the “Global Climate Coalition”. The name is the first product: a lobby against climate policy, titled so that a headline quoting it reads like a climate body. It runs advertising and briefings against the treaty process until its members start leaving in the late 1990s.",
-          source: "Union of Concerned Scientists, ‘The Climate Deception Dossiers’ / deception timeline.",
+          label: "Oil and coal companies set up a lobby called “Global Climate Coalition” that fights against climate policy",
+          detail: "Funded and staffed by Exxon, Mobil, Chevron, BP, Shell, car makers and coal and utility trade bodies. What it did: advertising and briefings against binding emissions limits, right through the negotiations that led to Kyoto. Why it matters: the name is the first product. A lobby against climate policy, titled so that any headline quoting it reads as though a climate body said it. Members began leaving in the late 1990s.",
+          source: "Union of Concerned Scientists, timeline of fossil fuel industry climate deception.",
           url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
           year: 1991, at: "1991", track: "propaganda", delay: "denial", technique: "thirdParty",
-          label: "“Reposition global warming as theory (not fact)”",
-          detail: "The stated goal of the Information Council for the Environment, funded by the National Coal Association, the Western Fuels Association and the Edison Electric Institute. The campaign ran from February to August 1991 and collapsed when its own memos leaked.",
+          label: "A coal and electricity campaign sets out, in writing, to “reposition global warming as theory (not fact)”",
+          detail: "The Information Council for the Environment, funded by the National Coal Association, the Western Fuels Association and the Edison Electric Institute. What it did: newspaper and radio advertising in selected test markets, fronted by a small number of contrarian scientists rather than by the funders. Why it matters: the quoted line is not a critic's characterisation — it is the campaign's own stated objective, from strategy documents that leaked. It ran from February to August 1991 and collapsed once they became public.",
           source: "Leaked ICE strategy documents, 1991; summarised by the Union of Concerned Scientists and DeSmog.",
           url: "https://en.wikipedia.org/wiki/Information_Council_for_the_Environment"
         },
         {
           year: 1997, at: "1997", track: "landmark",
-          label: "The Kyoto Protocol",
-          detail: "The first treaty with binding targets. The United States signs and does not ratify.",
-          source: "UNFCCC, Kyoto Protocol, adopted 11 December 1997."
+          label: "The Kyoto Protocol sets the first binding emissions targets, and the United States does not ratify it",
+          detail: "Adopted on 11 December 1997. Why it matters: this is the treaty the campaigns above and below were written against. The 1998 plan in the next entry names it.",
+          source: "UNFCCC, history of the Convention; Kyoto Protocol adopted 11 December 1997.",
+          url: "https://unfccc.int/process/the-convention/history-of-the-convention"
         },
         {
-          year: 1998, at: "1998", track: "propaganda", delay: "denial",
-          label: "“Victory will be achieved when average citizens ‘understand’ uncertainties”",
-          detail: "From the American Petroleum Institute's Global Climate Science Communications plan. The target is not the science. The target is how sure you feel.",
-          source: "American Petroleum Institute, ‘Global Climate Science Communications Action Plan’, 1998; leaked and widely reproduced.",
+          year: 1998, at: "1998", track: "propaganda", delay: "denial", technique: "thirdParty",
+          label: "The oil industry writes a plan to make the public feel unsure about the science, and defines that as winning",
+          detail: "The American Petroleum Institute's Global Climate Science Communications Action Plan, drafted by a team from oil companies and allied groups, in the year after Kyoto. What it proposed: recruit and train scientists who could brief journalists and teachers, set up a media centre to place them, and target science teachers and the press directly. How it defined success, in its own words: “victory will be achieved when average citizens ‘understand’ (recognize) uncertainties in climate science.” Why it matters: the goal is not to win the scientific argument or to change any measurement. It is to leave the public unsure enough that policy has no constituency. Doubt is the product, and the plan says so.",
+          source: "American Petroleum Institute, ‘Global Climate Science Communications Action Plan’, 1998; leaked and reproduced in full by Climate Files.",
           url: "https://www.climatefiles.com/trade-group/american-petroleum-institute/1998-global-climate-science-communications-team-action-plan/"
         },
         {
           year: 2000, at: "2000-07", track: "propaganda", delay: "fossilSolutionism",
-          label: "BP spends about $200 million rebranding itself away from oil",
-          detail: "Under chief executive John Browne, with the agency Ogilvy & Mather: a new sun logo, a green-and-yellow palette, and the line “Beyond Petroleum” — for a company whose business stayed oil and gas. The slogan is an advertising claim, not a description, and it is repeated here in quotation marks for that reason. Inside the same campaign, the creative team pitches the idea of a personal carbon calculator.",
-          source: "OpenMind Magazine, ‘Are You a Climate Culprit?’, on the origin of the personal carbon footprint; BP campaign launched July 2000.",
+          label: "BP spends about $200 million advertising itself as an energy company rather than an oil company",
+          detail: "Under chief executive John Browne, with the agency Ogilvy & Mather: a new sun logo, a green-and-yellow palette, and the line “Beyond Petroleum” — for a company whose business stayed oil and gas. Why it matters: the slogan is an advertising claim, not a description of what the company did, which is why it sits here in quotation marks and not in the headline. Inside the same campaign, the agency pitched the idea of a personal carbon calculator.",
+          source: "OpenMind Magazine, ‘Are You a Climate Culprit?’, on BP's rebrand and the origin of the personal carbon footprint.",
           url: "https://www.openmindmag.org/articles/deconstructing-the-carbon-footprint"
         },
         {
           year: 2004, at: "2004", track: "propaganda", delay: "individualism",
-          label: "The responsibility is moved onto you: BP makes the footprint personal",
-          detail: "An oil company puts a personal carbon calculator at the centre of its advertising, and the question a reader is left holding changes from “who is producing this?” to “how much is mine?”. That substitution is the technique — redirect responsibility, in the taxonomy below — and it worked well enough that it is now the default way the whole subject is discussed, including on this page. BP did not invent the phrase: it descends from the ecological footprint of William Rees and Mathis Wackernagel in the early 1990s, and Wackernagel has said he was “shocked about how they (craftily) slightly twisted our work”. What the money bought was not the word. It was the idea that the unit of the problem is one person.",
+          label: "BP promotes the concept of the carbon footprint to move the responsibility for action from organisations to individuals",
+          detail: "An oil company put a personal carbon footprint calculator at the centre of its advertising and invited the public to work out their own. What changed: the question a reader is left holding moves from “who is producing this?” to “how much of it is mine?”. Why it matters: BP did not invent the phrase — it descends from the ecological footprint of William Rees and Mathis Wackernagel in the early 1990s, and Wackernagel has said he was “shocked about how they (craftily) slightly twisted our work”. What the money bought was not the word but the idea that the unit of the problem is one person. It worked well enough that it is now the default way the whole subject is discussed, including on this page.",
           source: "OpenMind Magazine, ‘Are You a Climate Culprit?’; Conservation Law Foundation, ‘The Truth About Carbon Footprints’. Ecological footprint: Rees & Wackernagel, early 1990s.",
           url: "https://www.openmindmag.org/articles/deconstructing-the-carbon-footprint"
         },
         {
           year: 2006, at: "2006", track: "movement",
-          label: "An Inconvenient Truth",
-          detail: "Climate change gets a mass audience for the first time, and with it a politics.",
-          source: "Released May 2006, following its Sundance premiere in January."
+          label: "Al Gore's film An Inconvenient Truth brings climate change to a mass audience for the first time",
+          detail: "A filmed version of a slideshow Gore had given for years, released in May 2006 after premiering at Sundance in January. Why it matters: it made the subject sayable in ordinary conversation — and, in the United States, party-political at the same time. Both effects outlast the film.",
+          source: "An Inconvenient Truth (2006), directed by Davis Guggenheim; released May 2006.",
+          url: "https://en.wikipedia.org/wiki/An_Inconvenient_Truth"
         },
         {
           year: 2007, at: "2007-a", track: "movement",
-          label: "The Nobel Peace Prize goes to the IPCC and Al Gore",
-          detail: "In the same year as the IPCC's Fourth Assessment Report. This is the high-water mark of the argument being settled in public by evidence.",
-          source: "Norwegian Nobel Committee, Peace Prize 2007; IPCC Fourth Assessment Report, 2007.",
+          label: "The Nobel Peace Prize goes jointly to the IPCC and Al Gore",
+          detail: "Awarded in the same year as the IPCC's Fourth Assessment Report. Why it matters: it is the high-water mark of the argument being settled in public by evidence — and, as the next entry shows, the same year in which the funding of organisations paid to unsettle it was being documented.",
+          source: "Norwegian Nobel Committee, Nobel Peace Prize 2007, press release; IPCC Fourth Assessment Report, 2007.",
           url: "https://www.nobelprize.org/prizes/peace/2007/press-release/"
         },
         {
           year: 2007, at: "2007-b", track: "propaganda", delay: "denial", technique: "thirdParty",
-          label: "Nearly $16 million to 43 groups",
-          detail: "ExxonMobil's funding of organisations producing public confusion about the science, documented while the prize was being awarded.",
-          source: "Union of Concerned Scientists, ‘Smoke, Mirrors & Hot Air’ (2007).",
+          label: "ExxonMobil is found to have paid nearly $16 million to 43 organisations that cast doubt on climate science",
+          detail: "Researchers at the Union of Concerned Scientists tracked the company's funding between 1998 and 2005 to think tanks and advocacy groups publishing and briefing against the science. Why it matters: this is the third-party messenger technique doing its work. The argument reaches a reader from an institute with a neutral-sounding name, not from an oil company, so it arrives looking independent. The method was borrowed from the tobacco industry.",
+          source: "Union of Concerned Scientists, ‘Smoke, Mirrors & Hot Air’ (2007), on ExxonMobil's funding of climate contrarian organisations 1998–2005.",
           url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
           year: 2008, at: "2008", track: "movement",
-          label: "350.org",
-          detail: "A movement named after a number — 350 parts per million — on the argument that a target you can say out loud is worth more than a report nobody reads.",
-          source: "350.org founded 2008 by Bill McKibben and a group of students at Middlebury College."
+          label: "Bill McKibben and a group of students found 350.org and name a movement after a number",
+          detail: "350 parts per million of CO₂, the level the movement argued was the safe upper bound. Why it matters: a target you can say out loud in one breath travels further than an assessment report. It is the same reasoning behind the 2.5 t figure this app compares you against — and the same risk, that a single number gets treated as the whole argument.",
+          source: "350.org, founded 2008 by Bill McKibben with students at Middlebury College.",
+          url: "https://en.wikipedia.org/wiki/Bill_McKibben"
         },
         {
           year: 2009, at: "2009", track: "movement",
-          label: "Copenhagen ends without a binding agreement",
-          detail: "Three weeks before it opens, stolen emails from the University of East Anglia are published as “Climategate”. Multiple independent inquiries afterwards find no evidence of scientific misconduct. The story dominates the summit anyway.",
-          source: "COP15, December 2009. Independent reviews 2010, including the Muir Russell and Oxburgh inquiries, found no evidence of scientific misconduct."
+          label: "The Copenhagen summit ends without a binding agreement, three weeks after “Climategate” breaks",
+          detail: "Stolen emails from the University of East Anglia were published in November 2009 and presented as evidence that the science was fixed. Multiple independent inquiries afterwards found no evidence of scientific misconduct — but they reported after the summit had ended. Why it matters: it is the clearest demonstration on this page of how much cheaper doubt is than agreement. The story needed three weeks; the rebuttals needed a year.",
+          source: "COP15, Copenhagen, 7–19 December 2009 (IISD Earth Negotiations Bulletin summary); independent reviews in 2010 cleared the scientists involved.",
+          url: "https://enb.iisd.org/copenhagen-climate-change-conference-cop15/summary-report"
+        },
+        {
+          year: 2014, at: "2014", track: "landmark",
+          label: "George Marshall names the meta-silence: we do not talk about it, and we do not talk about not talking about it",
+          detail: "In Don't Even Think About It (2014), Marshall reports that about a quarter of people have never discussed climate change with anyone at all, and argues that the most influential climate narrative is the absence of one. He calls the second layer a “meta-silence” — the silence about the silence. Why it matters: none of the campaigns in the left-hand column had to manufacture this. They only had to protect it. And it is what the wave of 2018 and 2019 actually broke. The card below the timeline has the rest.",
+          source: "George Marshall, Don't Even Think About It: Why Our Brains Are Wired to Ignore Climate Change (2014), chapter 17.",
+          url: "https://theclimatecenter.org/wp-content/uploads/2017/03/final_Dont-Even-Think-About-It-Notes.pdf"
         },
         {
           year: 2015, at: "2015", track: "landmark",
-          label: "The Paris Agreement",
-          detail: "Adopted 12 December 2015. Note what it does not contain: any per-person figure. Every personal “Paris target” you will ever see, including the one this app uses, is somebody's modelling of what Paris implies.",
-          source: "UNFCCC, Paris Agreement, adopted 12 December 2015."
+          label: "The Paris Agreement is adopted, and contains no figure for any individual person",
+          detail: "Adopted on 12 December 2015, with a goal expressed as degrees of global warming. Why it matters: every personal “Paris target” you will ever be shown — including the 2.5 t this app measures you against — is somebody's modelling of what the agreement implies for one person. It is a derived number, not a treaty obligation, and anyone presenting it as the latter is overstating it.",
+          source: "UNFCCC, Paris Agreement, adopted 12 December 2015; history of the Convention.",
+          url: "https://unfccc.int/process/the-convention/history-of-the-convention"
         },
         {
           year: 2015, at: "2015-b", track: "propaganda", delay: "denial",
-          label: "“The models simply are not that good”",
-          detail: "ExxonMobil's chief executive, on the predictive reliability of climate models, thirty-eight years after his own company's scientists produced projections that would later score 72%.",
+          label: "ExxonMobil's chief executive tells shareholders that climate models “simply are not that good”",
+          detail: "Rex Tillerson at the company's annual meeting, on the reliability of model predictions — thirty-eight years after his own company's scientists produced projections that would later be scored at 72% against observed warming. Why it matters: by 2015 flat denial had mostly stopped working in public, but doubt about the models was still worth asserting, by the company that had built some of the best ones.",
           source: "Rex Tillerson, ExxonMobil annual meeting, 2015; cited in the Union of Concerned Scientists deception timeline.",
           url: "https://www.ucs.org/resources/tweet-story-fossil-fuel-industrys-climate-deception"
         },
         {
           year: 2018, at: "2018-08", track: "movement",
-          label: "One schoolgirl, one sign, outside a parliament",
-          detail: "Greta Thunberg begins striking outside the Swedish parliament on 20 August 2018, and keeps going on Fridays.",
-          source: "Fridays for Future; first strike 20 August 2018.",
+          label: "Greta Thunberg begins the school strike that becomes Fridays for Future",
+          detail: "From 20 August 2018 she sat outside the Swedish parliament during school hours, at first alone, then every Friday — which is where the movement's name comes from. Why it matters: it needed no organisation, no budget and no permission, and within seven months it had produced the largest climate demonstrations in history. See the 2019 entries.",
+          source: "Fridays for Future: first strike 20 August 2018, Stockholm.",
           url: "https://en.wikipedia.org/wiki/Fridays_for_Future"
         },
         {
           year: 2018, at: "2018-10a", track: "landmark",
-          label: "The IPCC's 1.5 °C report",
-          detail: "Published 8 October 2018. It is the document that turns a distant target into a deadline, and it is what most of what follows is arguing about.",
+          label: "The IPCC's special report on 1.5 °C turns a distant target into a deadline",
+          detail: "Published on 8 October 2018, it set out what separates 1.5 °C from 2 °C and what staying below it would require by 2030. Why it matters: almost everything after this date, in both columns, is an argument about that report. The 2030 date this app uses comes from the same framing.",
           source: "IPCC, Special Report on Global Warming of 1.5 °C, 8 October 2018.",
           url: "https://www.ipcc.ch/sr15/"
         },
         {
           year: 2018, at: "2018-10b", track: "movement",
-          label: "Extinction Rebellion declares",
-          detail: "Founded in May 2018, XR reads its Declaration of Rebellion outside the UK parliament on 31 October. Its first demand is not a policy. It is “tell the truth”.",
+          label: "Extinction Rebellion launches with a Declaration of Rebellion outside the UK parliament",
+          detail: "Founded in May 2018 and declared publicly on 31 October. Its three demands are: tell the truth, act now, and be led by a citizens' assembly. Why it matters: the first demand is not a policy. It is a demand about the silence.",
           source: "Extinction Rebellion, Declaration of Rebellion, 31 October 2018.",
           url: "https://en.wikipedia.org/wiki/Extinction_Rebellion"
         },
         {
           year: 2019, at: "2019-03", track: "movement",
-          label: "1.4 million people, 125 countries",
-          detail: "The first global school strike, 15 March 2019: about 2,200 events. By 20 September the figure is over four million people in 4,500 places across 150 countries.",
-          source: "Fridays for Future participation figures, 15 March and 20 September 2019.",
+          label: "Fridays for Future puts 1.4 million people on the street in 125 countries in a single day",
+          detail: "15 March 2019, about 2,200 events. By 20 September the figure was over four million people in 4,500 places across 150 countries. Why it matters: these are the largest climate demonstrations ever held, and they were organised by school students seven months after one of them sat down alone.",
+          source: "Fridays for Future participation figures for 15 March and 20 September 2019.",
           url: "https://en.wikipedia.org/wiki/Fridays_for_Future"
         },
         {
           year: 2019, at: "2019-04", track: "movement",
-          label: "1,130 arrests in central London",
-          detail: "XR occupies Piccadilly Circus, Oxford Circus, Marble Arch, Waterloo Bridge and Parliament Square for eleven days in April 2019.",
-          source: "Extinction Rebellion April 2019 protests; Metropolitan Police arrest figures.",
+          label: "Extinction Rebellion blocks five sites in central London and 1,130 people are arrested",
+          detail: "Eleven days in April 2019 at Piccadilly Circus, Oxford Circus, Marble Arch, Waterloo Bridge and Parliament Square. Why it matters: the arrests were the point, not a side-effect — the tactic is to make the silence expensive enough to end. Whether it recruits or repels is genuinely contested, and this page does not settle it.",
+          source: "Extinction Rebellion, April 2019 London protests; Metropolitan Police arrest figures.",
           url: "https://en.wikipedia.org/wiki/Extinction_Rebellion"
         },
         {
           year: 2019, at: "2019-12", track: "movement",
-          label: "A supreme court orders a government to cut emissions",
-          detail: "The Dutch Supreme Court upholds the Urgenda ruling on 20 December 2019 — the first time a court anywhere ordered a state to reduce emissions faster on human-rights grounds.",
+          label: "The Dutch Supreme Court orders its own government to cut emissions faster",
+          detail: "The Urgenda judgment of 20 December 2019 upheld an order requiring the Netherlands to cut emissions by at least 25% by 2020 against 1990. Why it matters: it is the first time a court anywhere required a state to raise its climate ambition, and it did so on human-rights grounds — the route the 2024 and 2025 entries below then take.",
           source: "State of the Netherlands v Stichting Urgenda, Supreme Court of the Netherlands, 20 December 2019 (19/00135).",
           url: "https://en.wikipedia.org/wiki/Urgenda_Foundation_v_State_of_the_Netherlands"
         },
         {
           year: 2020, at: "2020-06", track: "movement",
-          label: "Austria: 380,590 signatures",
-          detail: "The Klimavolksbegehren, 22–29 June 2020: 5.96% of the electorate, the 21st-largest of all Austrian Volksbegehren. Parliament responds in March 2021 by setting up a citizens' climate council.",
-          source: "Klimavolksbegehren, Eintragungswoche 22–29 June 2020: 380,590 signatures, 5.96% of eligible voters; Nationalrat resolution, March 2021.",
+          label: "380,590 people in Austria sign the Klimavolksbegehren",
+          detail: "Signed during the registration week of 22–29 June 2020: 5.96% of the electorate, the 21st-largest of all Austrian Volksbegehren. Why it matters: parliament responded in March 2021 by asking the government to act on it and setting up a citizens' climate council, whose recommendations covered energy, consumption, food, housing and mobility. It is the clearest Austrian example on this page of the route that does not run through anybody's shopping.",
+          source: "Klimavolksbegehren, registration week 22–29 June 2020: 380,590 signatures, 5.96% of eligible voters; Nationalrat resolution, March 2021.",
           url: "https://de.wikipedia.org/wiki/Klimavolksbegehren"
         },
         {
           year: 2021, at: "2021-08", track: "movement",
-          label: "Austria: Lobau bleibt",
-          detail: "Occupations of motorway construction sites in Vienna from 27 August 2021. On 1 December the transport minister cancels the S1 Lobau motorway. The camps are cleared on 1 February and 5 April 2022; the approval and expropriation proceedings continue.",
+          label: "Activists occupy Vienna motorway construction sites for five months as “Lobau bleibt”",
+          detail: "Camps from 27 August 2021 on sites for the S1 Lobau motorway and the Stadtstraße. On 1 December 2021 the transport minister cancelled the S1 Lobau motorway. The camps were cleared on 1 February and 5 April 2022, and the approval and expropriation proceedings continue. Why it matters: a cancelled motorway is a large, permanent, collective emissions decision — the kind no lever on the Potential tab can reach.",
           source: "partizipation.at case study, ‘Lobau bleibt!’; ministerial decision on the S1 Lobau-Autobahn, 1 December 2021.",
           url: "https://partizipation.at/praxisbeispiele/lobau-bleibt/"
         },
         {
           year: 2021, at: "2021-b", track: "propaganda", delay: "individualism",
-          label: "Denial becomes deflection, measured",
-          detail: "A computational analysis of 180 ExxonMobil documents across fifty years finds the company using “fossil fuel” internally and “consumers”, “demand” and “energy efficiency” publicly — an individualised framing of both who caused this and who has to fix it.",
+          label: "Exxon's public language is shown to have moved from “fossil fuels” to “consumers”, and researchers measure the switch",
+          detail: "Supran and Oreskes ran a computational analysis of 180 ExxonMobil documents spanning fifty years. What they found: internal documents discuss fossil fuels; public ones discuss “consumers”, “demand” and “energy efficiency”, and speak of risk rather than harm. Why it matters: this is the shift from denial to deflection, measured rather than asserted — an individualised framing of both who caused the problem and who is supposed to fix it.",
           source: "Supran & Oreskes, ‘Rhetoric and frame analysis of ExxonMobil’s climate change communications’, One Earth 4 (2021).",
           url: "https://www.cell.com/one-earth/fulltext/S2590-3322(21)00233-5"
         },
         {
           year: 2023, at: "2023-12", track: "propaganda", delay: "fossilSolutionism",
-          label: "COP28 is chaired by an oil chief executive",
-          detail: "The summit is presided over by the head of the United Arab Emirates' state oil company. Analyses of industry and OPEC messaging around it describe an argument that has moved off the science entirely and onto pace, cost and who else should go first.",
+          label: "COP28 is presided over by the chief executive of the United Arab Emirates' state oil company",
+          detail: "Sultan Al Jaber, head of ADNOC, chaired the summit in Dubai from 30 November to 13 December 2023. Why it matters: analyses of industry and OPEC messaging around the summit describe an argument that has left the science entirely alone and moved onto pace, cost and who should go first. That is the whole of the delay taxonomy below, in place of denial.",
           source: "COP28, Dubai, 30 November – 13 December 2023. Climate Action Against Disinformation, analysis of fossil fuel industry and OPEC messaging at COP28.",
           url: "https://caad.info/analysis/briefings/analysis-of-fossil-fuel-industry-opec-disinformation-strategy-at-cop28/"
         },
         {
           year: 2024, at: "2024-04", track: "movement",
-          label: "A human-rights court rules on climate",
-          detail: "In KlimaSeniorinnen v Switzerland, 9 April 2024, the European Court of Human Rights finds that inadequate climate policy can breach the Convention. Brought by a group of older Swiss women.",
-          source: "Verein KlimaSeniorinnen Schweiz and Others v Switzerland, ECtHR Grand Chamber, 9 April 2024.",
+          label: "The European Court of Human Rights rules that inadequate climate policy can breach human rights",
+          detail: "KlimaSeniorinnen v Switzerland, decided by the Grand Chamber on 9 April 2024 and brought by an association of older Swiss women who argued that heatwaves put them specifically at risk. Why it matters: it binds 46 countries, Austria included, and it turns climate policy into something a citizen can litigate rather than only vote on.",
+          source: "Verein KlimaSeniorinnen Schweiz and Others v Switzerland, European Court of Human Rights, Grand Chamber, 9 April 2024.",
           url: "https://en.wikipedia.org/wiki/Verein_KlimaSeniorinnen_Schweiz_v._Switzerland"
         },
         {
-          year: 2024, at: "2024-05", track: "movement",
-          label: "Austria: a complaint against OMV",
-          detail: "Greenpeace in Central and Eastern Europe and Fridays for Future Österreich file an OECD Guidelines complaint against OMV on 21 May 2024 over gas expansion and environmental due diligence. OMV's lobbying is separately tracked on InfluenceMap's LobbyMap.",
-          source: "OECD Watch: Greenpeace CEE and Fridays for Future Austria vs OMV Aktiengesellschaft, filed 21 May 2024; InfluenceMap LobbyMap entry for OMV.",
-          url: "https://www.oecdwatch.org/complaint/greenpeace-in-zentral-und-osteuropa-and-fridays-for-future-austria-vs-omv-aktiengesellschaft/"
-        },
-        {
-          year: 2024, at: "2024-08", track: "movement",
-          label: "Austria: Letzte Generation stops",
-          detail: "After road blockades from 2022, the Austrian group ends its protests on 6 August 2024, saying it sees “keine Perspektive für Erfolg” — no prospect of success. Movements are not a ratchet. They can also stop.",
-          source: "ORF, 6 August 2024: Letzte Generation Österreich beendet Klimaproteste.",
-          url: "https://orf.at/stories/3365771/"
-        },
-        {
-          year: 2024, at: "2024-04b", track: "propaganda",
-          technique: "placement",
-          label: "Oil money buys space inside the newspapers that cover it",
-          detail: "Saudi Aramco-sponsored climate material runs in the Financial Times and Reuters until both pull it in April 2024. Sponsored content is designed to be read with the credibility of the publication it sits in, which is what distinguishes it from an advertisement; that it had to be withdrawn is the reason this entry can be cited at all.",
+          year: 2024, at: "2024-04b", track: "propaganda", technique: "placement",
+          label: "Saudi Aramco pays for climate content published inside the Financial Times and Reuters",
+          detail: "Sponsored material carrying the oil company's framing ran in both outlets until they withdrew it in April 2024. Why it matters: sponsored content is built to be read with the credibility of the publication carrying it, which is exactly what separates it from an advertisement. This entry is citable only because it had to be pulled — the placements that are never withdrawn leave no trace like this one.",
           source: "DeSmog, 23 April 2024: ‘Financial Times, Reuters Pull Saudi Aramco-sponsored Climate Content’.",
           url: "https://www.desmog.com/2024/04/23/financial-times-reuters-pull-saudi-aramco-sponsored-climate-content/"
         },
         {
+          year: 2024, at: "2024-05", track: "movement",
+          label: "Greenpeace and Fridays for Future Österreich file a formal complaint against OMV",
+          detail: "Lodged on 21 May 2024 under the OECD Guidelines for Multinational Enterprises, arguing that OMV's expansion of gas production and exploration — the Neptun Deep project in the Black Sea in particular — fails the environmental due diligence the Guidelines require. OMV's climate lobbying is separately tracked on InfluenceMap's LobbyMap. Why it matters: the left-hand column of this timeline is not only American history.",
+          source: "OECD Watch: Greenpeace in Central and Eastern Europe and Fridays for Future Austria vs OMV Aktiengesellschaft, filed 21 May 2024; InfluenceMap LobbyMap entry for OMV.",
+          url: "https://www.oecdwatch.org/complaint/greenpeace-in-zentral-und-osteuropa-and-fridays-for-future-austria-vs-omv-aktiengesellschaft/"
+        },
+        {
+          year: 2024, at: "2024-08", track: "movement",
+          label: "Letzte Generation Österreich ends its protests, saying it sees no prospect of success",
+          detail: "Announced on 6 August 2024 after two years of road blockades, paint actions and marches. The group said the government had shown “complete incompetence” and that society had decided for fossil denial. Why it matters: it is the one entry in this column that goes backwards, and it is here for that reason. Movements are not a ratchet. What this one gave up on was not the physics.",
+          source: "ORF, 6 August 2024: ‘Letzte Generation’ beendet Klimaproteste.",
+          url: "https://orf.at/stories/3365771/"
+        },
+        {
           year: 2025, at: "2025-07", track: "landmark",
-          label: "The World Court answers",
-          detail: "On 23 July 2025 the International Court of Justice issues a unanimous advisory opinion — the fifth unanimous opinion in its 88-year history — finding that states have binding obligations to limit warming to 1.5 °C and can be liable for climate harm. It began as a campaign by Pacific Island students, taken up by Vanuatu.",
-          source: "ICJ, Obligations of States in respect of Climate Change, advisory opinion, 23 July 2025; requested by UN General Assembly resolution of 29 March 2023 with 105 co-sponsors.",
+          label: "The International Court of Justice rules unanimously that states are legally obliged to limit warming to 1.5 °C",
+          detail: "The advisory opinion of 23 July 2025 — only the fifth unanimous opinion in the court's 88-year history — found that states can be held responsible for climate harm, that 1.5 °C rather than 2 °C is the reference point, and that the obligation arises from customary international law and human rights law, not only from the Paris Agreement. It began as a campaign by Pacific Island law students, taken up by Vanuatu and put to the General Assembly with 105 co-sponsors. Why it matters: forty years after Villach, the same conclusion is now a legal obligation rather than a recommendation.",
+          source: "International Court of Justice, Obligations of States in respect of Climate Change, advisory opinion, 23 July 2025; requested by UN General Assembly resolution of 29 March 2023.",
           url: "https://www.carbonbrief.org/icj-what-the-world-courts-landmark-opinion-means-for-climate-change"
         }
       ],

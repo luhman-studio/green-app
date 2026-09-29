@@ -259,35 +259,28 @@
          Nothing here is about the reader's own number. It is the one tab that would
          still be worth reading by someone who never answers a question. -->
     <section id="panelContext" role="tabpanel" aria-labelledby="tabContext" hidden>
+      <!-- The intro is a hero, not a card of body text: eyebrow, headline, one sentence,
+           then the chips. It was laid out as an ordinary card and read as a paragraph
+           someone forgot to finish. -->
       <div class="card ctx-intro">
-        <div class="eyebrow">Context</div>
+        <div class="eyebrow">Context · nothing on this page is about your own number</div>
         <h2 class="ctx-h">Why this took fifty years to become sayable</h2>
-        <p class="layer2" id="ctxLead"></p>
+        <p class="ctx-lead" id="ctxLead"></p>
         <ul class="flags" id="ctxFlags"></ul>
       </div>
 
       <div class="card">
         <div class="card-title">Two things happening at once</div>
-        <p class="layer2">On one side, fifty years of paid persuasion. On the other, people trying to make it impossible to ignore. Tap any line to see what was done and what it is called.</p>
+        <p class="layer2">On one side, fifty years of paid persuasion. On the other, people trying to make it impossible to ignore. Tap any line to see what was done, what the technique is called, and where it is documented.</p>
         <div id="ctxTimeline"></div>
         <p class="muted small" id="ctxTimelineNote"></p>
-        <details class="fold"><summary>Where every one of these comes from</summary>
+        <details class="fold"><summary>Every source on this timeline, in one list</summary>
           <div id="ctxSources"></div>
         </details>
       </div>
 
-      <div class="card">
-        <div class="card-title">Four ways to say no without saying no</div>
-        <p class="layer2" id="ctxDelayLead"></p>
-        <div class="ctx-delay" id="ctxDelay"></div>
-        <p class="muted small" id="ctxDelayNote"></p>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Three claims, taken apart</div>
-        <div id="ctxClaims"></div>
-      </div>
-
+      <!-- The silence card follows the timeline directly, because the 2014 entry in the
+           timeline points at it and a reader who taps that entry should find it next. -->
       <div class="card">
         <div class="card-title">The quieter half: what the movements actually broke</div>
         <ul class="flags" id="ctxSilenceFlags"></ul>
@@ -295,8 +288,22 @@
         <div id="ctxSilence"></div>
       </div>
 
+      <div class="card">
+        <div class="card-title">Four ways to say no without saying no</div>
+        <ul class="flags" id="ctxDelayFlags"></ul>
+        <p class="layer2" id="ctxDelayLead"></p>
+        <div class="ctx-delay" id="ctxDelay"></div>
+        <p class="muted small" id="ctxDelayNote"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Claims that are propaganda — taken apart</div>
+        <p class="layer2" id="ctxClaimsLead"></p>
+        <div id="ctxClaims"></div>
+      </div>
+
       <div class="card ctx-self">
-        <div class="card-title">This page is about this app too</div>
+        <div class="card-title">Disclaimer</div>
         <div id="ctxSelf"></div>
       </div>
     </section>

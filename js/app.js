@@ -1621,6 +1621,7 @@
       $("ctxTimeline").innerHTML = G.chart.timeline({
         events: C.timeline,
         moveLabel: moveLabel,
+        cite: cite,
         ariaLabel: "Fifty years of fossil fuel propaganda and the climate movement, as two tracks"
       });
       var nOb = C.timeline.filter(function (e) { return e.track === "propaganda"; }).length,
@@ -1633,9 +1634,9 @@
         '<br><span class="muted">Calling that column <em>fossil fuel propaganda</em> is a judgement, and the app is making it rather than ' +
         "hiding behind a softer word. What backs it: every entry there is either a paid campaign, a funded messenger or a company's own " +
         "public statement, each with a technique named and a source attached — and the one entry that is a research finding rather than " +
-        "an act of persuasion is marked <em>what they knew</em> instead. Where a lobby chose its own name, that name is in the detail so " +
-        "you can look it up, never in the headline: a group calling itself a climate coalition to fight climate policy is the technique, " +
-        "not a label to repeat.</span>";
+        "an act of persuasion is marked <em>what they knew</em> instead. Where a lobby chose its own name for itself, that name is quoted " +
+        "and the row says in the same breath what the thing actually did. A group calling itself a climate coalition in order to fight " +
+        "climate policy is the technique; repeating the name on its own would be finishing the job for them.</span>";
 
       var linked = C.timeline.filter(function (e) { return e.url; }).length;
       $("ctxSources").innerHTML =
@@ -1648,9 +1649,18 @@
 
       // --- the taxonomy. The four questions are the thing worth remembering, so they are
       // the only part that is always on screen; the twelve moves are one tap under each.
-      $("ctxDelayLead").innerHTML = "Outright denial is over, and it is over because it lost. What replaced it is better: " +
-        "four ways of answering “no” that never have to contradict a single measurement. " +
-        "The classification below is from a peer-reviewed paper, not from this app.";
+      $("ctxDelayFlags").innerHTML = flagRow([
+        ["propaganda techniques", "flag-warn"],
+        ["from a peer-reviewed paper", "flag-ok"],
+        ["twelve of them", "flag-derived"]
+      ]);
+      $("ctxDelayLead").innerHTML =
+        "<strong>These are the techniques that replaced denial.</strong> Once flat denial stopped working in public — " +
+        "roughly the point the timeline above reaches in the mid-2000s — the argument moved to a set of moves that never " +
+        "have to contradict a single measurement. They accept the science and still arrive at: not now, not us, not like this. " +
+        "Researchers catalogued twelve of them, in four groups, and every group is defined by the question it quietly answers " +
+        "<em>no</em> to. Learn the four questions and you can classify an argument you have never seen before, which is the " +
+        "reason this card exists and the reason it is not a list of quotes.";
       $("ctxDelay").innerHTML = C.delay.groups.map(function (g) {
         return '<div class="ctx-group" style="--g:' + g.color + '">' +
           '<div class="ctx-group-head"><span class="ctx-group-n">' + esc(g.label) + "</span>" +
@@ -1667,16 +1677,23 @@
         '<br><span class="muted">' + esc(C.delay.why) + " " + cite(C.delay.whySource, C.delay.whyUrl) + "</span>";
 
       // --- the three claims
+      $("ctxClaimsLead").innerHTML = "Three arguments you have met. None of them is invented out of nothing — " +
+        "two are built on something true, which is what makes them work. Open one to see where the true part stops.";
+      /* One card per claim, closed by default. Three claims laid out flat was most of a
+       * screen of text before a reader had decided they cared about any of them. */
       $("ctxClaims").innerHTML = C.claims.map(function (c) {
-        return '<div class="ctx-claim">' +
-          '<div class="ctx-claim-head">' + esc(c.claim) +
-          '<span class="flag ' + (c.status === "false" ? "flag-warn" : "flag-derived") + '">' + esc(c.statusLabel) + "</span></div>" +
+        return '<details class="ctx-claim ctx-claim-' + esc(c.status) + '">' +
+          "<summary>" +
+          '<span class="ctx-claim-head">' + esc(c.claim) + "</span>" +
+          '<span class="flag ' + (c.status === "false" ? "flag-warn" : "flag-derived") + '">' + esc(c.statusLabel) + "</span>" +
+          "</summary>" +
+          '<div class="ctx-claim-body">' +
           '<p class="ctx-true"><b>True:</b> ' + esc(c.truth) + "</p>" +
           '<p class="ctx-rest"><b>' + (c.status === "false" ? "And:" : "And then the sentence stops:") + "</b> " + esc(c.rest) + "</p>" +
-          '<p class="ctx-move-note"><b>The move:</b> ' + esc(moveLabel(c.move)) + " — " + esc(c.moveNote) + "</p>" +
+          '<p class="ctx-move-note"><b>The technique:</b> ' + esc(moveLabel(c.move)) + " — " + esc(c.moveNote) + "</p>" +
           '<ul class="ctx-sources"><li class="ctx-sources-h">Check it:</li>' +
           c.sources.map(function (x) { return "<li>" + cite(x.text, x.url) + "</li>"; }).join("") + "</ul>" +
-          "</div>";
+          "</div></details>";
       }).join("");
 
       // --- the silence
@@ -1691,7 +1708,7 @@
       // --- and the part about this app
       var O = C.ourselves;
       $("ctxSelf").innerHTML =
-        '<p class="layer2"><strong>' + esc(O.admission) + "</strong></p>" +
+        '<p class="ctx-lead"><strong>' + esc(O.admission) + "</strong></p>" +
         "<p>" + esc(O.text) + "</p>" +
         "<ul class=\"ctx-defences\">" + O.defences.map(function (d) { return "<li>" + esc(d) + "</li>"; }).join("") + "</ul>" +
         '<p class="ctx-caveat">' + esc(O.unresolved) + "</p>";
